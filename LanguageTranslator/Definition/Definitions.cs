@@ -15,6 +15,7 @@ namespace LanguageTranslator.Definition
 
 	class EnumDef
 	{
+		public string Namespace = string.Empty;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
 		public List<EnumMemberDef> Members = new List<EnumMemberDef>();
@@ -26,6 +27,13 @@ namespace LanguageTranslator.Definition
 	{
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
+
+		public Expression Value = null;
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax Internal = null;
 	}
 
 	class ClassDef

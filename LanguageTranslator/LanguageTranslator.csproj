@@ -101,6 +101,8 @@
   <ItemGroup>
     <Compile Include="CodeCommentParser\Parser.cs" />
     <Compile Include="Definition\Definitions.cs" />
+    <Compile Include="Definition\Expressions.cs" />
+    <Compile Include="Parser\BlockParser.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
