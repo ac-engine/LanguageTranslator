@@ -37,6 +37,11 @@ namespace LanguageTranslator
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
 			var definitions = parser.Parse(cs);
 
+			// コードコメントxmlの解析
+			var codeCommentParser = new CodeCommentParser.Parser();
+			codeCommentParser.Parse("", definitions);
+
+			// 変換後コードの出力
 			var translator = new Translator.Java.Translator();
 
 			System.IO.Directory.CreateDirectory(dstDir);
