@@ -126,6 +126,9 @@ namespace LanguageTranslator.Parser
 			// 名称
 			enumDef.Name = enumSyntax.Identifier.ValueText;
 
+			// ネームスペース
+			enumDef.Namespace = namespace_;
+
 			// swig
 			enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
 

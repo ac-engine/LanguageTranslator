@@ -8,6 +8,19 @@ namespace LanguageTranslator.Definition
 {
 	class MemberAccessExpression : Expression
 	{
+		public EnumDef Enum = null;
+		public EnumMemberDef EnumMember = null;
+
+		public Expression Expression = null;
+	}
+
+	class LiteralExpression : Expression
+	{
+		public string Text;
+	}
+
+	class InvocationExpression : Expression
+	{
 
 	}
 

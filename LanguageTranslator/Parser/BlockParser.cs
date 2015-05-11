@@ -61,39 +61,69 @@ namespace LanguageTranslator.Parser
 		{
 			var mae = syntax as MemberAccessExpressionSyntax;
 			var le = syntax as LiteralExpressionSyntax;
+			var ie = syntax as InvocationExpressionSyntax;
 
 			if (mae != null)
 			{
-				MemberAccessExpression ret = new MemberAccessExpression();
+				MemberAccessExpression exp = new MemberAccessExpression();
+
+				TypeInfo? selfType = null;
+				selfType = semanticModel.GetTypeInfo(mae);
 
 				TypeInfo? parentType = null;
-				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
+				if(mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
 
-				if (parentType.HasValue)
+				// 親の種類を探索
+				EnumDef enumDefP = null;
+
+				if (parentType.HasValue && parentType.Value.Type != null)
 				{
-					if (parentType.Value.Type.TypeKind == TypeKind.Enum)
+					if(parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
-						// Enum
-						var name = parentType.Value.Type.Name;
-						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
-
-						//var enumDef = definitions.GetEnum(name, namespace_);
+						var enumName = selfType.Value.Type.Name;
+						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
+						enumDefP = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
 					}
+				}
+
+				// 親から子を探索
+	
+				if(enumDefP != null)
+				{
+					var name = mae.Name.ToString();
+					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
 				}
 				else
 				{
-
+					if (selfType.HasValue && selfType.Value.Type != null)
+					{
+						if(selfType.Value.Type.TypeKind == TypeKind.Enum)
+						{
+							var enumName = selfType.Value.Type.Name;
+							var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
+							exp.Enum = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
+						}
+					}
 				}
 
-				return ret;
+				if(mae.Expression != null)
+				{
+					exp.Expression = ParseExpression(mae.Expression, semanticModel);
+				}
+
+				return exp;
 			}
 			else if (le != null)
 			{
-				Console.WriteLine(le);
+				var text = le.GetText().ToString();
+				var exp = new LiteralExpression();
+				exp.Text = text;
+
+				return exp;
 			}
-			else
+			else if(ie != null)
 			{
-				throw new Exception("対応していないExpressionSyntax");
+				return null;
 			}
 
 			return null;
