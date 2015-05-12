@@ -128,5 +128,46 @@ namespace LanguageTranslator.Parser
 
 			return null;
 		}
+
+		public Statement ParseStatement(StatementSyntax syntax, SemanticModel semanticModel)
+		{
+			var bs = syntax as BlockSyntax;
+			var ifs = syntax as IfStatementSyntax;
+
+			if(bs != null)
+			{
+				return ParseBlockStatement(bs, semanticModel);
+			}
+			else if(ifs != null)
+			{
+				var st = new IfStatement();
+				st.Condition = ParseExpression(ifs.Condition, semanticModel);
+				st.TrueStatement = ParseStatement(ifs.Statement, semanticModel);
+
+				if(ifs.Else != null)
+				{
+					st.FalseStatement = ParseStatement(ifs.Else.Statement, semanticModel);
+				}
+
+				return st;
+			}
+
+			return null;
+		}
+
+		public BlockStatement ParseBlockStatement(BlockSyntax syntax, SemanticModel semanticModel)
+		{
+			List<Statement> statements = new List<Statement>();
+
+			foreach(var statement in syntax.Statements)
+			{
+				statements.Add(ParseStatement(statement, semanticModel));
+			}
+
+			var bs = new BlockStatement();
+			bs.Statements = statements.ToArray();
+
+			return bs;
+		}
 	}
 }
