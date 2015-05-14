@@ -20,6 +20,11 @@ namespace LanguageTranslator.Definition
 		public List<EnumMemberDef> Members = new List<EnumMemberDef>();
 
 		public bool IsDefinedBySWIG = false;
+
+		public override string ToString()
+		{
+			return string.Format("EnumDef {0}", Name);
+		}
 	}
 
 	class EnumMemberDef
@@ -28,6 +33,11 @@ namespace LanguageTranslator.Definition
 		public string Brief = string.Empty;
 
 		public Expression Value = null;
+
+		public override string ToString()
+		{
+			return string.Format("EnumMemberDef {0}", Name);
+		}
 
 		/// <summary>
 		/// パーサー内部処理用
@@ -57,6 +67,11 @@ namespace LanguageTranslator.Definition
 		public string Type = string.Empty;
 		public string Brief = string.Empty;
 		public Expression Initializer = null;
+
+		public override string ToString()
+		{
+			return string.Format("FieldDef {0}", Name);
+		}
 	}
 
 	class PropertyDef
@@ -66,6 +81,11 @@ namespace LanguageTranslator.Definition
 		public string Brief = string.Empty;
 		public AccessorDef Getter = null;
 		public AccessorDef Setter = null;
+
+		public override string ToString()
+		{
+			return string.Format("PropertyDef {0}", Name);
+		}
 	}
 
 	class AccessorDef
@@ -80,6 +100,11 @@ namespace LanguageTranslator.Definition
 		public string Brief = string.Empty;
 		public List<ParameterDef> Parameters = new List<ParameterDef>();
 		public List<Statement> Body = new List<Statement>();
+
+		public override string ToString()
+		{
+			return string.Format("MethodDef {0}", Name);
+		}
 	}
 
 	class ParameterDef
@@ -87,5 +112,10 @@ namespace LanguageTranslator.Definition
 		public string Type = string.Empty;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
+
+		public override string ToString()
+		{
+			return string.Format("ParameterDef {0}", Name);
+		}
 	}
 }
