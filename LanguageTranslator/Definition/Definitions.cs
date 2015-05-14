@@ -9,7 +9,6 @@ namespace LanguageTranslator.Definition
 	class Definitions
 	{
 		public List<EnumDef> Enums = new List<EnumDef>();
-
 		public List<ClassDef> Classes = new List<ClassDef>();
 	}
 
@@ -40,12 +39,53 @@ namespace LanguageTranslator.Definition
 	{
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
-	
+		public List<MethodDef> Methods = new List<MethodDef>();
+		public List<PropertyDef> Properties = new List<PropertyDef>();
+		public List<FieldDef> Fields = new List<FieldDef>();
+
 		public override string ToString()
 		{
 			return string.Format("ClassDef {0}", Name);
 		}
 
 		public bool IsDefinedBySWIG = false;
+	}
+
+	class FieldDef
+	{
+		public string Name = string.Empty;
+		public string Type = string.Empty;
+		public string Brief = string.Empty;
+		public Expression Initializer = null;
+	}
+
+	class PropertyDef
+	{
+		public string Name = string.Empty;
+		public string Type = string.Empty;
+		public string Brief = string.Empty;
+		public AccessorDef Getter = null;
+		public AccessorDef Setter = null;
+	}
+
+	class AccessorDef
+	{
+		public List<Statement> Body = new List<Statement>();
+	}
+
+	class MethodDef
+	{
+		public string Name = string.Empty;
+		public string ReturnType = string.Empty;
+		public string Brief = string.Empty;
+		public List<ParameterDef> Parameters = new List<ParameterDef>();
+		public List<Statement> Body = new List<Statement>();
+	}
+
+	class ParameterDef
+	{
+		public string Type = string.Empty;
+		public string Name = string.Empty;
+		public string Brief = string.Empty;
 	}
 }
