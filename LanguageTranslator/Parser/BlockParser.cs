@@ -12,6 +12,19 @@ using LanguageTranslator.Definition;
 
 namespace LanguageTranslator.Parser
 {
+	public class ParseException : Exception
+	{
+		public ParseException()
+			: base()
+		{
+		}
+
+		public ParseException(string message)
+			: base(message)
+		{
+		}
+	}
+
 	class BlockParser
 	{
 		Definition.Definitions definitions = null;
@@ -133,6 +146,7 @@ namespace LanguageTranslator.Parser
 		{
 			var bs = syntax as BlockSyntax;
 			var ifs = syntax as IfStatementSyntax;
+			var fors = syntax as ForStatementSyntax;
 
 			if(bs != null)
 			{
@@ -151,8 +165,61 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
+			else if (fors != null)
+			{
+				var st = new ForStatement();
+
+				st.Condition = ParseExpression(fors.Condition, semanticModel);
+
+				if(fors.Incrementors.Count >= 2)
+				{
+					throw new ParseException("for文内の,は使用禁止です。");
+				}
+
+				// TODO
+				// 変数処理(大幅に機能制限する)
+
+				if(fors.Incrementors.Count == 1)
+				{
+					st.Incrementor = ParseExpression(fors.Incrementors[0], semanticModel);
+				}
+
+				st.Statement = ParseStatement(fors.Statement, semanticModel);
+				return st;
+			}
 
 			return null;
+		}
+
+		public VariableDeclaration ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
+		{
+			if(syntax.Variables.Count != 1)
+			{
+				throw new ParseException("変数の複数同時宣言は禁止です。");
+			}
+
+			var st = new VariableDeclaration();
+
+			var type = syntax.Type;
+			var variable = syntax.Variables[0];
+
+			if( variable.Initializer == null ||
+				variable.Initializer.Value == null)
+			{
+				throw new ParseException("必ず変数は初期化する必要があります。");
+			}
+
+			var identifier = variable.Identifier;
+
+
+			var argumentList = variable.ArgumentList;
+			var initializer = variable.Initializer;
+
+			st.Type = type;
+			st.Name = identifier.ValueText;
+			st.Value = ParseExpression(initializer.Value, semanticModel);
+
+			return st;
 		}
 
 		public BlockStatement ParseBlockStatement(BlockSyntax syntax, SemanticModel semanticModel)
