@@ -12,6 +12,19 @@ using LanguageTranslator.Definition;
 
 namespace LanguageTranslator.Parser
 {
+	public class ParseException : Exception
+	{
+		public ParseException()
+			: base()
+		{
+		}
+
+		public ParseException(string message)
+			: base(message)
+		{
+		}
+	}
+
 	class BlockParser
 	{
 		Definition.Definitions definitions = null;
@@ -62,6 +75,10 @@ namespace LanguageTranslator.Parser
 			var mae = syntax as MemberAccessExpressionSyntax;
 			var le = syntax as LiteralExpressionSyntax;
 			var ie = syntax as InvocationExpressionSyntax;
+			var oce = syntax as ObjectCreationExpressionSyntax;
+			var ce = syntax as CastExpressionSyntax;
+			var thise = syntax as ThisExpressionSyntax;
+			var ae = syntax as AssignmentExpressionSyntax;
 
 			if (mae != null)
 			{
@@ -71,14 +88,14 @@ namespace LanguageTranslator.Parser
 				selfType = semanticModel.GetTypeInfo(mae);
 
 				TypeInfo? parentType = null;
-				if(mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
+				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
 
 				// 親の種類を探索
 				EnumDef enumDefP = null;
 
 				if (parentType.HasValue && parentType.Value.Type != null)
 				{
-					if(parentType.Value.Type.TypeKind == TypeKind.Enum)
+					if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
 						var enumName = selfType.Value.Type.Name;
 						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
@@ -87,8 +104,8 @@ namespace LanguageTranslator.Parser
 				}
 
 				// 親から子を探索
-	
-				if(enumDefP != null)
+
+				if (enumDefP != null)
 				{
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
@@ -97,7 +114,7 @@ namespace LanguageTranslator.Parser
 				{
 					if (selfType.HasValue && selfType.Value.Type != null)
 					{
-						if(selfType.Value.Type.TypeKind == TypeKind.Enum)
+						if (selfType.Value.Type.TypeKind == TypeKind.Enum)
 						{
 							var enumName = selfType.Value.Type.Name;
 							var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
@@ -106,7 +123,7 @@ namespace LanguageTranslator.Parser
 					}
 				}
 
-				if(mae.Expression != null)
+				if (mae.Expression != null)
 				{
 					exp.Expression = ParseExpression(mae.Expression, semanticModel);
 				}
@@ -121,9 +138,45 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
-			else if(ie != null)
+			else if (ie != null)
 			{
+				// 引数がないため保留
 				return null;
+			}
+			else if (oce != null)
+			{
+				// 引数がないため保留
+				return null;
+			}
+			else if(ce != null)
+			{
+				var st = new CastExpression();
+
+				st.Type = ce.Type;
+				st.Expression = ParseExpression(ce.Expression, semanticModel);
+				return st;
+			}
+			else if(thise != null)
+			{
+				var st = new ThisExpression();
+				return st;
+			}
+			else if(ae != null)
+			{
+				var st = new AssignmentExpression();
+
+				if(ae.Left is IdentifierNameSyntax)
+				{
+					st.LocalTarget = (ae.Left as IdentifierNameSyntax).GetText().ToString();
+				}
+				else
+				{
+					st.Target = ParseExpression(ae.Left, semanticModel);
+				}
+
+				st.Expression = ParseExpression(ae.Right, semanticModel);
+
+				return st;
 			}
 
 			return null;
@@ -133,6 +186,12 @@ namespace LanguageTranslator.Parser
 		{
 			var bs = syntax as BlockSyntax;
 			var ifs = syntax as IfStatementSyntax;
+			var fors = syntax as ForStatementSyntax;
+			var foreachs = syntax as ForEachStatementSyntax;
+			var continues = syntax as ContinueStatementSyntax;
+			var returns = syntax as ReturnStatementSyntax;
+			var locals = syntax as LocalDeclarationStatementSyntax;
+			var exs = syntax as ExpressionStatementSyntax;
 
 			if(bs != null)
 			{
@@ -151,8 +210,103 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
+			else if (fors != null)
+			{
+				var st = new ForStatement();
+
+				st.Condition = ParseExpression(fors.Condition, semanticModel);
+
+				if(fors.Incrementors.Count >= 2)
+				{
+					throw new ParseException("for文内の,は使用禁止です。");
+				}
+
+				// TODO
+				// 変数処理(大幅に機能制限する)
+
+				if(fors.Incrementors.Count == 1)
+				{
+					st.Incrementor = ParseExpression(fors.Incrementors[0], semanticModel);
+				}
+
+				st.Statement = ParseStatement(fors.Statement, semanticModel);
+				return st;
+			}
+			else if (foreachs != null)
+			{
+				var st = new ForeachStatement();
+
+				var type = foreachs.Type;
+
+				st.Type = type;
+				st.Name = foreachs.Identifier.ValueText;
+				st.Value = ParseExpression(foreachs.Expression, semanticModel);
+				st.Statement = ParseStatement(foreachs.Statement, semanticModel);
+
+				return st;
+			}
+			else if(continues != null)
+			{
+				var st = new ContinueStatement();
+				return st;
+			}
+			else if(returns != null)
+			{
+				var st = new ReturnStatement();
+
+				st.Return = ParseExpression(returns.Expression, semanticModel);
+
+				return st;
+			}
+			else if(locals != null)
+			{
+				return ParseLocalDeclaration(locals, semanticModel);
+			}
+			else if(exs != null)
+			{
+				var st = new ExpressionStatement();
+				st.Expression = ParseExpression(exs.Expression, semanticModel);
+				return st;
+			}
 
 			return null;
+		}
+
+		public VariableDeclarationStatement ParseLocalDeclaration(LocalDeclarationStatementSyntax syntax, SemanticModel semanticModel)
+		{
+			// const等は無視
+			return ParseVariableDeclarationSyntax(syntax.Declaration, semanticModel);
+		}
+
+		public VariableDeclarationStatement ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
+		{
+			if(syntax.Variables.Count != 1)
+			{
+				throw new ParseException("変数の複数同時宣言は禁止です。");
+			}
+
+			var st = new VariableDeclarationStatement();
+
+			var type = syntax.Type;
+			var variable = syntax.Variables[0];
+
+			if( variable.Initializer == null ||
+				variable.Initializer.Value == null)
+			{
+				throw new ParseException("必ず変数は初期化する必要があります。");
+			}
+
+			var identifier = variable.Identifier;
+
+
+			var argumentList = variable.ArgumentList;
+			var initializer = variable.Initializer;
+
+			st.Type = type;
+			st.Name = identifier.ValueText;
+			st.Value = ParseExpression(initializer.Value, semanticModel);
+
+			return st;
 		}
 
 		public BlockStatement ParseBlockStatement(BlockSyntax syntax, SemanticModel semanticModel)
