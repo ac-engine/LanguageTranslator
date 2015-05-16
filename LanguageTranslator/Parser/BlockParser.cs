@@ -75,6 +75,8 @@ namespace LanguageTranslator.Parser
 			var mae = syntax as MemberAccessExpressionSyntax;
 			var le = syntax as LiteralExpressionSyntax;
 			var ie = syntax as InvocationExpressionSyntax;
+			var oce = syntax as ObjectCreationExpressionSyntax;
+			var ce = syntax as CastExpressionSyntax;
 
 			if (mae != null)
 			{
@@ -84,14 +86,14 @@ namespace LanguageTranslator.Parser
 				selfType = semanticModel.GetTypeInfo(mae);
 
 				TypeInfo? parentType = null;
-				if(mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
+				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
 
 				// 親の種類を探索
 				EnumDef enumDefP = null;
 
 				if (parentType.HasValue && parentType.Value.Type != null)
 				{
-					if(parentType.Value.Type.TypeKind == TypeKind.Enum)
+					if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
 						var enumName = selfType.Value.Type.Name;
 						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
@@ -100,8 +102,8 @@ namespace LanguageTranslator.Parser
 				}
 
 				// 親から子を探索
-	
-				if(enumDefP != null)
+
+				if (enumDefP != null)
 				{
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
@@ -110,7 +112,7 @@ namespace LanguageTranslator.Parser
 				{
 					if (selfType.HasValue && selfType.Value.Type != null)
 					{
-						if(selfType.Value.Type.TypeKind == TypeKind.Enum)
+						if (selfType.Value.Type.TypeKind == TypeKind.Enum)
 						{
 							var enumName = selfType.Value.Type.Name;
 							var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
@@ -119,7 +121,7 @@ namespace LanguageTranslator.Parser
 					}
 				}
 
-				if(mae.Expression != null)
+				if (mae.Expression != null)
 				{
 					exp.Expression = ParseExpression(mae.Expression, semanticModel);
 				}
@@ -134,10 +136,25 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
-			else if(ie != null)
+			else if (ie != null)
 			{
+				// 引数がないため保留
 				return null;
 			}
+			else if (oce != null)
+			{
+				// 引数がないため保留
+				return null;
+			}
+			else if(ce != null)
+			{
+				var st = new CastExpression();
+
+				st.Type = ce.Type;
+				st.Expression = ParseExpression(ce.Expression, semanticModel);
+				return st;
+			}
+
 
 			return null;
 		}
