@@ -148,6 +148,8 @@ namespace LanguageTranslator.Parser
 			var ifs = syntax as IfStatementSyntax;
 			var fors = syntax as ForStatementSyntax;
 			var foreachs = syntax as ForEachStatementSyntax;
+			var continues = syntax as ContinueStatementSyntax;
+			var returns = syntax as ReturnStatementSyntax;
 
 			if(bs != null)
 			{
@@ -198,6 +200,19 @@ namespace LanguageTranslator.Parser
 				st.Name = foreachs.Identifier.ValueText;
 				st.Value = ParseExpression(foreachs.Expression, semanticModel);
 				st.Statement = ParseStatement(foreachs.Statement, semanticModel);
+
+				return st;
+			}
+			else if(continues != null)
+			{
+				var st = new ContinueStatement();
+				return st;
+			}
+			else if(returns != null)
+			{
+				var st = new ReturnStatement();
+
+				st.Return = ParseExpression(returns.Expression, semanticModel);
 
 				return st;
 			}

@@ -100,6 +100,18 @@ namespace LanguageTranslator.Definition
 		public Statement FalseStatement = null;
 	}
 
+	class ReturnStatement : Statement
+	{
+		/// <summary>
+		/// 返す値
+		/// </summary>
+		public Expression Return = null;
+	}
+
+	class ContinueStatement : Statement
+	{
+	}
+
 	class Statement
 	{
 	}
