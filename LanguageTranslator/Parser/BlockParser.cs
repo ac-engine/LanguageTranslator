@@ -79,6 +79,8 @@ namespace LanguageTranslator.Parser
 			var ce = syntax as CastExpressionSyntax;
 			var thise = syntax as ThisExpressionSyntax;
 			var ae = syntax as AssignmentExpressionSyntax;
+			var pe = syntax as ParenthesizedExpressionSyntax;
+			var ine = syntax as IdentifierNameSyntax;
 
 			if (mae != null)
 			{
@@ -140,13 +142,20 @@ namespace LanguageTranslator.Parser
 			}
 			else if (ie != null)
 			{
-				// 引数がないため保留
-				return null;
+				var st = new InvocationExpression();
+
+				st.Method = ParseExpression(ie.Expression, semanticModel);
+				st.Args = ie.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
+				
+				return st;
 			}
 			else if (oce != null)
 			{
-				// 引数がないため保留
-				return null;
+				var st = new ObjectCreationExpression();
+				st.Type = oce.Type;
+				st.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
+
+				return st;
 			}
 			else if(ce != null)
 			{
@@ -164,18 +173,21 @@ namespace LanguageTranslator.Parser
 			else if(ae != null)
 			{
 				var st = new AssignmentExpression();
-
-				if(ae.Left is IdentifierNameSyntax)
-				{
-					st.LocalTarget = (ae.Left as IdentifierNameSyntax).GetText().ToString();
-				}
-				else
-				{
-					st.Target = ParseExpression(ae.Left, semanticModel);
-				}
-
+		
+				st.Target = ParseExpression(ae.Left, semanticModel);
 				st.Expression = ParseExpression(ae.Right, semanticModel);
 
+				return st;
+			}
+			else if(pe != null)
+			{
+				// ()の構文
+				return ParseExpression(pe.Expression, semanticModel);
+			}
+			else if(ine != null)
+			{
+				var st = new IdentifierNameExpression();
+				st.Name = ine.GetText().ToString();
 				return st;
 			}
 
