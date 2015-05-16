@@ -147,6 +147,7 @@ namespace LanguageTranslator.Parser
 			var bs = syntax as BlockSyntax;
 			var ifs = syntax as IfStatementSyntax;
 			var fors = syntax as ForStatementSyntax;
+			var foreachs = syntax as ForEachStatementSyntax;
 
 			if(bs != null)
 			{
@@ -185,6 +186,19 @@ namespace LanguageTranslator.Parser
 				}
 
 				st.Statement = ParseStatement(fors.Statement, semanticModel);
+				return st;
+			}
+			else if (foreachs != null)
+			{
+				var st = new ForeachStatement();
+
+				var type = foreachs.Type;
+
+				st.Type = type;
+				st.Name = foreachs.Identifier.ValueText;
+				st.Value = ParseExpression(foreachs.Expression, semanticModel);
+				st.Statement = ParseStatement(foreachs.Statement, semanticModel);
+
 				return st;
 			}
 

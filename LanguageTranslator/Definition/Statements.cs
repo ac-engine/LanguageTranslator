@@ -33,6 +33,30 @@ namespace LanguageTranslator.Definition
 		public Expression Value = null;
 	}
 
+
+	class ForeachStatement : Statement
+	{
+		/// <summary>
+		/// 種類(仮)
+		/// </summary>
+		public TypeSyntax Type;
+
+		/// <summary>
+		/// 名称
+		/// </summary>
+		public string Name = string.Empty;
+
+		/// <summary>
+		/// 値
+		/// </summary>
+		public Expression Value = null;
+
+		/// <summary>
+		/// 実行される内容
+		/// </summary>
+		public Statement Statement = null;
+	}
+
 	class ForStatement : Statement
 	{
 		/// <summary>
