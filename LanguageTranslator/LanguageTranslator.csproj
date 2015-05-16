@@ -103,6 +103,7 @@
     <Compile Include="Definition\Definitions.cs" />
     <Compile Include="Definition\Expressions.cs" />
     <Compile Include="Definition\Statements.cs" />
+    <Compile Include="Definition\TypeSpecifier.cs" />
     <Compile Include="Parser\BlockParser.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Program.cs" />
