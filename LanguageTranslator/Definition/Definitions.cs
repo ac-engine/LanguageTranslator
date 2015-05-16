@@ -63,10 +63,10 @@ namespace LanguageTranslator.Definition
 
 	class FieldDef
 	{
+		public TypeSpecifier Type = null;
 		public string Name = string.Empty;
-		public string Type = string.Empty;
-		public string Brief = string.Empty;
 		public Expression Initializer = null;
+		public string Brief = string.Empty;
 
 		public override string ToString()
 		{
@@ -76,11 +76,11 @@ namespace LanguageTranslator.Definition
 
 	class PropertyDef
 	{
+		public TypeSpecifier Type = null;
 		public string Name = string.Empty;
-		public string Type = string.Empty;
-		public string Brief = string.Empty;
 		public AccessorDef Getter = null;
 		public AccessorDef Setter = null;
+		public string Brief = string.Empty;
 
 		public override string ToString()
 		{
@@ -95,8 +95,8 @@ namespace LanguageTranslator.Definition
 
 	class MethodDef
 	{
+		public TypeSpecifier ReturnType = null;
 		public string Name = string.Empty;
-		public string ReturnType = string.Empty;
 		public string Brief = string.Empty;
 		public List<ParameterDef> Parameters = new List<ParameterDef>();
 		public List<Statement> Body = new List<Statement>();
@@ -109,7 +109,7 @@ namespace LanguageTranslator.Definition
 
 	class ParameterDef
 	{
-		public string Type = string.Empty;
+		public TypeSpecifier Type = null;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
 
