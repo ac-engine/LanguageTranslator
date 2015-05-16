@@ -38,7 +38,23 @@ namespace LanguageTranslator.Definition
 
 	}
 
-	class ObjectCreation : Expression
+	class ObjectCreationExpression : Expression
+	{
+
+	}
+
+	/// <summary>
+	/// Expressionかローカル変数に代入する。
+	/// </summary>
+	class AssignmentExpression : Expression
+	{
+		public Expression Target;
+		public string LocalTarget;
+
+		public Expression Expression;
+	}
+
+	class ThisExpression : Expression
 	{
 
 	}

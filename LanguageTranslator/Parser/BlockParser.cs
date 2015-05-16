@@ -77,6 +77,8 @@ namespace LanguageTranslator.Parser
 			var ie = syntax as InvocationExpressionSyntax;
 			var oce = syntax as ObjectCreationExpressionSyntax;
 			var ce = syntax as CastExpressionSyntax;
+			var thise = syntax as ThisExpressionSyntax;
+			var ae = syntax as AssignmentExpressionSyntax;
 
 			if (mae != null)
 			{
@@ -154,7 +156,28 @@ namespace LanguageTranslator.Parser
 				st.Expression = ParseExpression(ce.Expression, semanticModel);
 				return st;
 			}
+			else if(thise != null)
+			{
+				var st = new ThisExpression();
+				return st;
+			}
+			else if(ae != null)
+			{
+				var st = new AssignmentExpression();
 
+				if(ae.Left is IdentifierNameSyntax)
+				{
+					st.LocalTarget = (ae.Left as IdentifierNameSyntax).GetText().ToString();
+				}
+				else
+				{
+					st.Target = ParseExpression(ae.Left, semanticModel);
+				}
+
+				st.Expression = ParseExpression(ae.Right, semanticModel);
+
+				return st;
+			}
 
 			return null;
 		}
@@ -168,6 +191,7 @@ namespace LanguageTranslator.Parser
 			var continues = syntax as ContinueStatementSyntax;
 			var returns = syntax as ReturnStatementSyntax;
 			var locals = syntax as LocalDeclarationStatementSyntax;
+			var exs = syntax as ExpressionStatementSyntax;
 
 			if(bs != null)
 			{
@@ -238,24 +262,30 @@ namespace LanguageTranslator.Parser
 			{
 				return ParseLocalDeclaration(locals, semanticModel);
 			}
+			else if(exs != null)
+			{
+				var st = new ExpressionStatement();
+				st.Expression = ParseExpression(exs.Expression, semanticModel);
+				return st;
+			}
 
 			return null;
 		}
 
-		public VariableDeclaration ParseLocalDeclaration(LocalDeclarationStatementSyntax syntax, SemanticModel semanticModel)
+		public VariableDeclarationStatement ParseLocalDeclaration(LocalDeclarationStatementSyntax syntax, SemanticModel semanticModel)
 		{
 			// const等は無視
 			return ParseVariableDeclarationSyntax(syntax.Declaration, semanticModel);
 		}
 
-		public VariableDeclaration ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
+		public VariableDeclarationStatement ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
 		{
 			if(syntax.Variables.Count != 1)
 			{
 				throw new ParseException("変数の複数同時宣言は禁止です。");
 			}
 
-			var st = new VariableDeclaration();
+			var st = new VariableDeclarationStatement();
 
 			var type = syntax.Type;
 			var variable = syntax.Variables[0];

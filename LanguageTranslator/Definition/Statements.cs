@@ -15,7 +15,7 @@ namespace LanguageTranslator.Definition
 		public Statement[] Statements;
 	}
 
-	class VariableDeclaration : Statement
+	class VariableDeclarationStatement : Statement
 	{
 		/// <summary>
 		/// 種類(仮)
@@ -110,6 +110,14 @@ namespace LanguageTranslator.Definition
 
 	class ContinueStatement : Statement
 	{
+	}
+
+	/// <summary>
+	/// 変数を返す関数を呼ぶ時等に使用される・・・はず
+	/// </summary>
+	class ExpressionStatement : Statement
+	{
+		public Expression Expression = null;
 	}
 
 	class Statement
