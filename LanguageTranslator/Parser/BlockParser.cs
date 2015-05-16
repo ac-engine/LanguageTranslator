@@ -150,6 +150,7 @@ namespace LanguageTranslator.Parser
 			var foreachs = syntax as ForEachStatementSyntax;
 			var continues = syntax as ContinueStatementSyntax;
 			var returns = syntax as ReturnStatementSyntax;
+			var locals = syntax as LocalDeclarationStatementSyntax;
 
 			if(bs != null)
 			{
@@ -216,8 +217,18 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
+			else if(locals != null)
+			{
+				return ParseLocalDeclaration(locals, semanticModel);
+			}
 
 			return null;
+		}
+
+		public VariableDeclaration ParseLocalDeclaration(LocalDeclarationStatementSyntax syntax, SemanticModel semanticModel)
+		{
+			// const等は無視
+			return ParseVariableDeclarationSyntax(syntax.Declaration, semanticModel);
 		}
 
 		public VariableDeclaration ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
