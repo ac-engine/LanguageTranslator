@@ -95,7 +95,14 @@ namespace LanguageTranslator.Definition
 	/// </summary>
 	class PrefixUnaryExpression : Expression
 	{
+		public Expression Expression;
+		public OperatorType Type;
 
+		public enum OperatorType
+		{
+			PlusPlus,
+			MinusMinus,
+		}
 	}
 
 	class Expression
