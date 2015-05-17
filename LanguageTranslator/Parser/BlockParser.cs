@@ -81,6 +81,9 @@ namespace LanguageTranslator.Parser
 			var ae = syntax as AssignmentExpressionSyntax;
 			var pe = syntax as ParenthesizedExpressionSyntax;
 			var ine = syntax as IdentifierNameSyntax;
+			var eae = syntax as ElementAccessExpressionSyntax;
+			var be = syntax as BinaryExpressionSyntax;
+			var pue = syntax as PrefixUnaryExpressionSyntax;
 
 			if (mae != null)
 			{
@@ -188,6 +191,46 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new IdentifierNameExpression();
 				st.Name = ine.GetText().ToString();
+				return st;
+			}
+			else if(eae != null)
+			{
+				if(eae.ArgumentList.Arguments.Count() != 1)
+				{
+					throw new ParseException("多次元配列は使用禁止です。");
+				}
+
+				var exp = eae.Expression;
+				var arg = eae.ArgumentList.Arguments[0].Expression;
+
+				var st = new ElementAccessExpression();
+
+				st.Value = ParseExpression(exp, semanticModel);
+				st.Arg = ParseExpression(arg, semanticModel);
+
+				return st;
+			}
+			else if (be != null)
+			{
+				var st = new BinaryExpression();
+
+				st.Left = ParseExpression(be.Left, semanticModel);
+				st.Right = ParseExpression(be.Right, semanticModel);
+
+				if (be.Kind() == SyntaxKind.AddExpression) st.Operator = BinaryExpression.OperatorType.Add;
+				if (be.Kind() == SyntaxKind.SubtractExpression) st.Operator = BinaryExpression.OperatorType.Subtract;
+
+				return st;
+			}
+			else if (pue != null)
+			{
+				var st = new PrefixUnaryExpression();
+
+				st.Expression = ParseExpression(pue.Operand, semanticModel);
+
+				if (pue.Kind() == SyntaxKind.PlusPlusToken) st.Type = PrefixUnaryExpression.OperatorType.PlusPlus;
+				if (pue.Kind() == SyntaxKind.MinusMinusToken) st.Type = PrefixUnaryExpression.OperatorType.MinusMinus;
+
 				return st;
 			}
 

@@ -35,12 +35,18 @@ namespace LanguageTranslator.Definition
 
 	class InvocationExpression : Expression
 	{
-
+		public Expression Method;
+		public Expression[] Args;
 	}
 
 	class ObjectCreationExpression : Expression
 	{
+		/// <summary>
+		/// 種類(仮)
+		/// </summary>
+		public TypeSyntax Type;
 
+		public Expression[] Args;
 	}
 
 	/// <summary>
@@ -49,12 +55,45 @@ namespace LanguageTranslator.Definition
 	class AssignmentExpression : Expression
 	{
 		public Expression Target;
-		public string LocalTarget;
-
 		public Expression Expression;
 	}
 
+	class ElementAccessExpression : Expression
+	{
+		public Expression Value;
+		public Expression Arg;
+	}
+
 	class ThisExpression : Expression
+	{
+
+	}
+
+	class IdentifierNameExpression : Expression
+	{
+		public string Name;
+	}
+
+	/// <summary>
+	/// +等
+	/// </summary>
+	class BinaryExpression : Expression
+	{
+		public Expression Left;
+		public Expression Right;
+		public OperatorType Operator;
+
+		public enum OperatorType
+		{
+			Add,
+			Subtract,
+		}
+	}
+
+	/// <summary>
+	/// ++等
+	/// </summary>
+	class PrefixUnaryExpression : Expression
 	{
 
 	}
