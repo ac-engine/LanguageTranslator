@@ -164,7 +164,7 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new CastExpression();
 
-				st.Type = ce.Type;
+				st.Type = ParseType(ce.Type, semanticModel);
 				st.Expression = ParseExpression(ce.Expression, semanticModel);
 				return st;
 			}
@@ -247,18 +247,19 @@ namespace LanguageTranslator.Parser
 			var returns = syntax as ReturnStatementSyntax;
 			var locals = syntax as LocalDeclarationStatementSyntax;
 			var exs = syntax as ExpressionStatementSyntax;
+			var fxs = syntax as FixedStatementSyntax;
 
-			if(bs != null)
+			if (bs != null)
 			{
 				return ParseBlockStatement(bs, semanticModel);
 			}
-			else if(ifs != null)
+			else if (ifs != null)
 			{
 				var st = new IfStatement();
 				st.Condition = ParseExpression(ifs.Condition, semanticModel);
 				st.TrueStatement = ParseStatement(ifs.Statement, semanticModel);
 
-				if(ifs.Else != null)
+				if (ifs.Else != null)
 				{
 					st.FalseStatement = ParseStatement(ifs.Else.Statement, semanticModel);
 				}
@@ -271,7 +272,7 @@ namespace LanguageTranslator.Parser
 
 				st.Condition = ParseExpression(fors.Condition, semanticModel);
 
-				if(fors.Incrementors.Count >= 2)
+				if (fors.Incrementors.Count >= 2)
 				{
 					throw new ParseException("for文内の,は使用禁止です。");
 				}
@@ -279,7 +280,7 @@ namespace LanguageTranslator.Parser
 				// TODO
 				// 変数処理(大幅に機能制限する)
 
-				if(fors.Incrementors.Count == 1)
+				if (fors.Incrementors.Count == 1)
 				{
 					st.Incrementor = ParseExpression(fors.Incrementors[0], semanticModel);
 				}
@@ -293,19 +294,19 @@ namespace LanguageTranslator.Parser
 
 				var type = foreachs.Type;
 
-				st.Type = type;
+				st.Type = ParseType(type, semanticModel);
 				st.Name = foreachs.Identifier.ValueText;
 				st.Value = ParseExpression(foreachs.Expression, semanticModel);
 				st.Statement = ParseStatement(foreachs.Statement, semanticModel);
 
 				return st;
 			}
-			else if(continues != null)
+			else if (continues != null)
 			{
 				var st = new ContinueStatement();
 				return st;
 			}
-			else if(returns != null)
+			else if (returns != null)
 			{
 				var st = new ReturnStatement();
 
@@ -313,15 +314,28 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
-			else if(locals != null)
+			else if (locals != null)
 			{
 				return ParseLocalDeclaration(locals, semanticModel);
 			}
-			else if(exs != null)
+			else if (exs != null)
 			{
 				var st = new ExpressionStatement();
 				st.Expression = ParseExpression(exs.Expression, semanticModel);
 				return st;
+			}
+			else if(fxs != null)
+			{
+				// fixed構文は配列宣言+ブロックに分解
+				var blocks = ParseStatement(fxs.Statement, semanticModel);
+				if (!(blocks is BlockStatement)) return null;
+
+				var vs = ParseVariableDeclarationSyntax(fxs.Declaration, semanticModel);
+				if (vs == null) return null;
+
+				(blocks as BlockStatement).Statements = (new[] { vs }).Concat((blocks as BlockStatement).Statements).ToArray();
+
+				return blocks;
 			}
 
 			return null;
@@ -357,7 +371,7 @@ namespace LanguageTranslator.Parser
 			var argumentList = variable.ArgumentList;
 			var initializer = variable.Initializer;
 
-			st.Type = type;
+			st.Type = ParseType(type, semanticModel);
 			st.Name = identifier.ValueText;
 			st.Value = ParseExpression(initializer.Value, semanticModel);
 
@@ -377,6 +391,23 @@ namespace LanguageTranslator.Parser
 			bs.Statements = statements.ToArray();
 
 			return bs;
+		}
+
+		public TypeSpecifier ParseType(TypeSyntax syntax, SemanticModel semanticModel)
+		{
+			TypeInfo? type = null;
+			type = semanticModel.GetTypeInfo(syntax);
+
+			if (type == null) return null;
+			if (!type.HasValue) return null;
+
+			var name_ = type.Value.Type.Name;
+			var namespace_ = type.Value.Type.ContainingNamespace.ToString();
+
+			var ret = new SimpleType();
+			ret.Type = namespace_ + "." + name_;
+
+			return ret;
 		}
 	}
 }

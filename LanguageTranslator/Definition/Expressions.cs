@@ -21,10 +21,9 @@ namespace LanguageTranslator.Definition
 	class CastExpression : Expression
 	{
 		/// <summary>
-		/// 種類(仮)
+		/// 型
 		/// </summary>
-		public TypeSyntax Type;
-
+		public TypeSpecifier Type;
 		public Expression Expression = null;
 	}
 

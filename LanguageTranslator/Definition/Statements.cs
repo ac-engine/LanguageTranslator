@@ -18,9 +18,9 @@ namespace LanguageTranslator.Definition
 	class VariableDeclarationStatement : Statement
 	{
 		/// <summary>
-		/// 種類(仮)
+		/// 型
 		/// </summary>
-		public TypeSyntax Type;
+		public TypeSpecifier Type;
 
 		/// <summary>
 		/// 名称
@@ -37,9 +37,9 @@ namespace LanguageTranslator.Definition
 	class ForeachStatement : Statement
 	{
 		/// <summary>
-		/// 種類(仮)
+		/// 型
 		/// </summary>
-		public TypeSyntax Type;
+		public TypeSpecifier Type;
 
 		/// <summary>
 		/// 名称
