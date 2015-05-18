@@ -53,7 +53,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(p.Brief);
 				MakeIndent();
-				Res.AppendFormat("private {0} {1};", p.);
+				Res.AppendFormat("private {0} {1};", p.Type, p.Name);
 			}
 			IndentDepth--;
 			MakeIndent();
