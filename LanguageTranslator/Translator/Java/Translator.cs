@@ -68,11 +68,11 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(e.Brief);
 				MakeIndent();
-				Res.AppendFormat("{0} = {1},\n", e.Name, e.Value.ToString());
+				Res.AppendFormat("{0} = {1},\n", e.Name, GetExpression(e.Value));
 			}
 			IndentDepth--;
 			MakeIndent();
-			Res.AppendFormat("}}");
+			Res.AppendFormat("}}\n");
 		}
 
 
