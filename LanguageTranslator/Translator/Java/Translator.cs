@@ -25,13 +25,46 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("/* {0} */\n", brief);
 		}
 
+		private string GetExpression(Definition.Expression e)
+		{
+			// not implemented
+			return "";
+		}
+
+		private void OutputStatement(Definition.Statement s)
+		{
+			// not implemented
+		}
+
+
+		public string GetParamStr(List<Definition.ParameterDef> ps)
+		{
+			var isFirst = true;
+			var res = new StringBuilder();
+			foreach (var p in ps)
+			{
+				if (isFirst)
+				{
+					isFirst = false;
+				}
+				else
+				{
+					res.Append(", ");
+				}
+				res.Append(p.Type);
+				res.Append(" ");
+				res.Append(p.Name);
+			}
+			return res.ToString();
+		}
+
 		private void OutputEnum(Definition.EnumDef es)
 		{
 			MakeBrief(es.Brief);
 			MakeIndent();
-			Res.AppendFormat("enum {0} {{\n", es.Name);
+			Res.AppendFormat("public enum {0} {{\n", es.Name);
 			IndentDepth++;
-			foreach (var e in es.Members) 
+			foreach (var e in es.Members)
 			{
 				MakeBrief(e.Brief);
 				MakeIndent();
@@ -47,14 +80,59 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("class {0} {{\n", cs.Name);
+			Res.AppendFormat("public class {0} {{\n", cs.Name);
 			IndentDepth++;
+
+
+			foreach (var f in cs.Fields)
+			{
+				MakeBrief(f.Brief);
+				MakeIndent();
+				Res.AppendFormat("public {0} {1} = {2};\n", f.Type, f.Name, GetExpression(f.Initializer));
+			}
+
 			foreach (var p in cs.Properties)
 			{
 				MakeBrief(p.Brief);
 				MakeIndent();
-				Res.AppendFormat("private {0} {1};", p.Type, p.Name);
+				Res.AppendFormat("private {0} {1};\n", p.Type, p.Name);
+				MakeIndent();
+
+				Res.AppendFormat("public void set{0} {{\n", p.Name);
+				IndentDepth++;
+				foreach (var s in p.Setter.Body)
+				{
+					OutputStatement(s);
+				}
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
+
+				Res.AppendFormat("public void get{0} {{\n", p.Name);
+				IndentDepth++;
+				foreach (var s in p.Getter.Body)
+				{
+					OutputStatement(s);
+				}
+				IndentDepth--;
+				Res.AppendLine("}");
 			}
+
+			foreach (var m in cs.Methods)
+			{
+				MakeBrief(m.Brief);
+				MakeIndent();
+
+				Res.AppendFormat("public {0} {1}({2}) {{\n", m.ReturnType, m.Name, GetParamStr(m.Parameters));
+				IndentDepth++;
+				foreach (var s in m.Body)
+				{
+					OutputStatement(s);
+				}
+				IndentDepth--;
+				Res.AppendLine("}");
+			}
+
 			IndentDepth--;
 			MakeIndent();
 			Res.AppendFormat("}}");
