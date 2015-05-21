@@ -101,6 +101,11 @@ namespace LanguageTranslator.Definition
 		public List<ParameterDef> Parameters = new List<ParameterDef>();
 		public List<Statement> Body = new List<Statement>();
 
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax Internal = null;
+
 		public override string ToString()
 		{
 			return string.Format("MethodDef {0}", Name);

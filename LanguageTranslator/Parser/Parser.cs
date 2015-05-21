@@ -23,7 +23,7 @@ namespace LanguageTranslator.Parser
             List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
             foreach (var path in pathes)
             {
-                var tree = CSharpSyntaxTree.ParseText(System.IO.File.ReadAllText(path));
+                var tree = CSharpSyntaxTree.ParseText(System.IO.File.ReadAllText(path), null, path);
                 syntaxTrees.Add(tree);
             }
 
@@ -160,6 +160,8 @@ namespace LanguageTranslator.Parser
             {
                 methodDef.Parameters.Add(ParseParameter(parameter));
             }
+
+			methodDef.Internal = methodSyntax;
 
             return methodDef;
         }
