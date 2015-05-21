@@ -35,12 +35,28 @@ namespace LanguageTranslator
 
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
-			var definitions = parser.Parse(cs);
 
+			Definition.Definitions definitions = null;
+			
+			try
+			{
+				definitions = parser.Parse(cs);
+			}
+			catch(Parser.ParseException e)
+			{
+				Console.WriteLine(e.Message);
+				return;
+			}
+			
 			// コードコメントxmlの解析
-			var codeCommentParser = new CodeCommentParser.Parser();
-			codeCommentParser.Parse("", definitions);
+			var xmlPath = string.Empty;
 
+			if(System.IO.File.Exists(xmlPath))
+			{
+				var codeCommentParser = new CodeCommentParser.Parser();
+				codeCommentParser.Parse(xmlPath, definitions);
+			}
+			
 			// 変換後コードの出力
 			var translator = new Translator.Java.Translator();
 

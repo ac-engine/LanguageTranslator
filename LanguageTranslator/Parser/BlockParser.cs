@@ -39,6 +39,11 @@ namespace LanguageTranslator.Parser
 			{
 				ParseEnum(enumDef);
 			}
+
+			foreach(var classDef in definitions.Classes)
+			{
+				ParseClass(classDef);
+			}
 		}
 
 		void ParseEnum(Definition.EnumDef enumDef)
@@ -62,6 +67,23 @@ namespace LanguageTranslator.Parser
 			var eqValue = syntax.EqualsValue.Value;
 
 			def.Value = ParseExpression(eqValue, semanticModel);
+		}
+
+		void ParseClass(Definition.ClassDef classDef)
+		{
+			if (classDef.IsDefinedBySWIG) return;
+
+			foreach(var method in classDef.Methods)
+			{
+				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
+
+				if(method.Internal.Body == null)
+				{
+					continue;
+				}
+
+				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
 		}
 
 		/// <summary>
@@ -351,7 +373,8 @@ namespace LanguageTranslator.Parser
 		{
 			if(syntax.Variables.Count != 1)
 			{
-				throw new ParseException("変数の複数同時宣言は禁止です。");
+				var span = syntax.SyntaxTree.GetLineSpan(syntax.Variables.Span);
+				throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
 			}
 
 			var st = new VariableDeclarationStatement();
@@ -359,10 +382,11 @@ namespace LanguageTranslator.Parser
 			var type = syntax.Type;
 			var variable = syntax.Variables[0];
 
-			if( variable.Initializer == null ||
+			if (variable.Initializer == null ||
 				variable.Initializer.Value == null)
 			{
-				throw new ParseException("必ず変数は初期化する必要があります。");
+				var span = variable.SyntaxTree.GetLineSpan(variable.Span);
+				throw new ParseException(string.Format("{0} : {1}, 必ず変数は初期化する必要があります。", span, variable.GetText().ToString()));
 			}
 
 			var identifier = variable.Identifier;
@@ -401,8 +425,15 @@ namespace LanguageTranslator.Parser
 			if (type == null) return null;
 			if (!type.HasValue) return null;
 
+			if(type.Value.Type.TypeKind == TypeKind.Array)
+			{
+				// TODO 完全版
+				return new ArrayType();
+			}
+
 			var name_ = type.Value.Type.Name;
 			var namespace_ = type.Value.Type.ContainingNamespace.ToString();
+
 
 			var ret = new SimpleType();
 			ret.Type = namespace_ + "." + name_;
