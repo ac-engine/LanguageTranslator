@@ -425,20 +425,47 @@ namespace LanguageTranslator.Parser
 			if (type == null) return null;
 			if (!type.HasValue) return null;
 
-			if(type.Value.Type.TypeKind == TypeKind.Array)
+			var value = type.Value;
+
+			var namedType = value.Type as INamedTypeSymbol;
+			var arrayType = value.Type as IArrayTypeSymbol;
+			var isGeneric = namedType != null && namedType.IsGenericType;
+			
+			
+			if(isGeneric)
 			{
-				// TODO 完全版
-				return new ArrayType();
+				var ret = new GenericType();
+
+				var name_ = value.Type.Name;
+				var namespace_ = value.Type.ContainingNamespace.ToString();
+				ret.OuterType = namespace_ + "." + name_;
+
+				ret.InnerType =
+				namedType.TypeArguments.Select(_ =>
+				{
+					return _.ContainingNamespace.ToString() + "." + _.Name;
+				}).ToList();
+
+				return ret;
 			}
-
-			var name_ = type.Value.Type.Name;
-			var namespace_ = type.Value.Type.ContainingNamespace.ToString();
-
-
-			var ret = new SimpleType();
-			ret.Type = namespace_ + "." + name_;
-
-			return ret;
+			else if (value.Type.TypeKind == TypeKind.Array)
+			{
+				var ret = new ArrayType();
+				var name_ = arrayType.ElementType.Name;
+				var namespace_ = arrayType.ElementType.ContainingNamespace.ToString();
+				ret.BaseType = namespace_ + "." + name_;
+				
+				return ret;
+			}
+			else
+			{
+				var name_ = value.Type.Name;
+				var namespace_ = value.Type.ContainingNamespace.ToString();
+				var ret = new SimpleType();
+				ret.Type = namespace_ + "." + name_;
+	
+				return ret;
+			}		
 		}
 	}
 }
