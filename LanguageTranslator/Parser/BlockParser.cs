@@ -137,6 +137,7 @@ namespace LanguageTranslator.Parser
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
 				}
+				/*
 				else
 				{
 					if (selfType.HasValue && selfType.Value.Type != null)
@@ -149,8 +150,9 @@ namespace LanguageTranslator.Parser
 						}
 					}
 				}
+				*/
 
-				if (mae.Expression != null)
+				if (mae.Expression != null && (exp.EnumMember == null))
 				{
 					exp.Expression = ParseExpression(mae.Expression, semanticModel);
 				}
