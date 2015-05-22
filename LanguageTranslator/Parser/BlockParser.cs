@@ -212,7 +212,7 @@ namespace LanguageTranslator.Parser
 			else if(ine != null)
 			{
 				var st = new IdentifierNameExpression();
-				st.Name = ine.GetText().ToString();
+				st.Name = ine.Identifier.Text;
 				return st;
 			}
 			else if(eae != null)
