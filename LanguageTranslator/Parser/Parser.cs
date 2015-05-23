@@ -99,6 +99,10 @@ namespace LanguageTranslator.Parser
                 {
                     ParseClass(namespace_, classSyntax);
                 }
+                if (structSyntax != null)
+                {
+                    ParseStrcut(structSyntax);
+                }
             }
         }
 
@@ -111,10 +115,19 @@ namespace LanguageTranslator.Parser
 
             classDef.Name = classSyntax.Identifier.ValueText;
 
+            if (classSyntax.BaseList != null)
+            {
+                foreach (var item in classSyntax.BaseList.Types)
+                {
+                    classDef.BaseTypes.Add(ParseTypeSpecifier(item.Type));
+                }
+            }
+
             foreach (var member in classSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
                 var propertySyntax = member as PropertyDeclarationSyntax;
+                var fieldSyntax = member as FieldDeclarationSyntax;
 
                 if (methodSyntax != null)
                 {
@@ -124,9 +137,58 @@ namespace LanguageTranslator.Parser
                 {
                     classDef.Properties.Add(ParseProperty(propertySyntax));
                 }
+                if (fieldSyntax != null)
+                {
+                    classDef.Fields.AddRange(ParseField(fieldSyntax));
+                }
             }
 
             definitions.Classes.Add(classDef);
+        }
+
+        private void ParseStrcut(StructDeclarationSyntax structSyntax)
+        {
+            var structDef = new StructDef();
+            structDef.Name = structSyntax.Identifier.ValueText;
+
+            foreach (var member in structSyntax.Members)
+            {
+                var methodSyntax = member as MethodDeclarationSyntax;
+                var propertySyntax = member as PropertyDeclarationSyntax;
+                var fieldSyntax = member as FieldDeclarationSyntax;
+
+                if (methodSyntax != null)
+                {
+                    structDef.Methods.Add(ParseMethod(methodSyntax));
+                }
+                if (propertySyntax != null)
+                {
+                    structDef.Properties.Add(ParseProperty(propertySyntax));
+                }
+                if (fieldSyntax != null)
+                {
+                    structDef.Fields.AddRange(ParseField(fieldSyntax));
+                }
+            }
+
+            definitions.Structs.Add(structDef);
+        }
+
+        private FieldDef[] ParseField(FieldDeclarationSyntax fieldSyntax)
+        {
+            var fieldDef = new List<FieldDef>();
+            var type = ParseTypeSpecifier(fieldSyntax.Declaration.Type);
+
+            foreach (var item in fieldSyntax.Declaration.Variables)
+            {
+                fieldDef.Add(new FieldDef
+                {
+                    Name = item.Identifier.ValueText,
+                    Type = type,
+                });
+            }
+
+            return fieldDef.ToArray();
         }
 
         private PropertyDef ParseProperty(PropertyDeclarationSyntax propertySyntax)
@@ -191,12 +253,16 @@ namespace LanguageTranslator.Parser
                     InnerType = g.TypeArgumentList.Arguments.Select(x => x.GetText().ToString().Trim()).ToList(),
                 };
             }
-            else
+            else if (typeSyntax is IdentifierNameSyntax)
             {
                 return new SimpleType
                 {
                     Type = typeSyntax.GetText().ToString().Trim(),
                 };
+            }
+            else
+            {
+                throw new ArgumentException("対応していないTypeSyntax(" + typeSyntax.GetType().Name + ")が渡されました。", "typeSyntax");
             }
         }
 

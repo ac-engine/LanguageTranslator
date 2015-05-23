@@ -10,6 +10,7 @@ namespace LanguageTranslator.Definition
 	{
 		public List<EnumDef> Enums = new List<EnumDef>();
 		public List<ClassDef> Classes = new List<ClassDef>();
+        public List<StructDef> Structs = new List<StructDef>();
 	}
 
 	class EnumDef
@@ -49,6 +50,7 @@ namespace LanguageTranslator.Definition
 	{
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
+        public List<TypeSpecifier> BaseTypes = new List<TypeSpecifier>();
 		public List<MethodDef> Methods = new List<MethodDef>();
 		public List<PropertyDef> Properties = new List<PropertyDef>();
 		public List<FieldDef> Fields = new List<FieldDef>();
@@ -60,6 +62,20 @@ namespace LanguageTranslator.Definition
 
 		public bool IsDefinedBySWIG = false;
 	}
+
+    class StructDef
+    {
+        public string Name = string.Empty;
+        public string Brief = string.Empty;
+        public List<MethodDef> Methods = new List<MethodDef>();
+        public List<PropertyDef> Properties = new List<PropertyDef>();
+        public List<FieldDef> Fields = new List<FieldDef>();
+
+        public override string ToString()
+        {
+            return string.Format("StructDef {0}", Name);
+        }
+    }
 
 	class FieldDef
 	{
