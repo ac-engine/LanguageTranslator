@@ -115,6 +115,14 @@ namespace LanguageTranslator.Parser
 
             classDef.Name = classSyntax.Identifier.ValueText;
 
+            if (classSyntax.TypeParameterList != null)
+            {
+                foreach (var item in classSyntax.TypeParameterList.Parameters)
+                {
+                    classDef.TypeParameters.Add(item.Identifier.ValueText);
+                }
+            }
+
             if (classSyntax.BaseList != null)
             {
                 foreach (var item in classSyntax.BaseList.Types)
@@ -150,6 +158,14 @@ namespace LanguageTranslator.Parser
         {
             var structDef = new StructDef();
             structDef.Name = structSyntax.Identifier.ValueText;
+
+            if (structSyntax.TypeParameterList != null)
+            {
+                foreach (var item in structSyntax.TypeParameterList.Parameters)
+                {
+                    structDef.TypeParameters.Add(item.Identifier.ValueText);
+                }
+            }
 
             foreach (var member in structSyntax.Members)
             {
@@ -254,6 +270,20 @@ namespace LanguageTranslator.Parser
                 };
             }
             else if (typeSyntax is IdentifierNameSyntax)
+            {
+                return new SimpleType
+                {
+                    Type = typeSyntax.GetText().ToString().Trim(),
+                };
+            }
+            else if (typeSyntax is PredefinedTypeSyntax)
+            {
+                return new SimpleType
+                {
+                    Type = typeSyntax.GetText().ToString().Trim(),
+                };
+            }
+            else if (typeSyntax is QualifiedNameSyntax)
             {
                 return new SimpleType
                 {

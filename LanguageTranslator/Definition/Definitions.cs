@@ -51,6 +51,8 @@ namespace LanguageTranslator.Definition
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
         public List<TypeSpecifier> BaseTypes = new List<TypeSpecifier>();
+        public List<string> TypeParameters = new List<string>();
+
 		public List<MethodDef> Methods = new List<MethodDef>();
 		public List<PropertyDef> Properties = new List<PropertyDef>();
 		public List<FieldDef> Fields = new List<FieldDef>();
@@ -67,6 +69,8 @@ namespace LanguageTranslator.Definition
     {
         public string Name = string.Empty;
         public string Brief = string.Empty;
+        public List<string> TypeParameters = new List<string>();
+
         public List<MethodDef> Methods = new List<MethodDef>();
         public List<PropertyDef> Properties = new List<PropertyDef>();
         public List<FieldDef> Fields = new List<FieldDef>();
