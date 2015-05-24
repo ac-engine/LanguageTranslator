@@ -161,7 +161,7 @@ namespace LanguageTranslator.Parser
 				}
 				if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
 				{
-					classDef.Fields.AddRange(ParseField(fieldSyntax, semanticModel));
+					classDef.Fields.Add(ParseField(fieldSyntax, semanticModel));
 				}
 			}
 
@@ -171,6 +171,8 @@ namespace LanguageTranslator.Parser
 		private void ParseStrcut(string namespace_, StructDeclarationSyntax structSyntax, SemanticModel semanticModel)
 		{
 			var structDef = new StructDef();
+			structDef.Internal = structSyntax;
+
 			structDef.Name = structSyntax.Identifier.ValueText;
 
 			var fullName = namespace_ + "." + structDef.Name;
@@ -207,33 +209,37 @@ namespace LanguageTranslator.Parser
 				}
 				if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
 				{
-					structDef.Fields.AddRange(ParseField(fieldSyntax, semanticModel));
+					structDef.Fields.Add(ParseField(fieldSyntax, semanticModel));
 				}
 			}
 
 			definitions.Structs.Add(structDef);
 		}
 
-		private FieldDef[] ParseField(FieldDeclarationSyntax fieldSyntax, SemanticModel semanticModel)
+		private FieldDef ParseField(FieldDeclarationSyntax fieldSyntax, SemanticModel semanticModel)
 		{
-			var fieldDef = new List<FieldDef>();
-			var type = ParseTypeSpecifier(fieldSyntax.Declaration.Type, semanticModel);
+			var fieldDef = new FieldDef();
 
-			foreach (var item in fieldSyntax.Declaration.Variables)
+			if (fieldSyntax.Declaration.Variables.Count != 1)
 			{
-				fieldDef.Add(new FieldDef
-				{
-					Name = item.Identifier.ValueText,
-					Type = type,
-				});
+				var span = fieldSyntax.SyntaxTree.GetLineSpan(fieldSyntax.Declaration.Variables.Span);
+				throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
 			}
 
-			return fieldDef.ToArray();
+			var type = ParseTypeSpecifier(fieldSyntax.Declaration.Type, semanticModel);
+
+			fieldDef.Internal = fieldSyntax;
+			fieldDef.Name = fieldSyntax.Declaration.Variables[0].Identifier.ValueText;
+			fieldDef.Type = type;
+
+			return fieldDef;
 		}
 
 		private PropertyDef ParseProperty(PropertyDeclarationSyntax propertySyntax, SemanticModel semanticModel)
 		{
 			var propertyDef = new PropertyDef();
+			propertyDef.Internal = propertySyntax;
+
 			propertyDef.Name = propertySyntax.Identifier.ValueText;
 			propertyDef.Type = ParseTypeSpecifier(propertySyntax.Type, semanticModel);
 
@@ -241,11 +247,15 @@ namespace LanguageTranslator.Parser
 			{
 				if (accessor.Keyword.Text == "get")
 				{
-					propertyDef.Getter = new AccessorDef();
+					var acc = new AccessorDef();
+					acc.Internal = accessor;
+					propertyDef.Getter = acc;
 				}
 				else if (accessor.Keyword.Text == "set")
 				{
-					propertyDef.Setter = new AccessorDef();
+					var acc = new AccessorDef();
+					acc.Internal = accessor;
+					propertyDef.Setter = acc;
 				}
 			}
 
@@ -255,6 +265,8 @@ namespace LanguageTranslator.Parser
 		private MethodDef ParseMethod(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel)
 		{
 			var methodDef = new MethodDef();
+			methodDef.Internal = methodSyntax;
+
 			methodDef.Name = methodSyntax.Identifier.ValueText;
 			methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType, semanticModel);
 
@@ -262,8 +274,6 @@ namespace LanguageTranslator.Parser
 			{
 				methodDef.Parameters.Add(ParseParameter(parameter, semanticModel));
 			}
-
-			methodDef.Internal = methodSyntax;
 
 			return methodDef;
 		}

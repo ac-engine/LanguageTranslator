@@ -100,9 +100,9 @@ namespace LanguageTranslator.Translator.Java
 
 				Res.AppendFormat("public void set{0} {{\n", p.Name);
 				IndentDepth++;
-				foreach (var s in p.Setter.Body)
+				if (p.Setter.Body != null)
 				{
-					OutputStatement(s);
+					OutputStatement(p.Setter.Body);
 				}
 				IndentDepth--;
 				MakeIndent();
@@ -110,9 +110,9 @@ namespace LanguageTranslator.Translator.Java
 
 				Res.AppendFormat("public void get{0} {{\n", p.Name);
 				IndentDepth++;
-				foreach (var s in p.Getter.Body)
+				if (p.Getter.Body != null)
 				{
-					OutputStatement(s);
+					OutputStatement(p.Getter.Body);
 				}
 				IndentDepth--;
 				Res.AppendLine("}");

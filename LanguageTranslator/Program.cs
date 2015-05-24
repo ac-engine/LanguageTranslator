@@ -36,6 +36,9 @@ namespace LanguageTranslator
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
 
+			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.GC");
+			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.Helper");
+
 			Definition.Definitions definitions = null;
 			
 			try
