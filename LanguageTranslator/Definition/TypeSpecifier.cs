@@ -12,17 +12,18 @@ namespace LanguageTranslator.Definition
 
 	class SimpleType : TypeSpecifier
 	{
-		public string Type = string.Empty;
+		public string Namespace = string.Empty;
+		public string TypeName = string.Empty;
 
 		public override string ToString()
 		{
-			return "SimpleType " + Type;
+			return "SimpleType " + TypeName;
 		}
 	}
 
 	class ArrayType : TypeSpecifier
 	{
-		public string BaseType = string.Empty;
+		public SimpleType BaseType = null;
 
 		public override string ToString()
 		{
@@ -32,8 +33,8 @@ namespace LanguageTranslator.Definition
 
 	class GenericType : TypeSpecifier
 	{
-		public string OuterType = string.Empty;
-		public List<string> InnerType = new List<string>();
+		public SimpleType OuterType = null;
+		public List<SimpleType> InnerType = new List<SimpleType>();
 
 		public override string ToString()
 		{
@@ -43,7 +44,7 @@ namespace LanguageTranslator.Definition
 
 	class NullableType : TypeSpecifier
 	{
-		public string BaseType = string.Empty;
+		public SimpleType BaseType = null;
 
 		public override string ToString()
 		{

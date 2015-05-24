@@ -35,12 +35,12 @@ namespace LanguageTranslator.Parser
 			this.definitions = definitions;
 			this.compilation = compilation;
 
-			foreach(var enumDef in definitions.Enums)
+			foreach (var enumDef in definitions.Enums)
 			{
 				ParseEnum(enumDef);
 			}
 
-			foreach(var classDef in definitions.Classes)
+			foreach (var classDef in definitions.Classes)
 			{
 				ParseClass(classDef);
 			}
@@ -51,7 +51,7 @@ namespace LanguageTranslator.Parser
 			// swigの内部は走査しない
 			if (enumDef.IsDefinedBySWIG) return;
 
-			foreach(var member in enumDef.Members)
+			foreach (var member in enumDef.Members)
 			{
 				ParseEnumMember(member);
 			}
@@ -73,11 +73,11 @@ namespace LanguageTranslator.Parser
 		{
 			if (classDef.IsDefinedBySWIG) return;
 
-			foreach(var method in classDef.Methods)
+			foreach (var method in classDef.Methods)
 			{
 				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
 
-				if(method.Internal.Body == null)
+				if (method.Internal.Body == null)
 				{
 					continue;
 				}
@@ -173,7 +173,7 @@ namespace LanguageTranslator.Parser
 
 				st.Method = ParseExpression(ie.Expression, semanticModel);
 				st.Args = ie.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
-				
+
 				return st;
 			}
 			else if (oce != null)
@@ -184,7 +184,7 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
-			else if(ce != null)
+			else if (ce != null)
 			{
 				var st = new CastExpression();
 
@@ -192,34 +192,34 @@ namespace LanguageTranslator.Parser
 				st.Expression = ParseExpression(ce.Expression, semanticModel);
 				return st;
 			}
-			else if(thise != null)
+			else if (thise != null)
 			{
 				var st = new ThisExpression();
 				return st;
 			}
-			else if(ae != null)
+			else if (ae != null)
 			{
 				var st = new AssignmentExpression();
-		
+
 				st.Target = ParseExpression(ae.Left, semanticModel);
 				st.Expression = ParseExpression(ae.Right, semanticModel);
 
 				return st;
 			}
-			else if(pe != null)
+			else if (pe != null)
 			{
 				// ()の構文
 				return ParseExpression(pe.Expression, semanticModel);
 			}
-			else if(ine != null)
+			else if (ine != null)
 			{
 				var st = new IdentifierNameExpression();
 				st.Name = ine.Identifier.Text;
 				return st;
 			}
-			else if(eae != null)
+			else if (eae != null)
 			{
-				if(eae.ArgumentList.Arguments.Count() != 1)
+				if (eae.ArgumentList.Arguments.Count() != 1)
 				{
 					throw new ParseException("多次元配列は使用禁止です。");
 				}
@@ -348,7 +348,7 @@ namespace LanguageTranslator.Parser
 				st.Expression = ParseExpression(exs.Expression, semanticModel);
 				return st;
 			}
-			else if(fxs != null)
+			else if (fxs != null)
 			{
 				// fixed構文は配列宣言+ブロックに分解
 				var blocks = ParseStatement(fxs.Statement, semanticModel);
@@ -373,7 +373,7 @@ namespace LanguageTranslator.Parser
 
 		public VariableDeclarationStatement ParseVariableDeclarationSyntax(VariableDeclarationSyntax syntax, SemanticModel semanticModel)
 		{
-			if(syntax.Variables.Count != 1)
+			if (syntax.Variables.Count != 1)
 			{
 				var span = syntax.SyntaxTree.GetLineSpan(syntax.Variables.Span);
 				throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
@@ -408,7 +408,7 @@ namespace LanguageTranslator.Parser
 		{
 			List<Statement> statements = new List<Statement>();
 
-			foreach(var statement in syntax.Statements)
+			foreach (var statement in syntax.Statements)
 			{
 				statements.Add(ParseStatement(statement, semanticModel));
 			}
@@ -432,20 +432,25 @@ namespace LanguageTranslator.Parser
 			var namedType = value.Type as INamedTypeSymbol;
 			var arrayType = value.Type as IArrayTypeSymbol;
 			var isGeneric = namedType != null && namedType.IsGenericType;
-			
-			
-			if(isGeneric)
+
+
+			if (isGeneric)
 			{
 				var ret = new GenericType();
 
 				var name_ = value.Type.Name;
 				var namespace_ = value.Type.ContainingNamespace.ToString();
-				ret.OuterType = namespace_ + "." + name_;
+				ret.OuterType = new SimpleType
+				{
+					Namespace = namespace_,
+					TypeName = name_,
+				};
 
 				ret.InnerType =
-				namedType.TypeArguments.Select(_ =>
+				namedType.TypeArguments.Select(_ => new SimpleType
 				{
-					return _.ContainingNamespace.ToString() + "." + _.Name;
+					Namespace = _.ContainingNamespace.ToString(),
+					TypeName = _.Name,
 				}).ToList();
 
 				return ret;
@@ -455,19 +460,26 @@ namespace LanguageTranslator.Parser
 				var ret = new ArrayType();
 				var name_ = arrayType.ElementType.Name;
 				var namespace_ = arrayType.ElementType.ContainingNamespace.ToString();
-				ret.BaseType = namespace_ + "." + name_;
-				
+				ret.BaseType = new SimpleType
+				{
+					Namespace = namespace_,
+					TypeName = name_,
+				};
+
 				return ret;
 			}
 			else
 			{
 				var name_ = value.Type.Name;
 				var namespace_ = value.Type.ContainingNamespace.ToString();
-				var ret = new SimpleType();
-				ret.Type = namespace_ + "." + name_;
-	
+				var ret = new SimpleType
+				{
+					Namespace = namespace_,
+					TypeName = name_,
+				};
+
 				return ret;
-			}		
+			}
 		}
 	}
 }
