@@ -105,7 +105,7 @@ namespace LanguageTranslator.Parser
 				}
 				if (structSyntax != null)
 				{
-					ParseStrcut(structSyntax, semanticModel);
+					ParseStrcut(namespace_, structSyntax, semanticModel);
 				}
 			}
 		}
@@ -119,12 +119,14 @@ namespace LanguageTranslator.Parser
 
 			classDef.Name = classSyntax.Identifier.ValueText;
 
-			if (TypesNotParsed.Contains(classDef.Name))
+			var fullName = namespace_ + "." + classDef.Name;
+
+			if (TypesNotParsed.Contains(fullName))
 			{
 				return;
 			}
 
-			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(classDef.Name);
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(fullName);
 
 			if (classSyntax.TypeParameterList != null)
 			{
@@ -166,17 +168,19 @@ namespace LanguageTranslator.Parser
 			definitions.Classes.Add(classDef);
 		}
 
-		private void ParseStrcut(StructDeclarationSyntax structSyntax, SemanticModel semanticModel)
+		private void ParseStrcut(string namespace_, StructDeclarationSyntax structSyntax, SemanticModel semanticModel)
 		{
 			var structDef = new StructDef();
 			structDef.Name = structSyntax.Identifier.ValueText;
 
-			if (TypesNotParsed.Contains(structDef.Name))
+			var fullName = namespace_ + "." + structDef.Name;
+
+			if (TypesNotParsed.Contains(fullName))
 			{
 				return;
 			}
 
-			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(structDef.Name);
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(fullName);
 
 			if (structSyntax.TypeParameterList != null)
 			{
