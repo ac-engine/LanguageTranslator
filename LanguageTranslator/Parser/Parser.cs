@@ -161,7 +161,7 @@ namespace LanguageTranslator.Parser
 				{
 					classDef = partial;
 				}
-            }
+			}
 
 			if (TypesNotParsed.Contains(fullName))
 			{
@@ -209,7 +209,7 @@ namespace LanguageTranslator.Parser
 				if (operatorSyntax != null)
 				{
 					classDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
-			}
+				}
 			}
 
 			definitions.Classes.Add(classDef);
@@ -282,7 +282,7 @@ namespace LanguageTranslator.Parser
 			var fieldDef = new FieldDef();
 
 			if (fieldSyntax.Declaration.Variables.Count != 1)
-				{
+			{
 				var span = fieldSyntax.SyntaxTree.GetLineSpan(fieldSyntax.Declaration.Variables.Span);
 				throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
 			}
