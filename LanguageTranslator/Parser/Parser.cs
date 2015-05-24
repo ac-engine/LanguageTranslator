@@ -60,7 +60,7 @@ namespace LanguageTranslator.Parser
 			return definitions;
 		}
 
-		void ParseRoot(SyntaxNode root, SemanticModel semanticModel)
+		private void ParseRoot(SyntaxNode root, SemanticModel semanticModel)
 		{
 			var compilationUnitSyntax = root as CompilationUnitSyntax;
 
@@ -74,7 +74,7 @@ namespace LanguageTranslator.Parser
 			}
 		}
 
-		void ParseNamespace(NamespaceDeclarationSyntax namespaceSyntax, SemanticModel semanticModel)
+		private void ParseNamespace(NamespaceDeclarationSyntax namespaceSyntax, SemanticModel semanticModel)
 		{
 			var members = namespaceSyntax.Members;
 
@@ -110,16 +110,58 @@ namespace LanguageTranslator.Parser
 			}
 		}
 
-		void ParseClass(string namespace_, ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
+		private void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
+		{
+			var enumDef = new EnumDef();
+
+			// 名称
+			enumDef.Name = enumSyntax.Identifier.ValueText;
+
+			// ネームスペース
+			enumDef.Namespace = namespace_;
+
+			// swig
+			enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+
+			foreach (var member in enumSyntax.Members)
+			{
+				var def = ParseEnumMember(member, semanticModel);
+				enumDef.Members.Add(def);
+			}
+
+			definitions.Enums.Add(enumDef);
+		}
+
+		private EnumMemberDef ParseEnumMember(EnumMemberDeclarationSyntax syntax, SemanticModel semanticModel)
+		{
+			EnumMemberDef dst = new EnumMemberDef();
+
+			// 名称
+			dst.Name = syntax.Identifier.ValueText;
+			dst.Internal = syntax;
+
+			return dst;
+		}
+
+		private void ParseClass(string namespace_, ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
 		{
 			var classDef = new ClassDef();
 
 			// swig
 			classDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
 
+			classDef.Namespace = namespace_;
 			classDef.Name = classSyntax.Identifier.ValueText;
 
 			var fullName = namespace_ + "." + classDef.Name;
+
+			{
+				var partial = definitions.Classes.FirstOrDefault(x => x.Namespace + "." + x.Name == fullName);
+				if (partial != null)
+				{
+					classDef = partial;
+				}
+            }
 
 			if (TypesNotParsed.Contains(fullName))
 			{
@@ -150,6 +192,7 @@ namespace LanguageTranslator.Parser
 				var methodSyntax = member as MethodDeclarationSyntax;
 				var propertySyntax = member as PropertyDeclarationSyntax;
 				var fieldSyntax = member as FieldDeclarationSyntax;
+				var operatorSyntax = member as OperatorDeclarationSyntax;
 
 				if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
 				{
@@ -163,6 +206,10 @@ namespace LanguageTranslator.Parser
 				{
 					classDef.Fields.AddRange(ParseField(fieldSyntax, semanticModel));
 				}
+				if (operatorSyntax != null)
+				{
+					classDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
+				}
 			}
 
 			definitions.Classes.Add(classDef);
@@ -171,9 +218,18 @@ namespace LanguageTranslator.Parser
 		private void ParseStrcut(string namespace_, StructDeclarationSyntax structSyntax, SemanticModel semanticModel)
 		{
 			var structDef = new StructDef();
+			structDef.Namespace = namespace_;
 			structDef.Name = structSyntax.Identifier.ValueText;
 
 			var fullName = namespace_ + "." + structDef.Name;
+
+			{
+				var partial = definitions.Structs.FirstOrDefault(x => x.Namespace + "." + x.Name == fullName);
+				if (partial != null)
+				{
+					structDef = partial;
+				}
+			}
 
 			if (TypesNotParsed.Contains(fullName))
 			{
@@ -196,6 +252,7 @@ namespace LanguageTranslator.Parser
 				var methodSyntax = member as MethodDeclarationSyntax;
 				var propertySyntax = member as PropertyDeclarationSyntax;
 				var fieldSyntax = member as FieldDeclarationSyntax;
+				var operatorSyntax = member as OperatorDeclarationSyntax;
 
 				if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
 				{
@@ -208,6 +265,10 @@ namespace LanguageTranslator.Parser
 				if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
 				{
 					structDef.Fields.AddRange(ParseField(fieldSyntax, semanticModel));
+				}
+				if (operatorSyntax != null)
+				{
+					structDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
 				}
 			}
 
@@ -268,6 +329,29 @@ namespace LanguageTranslator.Parser
 			return methodDef;
 		}
 
+		private OperatorDef ParseOperator(OperatorDeclarationSyntax operatorSyntax, SemanticModel semanticModel)
+		{
+			var operatorDef = new OperatorDef();
+			operatorDef.Operator = operatorSyntax.OperatorToken.ValueText;
+			operatorDef.ReturnType = ParseTypeSpecifier(operatorSyntax.ReturnType, semanticModel);
+
+			foreach (var item in operatorSyntax.ParameterList.Parameters)
+			{
+				operatorDef.Parameters.Add(ParseParameter(item, semanticModel));
+			}
+
+			return operatorDef;
+		}
+
+		private ParameterDef ParseParameter(ParameterSyntax parameter, SemanticModel semanticModel)
+		{
+			var parameterDef = new ParameterDef();
+			parameterDef.Name = parameter.Identifier.ValueText;
+			parameterDef.Type = ParseTypeSpecifier(parameter.Type, semanticModel);
+
+			return parameterDef;
+		}
+
 		private TypeSpecifier ParseTypeSpecifier(TypeSyntax typeSyntax, SemanticModel semanticModel)
 		{
 			if (typeSyntax is ArrayTypeSyntax)
@@ -326,48 +410,6 @@ namespace LanguageTranslator.Parser
 					TypeName = typeSyntax.GetText().ToString().Trim(),
 				};
 			}
-		}
-
-		private ParameterDef ParseParameter(ParameterSyntax parameter, SemanticModel semanticModel)
-		{
-			var parameterDef = new ParameterDef();
-			parameterDef.Name = parameter.Identifier.ValueText;
-			parameterDef.Type = ParseTypeSpecifier(parameter.Type, semanticModel);
-
-			return parameterDef;
-		}
-
-		void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
-		{
-			var enumDef = new EnumDef();
-
-			// 名称
-			enumDef.Name = enumSyntax.Identifier.ValueText;
-
-			// ネームスペース
-			enumDef.Namespace = namespace_;
-
-			// swig
-			enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
-
-			foreach (var member in enumSyntax.Members)
-			{
-				var def = ParseEnumMember(member, semanticModel);
-				enumDef.Members.Add(def);
-			}
-
-			definitions.Enums.Add(enumDef);
-		}
-
-		EnumMemberDef ParseEnumMember(EnumMemberDeclarationSyntax syntax, SemanticModel semanticModel)
-		{
-			EnumMemberDef dst = new EnumMemberDef();
-
-			// 名称
-			dst.Name = syntax.Identifier.ValueText;
-			dst.Internal = syntax;
-
-			return dst;
 		}
 	}
 }

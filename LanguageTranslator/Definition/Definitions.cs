@@ -48,6 +48,7 @@ namespace LanguageTranslator.Definition
 
 	class ClassDef
 	{
+		public string Namespace = string.Empty;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
         public List<TypeSpecifier> BaseTypes = new List<TypeSpecifier>();
@@ -56,6 +57,7 @@ namespace LanguageTranslator.Definition
 		public List<MethodDef> Methods = new List<MethodDef>();
 		public List<PropertyDef> Properties = new List<PropertyDef>();
 		public List<FieldDef> Fields = new List<FieldDef>();
+		public List<OperatorDef> Operators = new List<OperatorDef>();
 
 		public override string ToString()
 		{
@@ -67,6 +69,7 @@ namespace LanguageTranslator.Definition
 
     class StructDef
     {
+		public string Namespace = string.Empty;
         public string Name = string.Empty;
         public string Brief = string.Empty;
         public List<string> TypeParameters = new List<string>();
@@ -74,6 +77,7 @@ namespace LanguageTranslator.Definition
         public List<MethodDef> Methods = new List<MethodDef>();
         public List<PropertyDef> Properties = new List<PropertyDef>();
         public List<FieldDef> Fields = new List<FieldDef>();
+		public List<OperatorDef> Operators = new List<OperatorDef>();
 
         public override string ToString()
         {
@@ -141,6 +145,19 @@ namespace LanguageTranslator.Definition
 		public override string ToString()
 		{
 			return string.Format("ParameterDef {0}", Name);
+		}
+	}
+
+    class OperatorDef
+    {
+        public TypeSpecifier ReturnType = null;
+        public string Operator = string.Empty;
+		public List<ParameterDef> Parameters = new List<ParameterDef>();
+		public List<Statement> Body = new List<Statement>();
+
+		public override string ToString()
+		{
+			return string.Format("ParameterDef {0}", Operator);
 		}
 	}
 }
