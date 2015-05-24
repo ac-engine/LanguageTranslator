@@ -16,6 +16,10 @@ namespace LanguageTranslator.Parser
     {
         Definition.Definitions definitions = null;
 
+        public List<string> TypesNotParsed = new List<string>();
+
+        public List<string> TypesWhosePrivateNotParsed = new List<string>();
+
         public Definition.Definitions Parse(string[] pathes)
         {
             definitions = new Definition.Definitions();
@@ -115,6 +119,13 @@ namespace LanguageTranslator.Parser
 
             classDef.Name = classSyntax.Identifier.ValueText;
 
+            if (TypesNotParsed.Contains(classDef.Name))
+            {
+				return;
+            }
+
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(classDef.Name);
+
             if (classSyntax.TypeParameterList != null)
             {
                 foreach (var item in classSyntax.TypeParameterList.Parameters)
@@ -131,21 +142,22 @@ namespace LanguageTranslator.Parser
                 }
             }
 
+			Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
             foreach (var member in classSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
                 var propertySyntax = member as PropertyDeclarationSyntax;
                 var fieldSyntax = member as FieldDeclarationSyntax;
 
-                if (methodSyntax != null)
+                if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
                 {
                     classDef.Methods.Add(ParseMethod(methodSyntax));
                 }
-                if (propertySyntax != null)
+                if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
                 {
                     classDef.Properties.Add(ParseProperty(propertySyntax));
                 }
-                if (fieldSyntax != null)
+                if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
                 {
                     classDef.Fields.AddRange(ParseField(fieldSyntax));
                 }
@@ -159,7 +171,14 @@ namespace LanguageTranslator.Parser
             var structDef = new StructDef();
             structDef.Name = structSyntax.Identifier.ValueText;
 
-            if (structSyntax.TypeParameterList != null)
+			if (TypesNotParsed.Contains(structDef.Name))
+			{
+				return;
+			}
+
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(structDef.Name);
+
+			if (structSyntax.TypeParameterList != null)
             {
                 foreach (var item in structSyntax.TypeParameterList.Parameters)
                 {
@@ -167,21 +186,22 @@ namespace LanguageTranslator.Parser
                 }
             }
 
-            foreach (var member in structSyntax.Members)
+			Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
+			foreach (var member in structSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
                 var propertySyntax = member as PropertyDeclarationSyntax;
                 var fieldSyntax = member as FieldDeclarationSyntax;
 
-                if (methodSyntax != null)
+                if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
                 {
                     structDef.Methods.Add(ParseMethod(methodSyntax));
                 }
-                if (propertySyntax != null)
+                if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
                 {
                     structDef.Properties.Add(ParseProperty(propertySyntax));
                 }
-                if (fieldSyntax != null)
+                if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
                 {
                     structDef.Fields.AddRange(ParseField(fieldSyntax));
                 }
