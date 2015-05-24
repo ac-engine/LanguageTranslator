@@ -73,6 +73,47 @@ namespace LanguageTranslator.Parser
 		{
 			if (classDef.IsDefinedBySWIG) return;
 
+			foreach(var field in classDef.Fields)
+			{
+				var semanticModel = compilation.GetSemanticModel(field.Internal.SyntaxTree);
+
+				var v = field.Internal.Declaration.Variables[0];
+				if (v.Initializer != null && v.Initializer.Value != null)
+				{
+					field.Initializer = ParseExpression(v.Initializer.Value, semanticModel);
+				}
+			}
+
+			foreach(var prop in classDef.Properties)
+			{
+				var semanticModel = compilation.GetSemanticModel(prop.Internal.SyntaxTree);
+
+				if (prop.Getter != null && prop.Getter.Internal.Body != null)
+				{
+					prop.Getter.Body = ParseStatement(prop.Getter.Internal.Body, semanticModel);
+				}
+
+				if(prop.Setter != null)
+				{
+					prop.Setter.Body = ParseStatement(prop.Setter.Internal.Body, semanticModel);
+				}
+			}
+
+			foreach (var method in classDef.Methods)
+			{
+				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
+
+				if (method.Internal.Body == null)
+				{
+					continue;
+				}
+
+				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+		}
+
+		void ParseStruct(Definition.StructDef classDef)
+		{
 			foreach (var method in classDef.Methods)
 			{
 				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);

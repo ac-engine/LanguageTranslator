@@ -79,6 +79,11 @@ namespace LanguageTranslator.Definition
         public List<FieldDef> Fields = new List<FieldDef>();
 		public List<OperatorDef> Operators = new List<OperatorDef>();
 
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.StructDeclarationSyntax Internal = null;
+
         public override string ToString()
         {
             return string.Format("StructDef {0}", Name);
@@ -91,6 +96,11 @@ namespace LanguageTranslator.Definition
 		public string Name = string.Empty;
 		public Expression Initializer = null;
 		public string Brief = string.Empty;
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax Internal = null;
 
 		public override string ToString()
 		{
@@ -106,6 +116,11 @@ namespace LanguageTranslator.Definition
 		public AccessorDef Setter = null;
 		public string Brief = string.Empty;
 
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax Internal = null;
+
 		public override string ToString()
 		{
 			return string.Format("PropertyDef {0}", Name);
@@ -114,7 +129,12 @@ namespace LanguageTranslator.Definition
 
 	class AccessorDef
 	{
-		public List<Statement> Body = new List<Statement>();
+		public Statement Body = null;
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax Internal = null;
 	}
 
 	class MethodDef
