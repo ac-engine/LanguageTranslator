@@ -144,6 +144,10 @@ namespace LanguageTranslator.Translator.Java
 				OutputEnum(e);
 			}
 
+			foreach (var c in definisions.Classes)
+			{
+				OutputClass(c);
+			}
 			Console.Write(Res.ToString());
 			Console.ReadLine();
 		}
