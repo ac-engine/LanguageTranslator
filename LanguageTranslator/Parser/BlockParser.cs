@@ -220,7 +220,7 @@ namespace LanguageTranslator.Parser
 			else if (oce != null)
 			{
 				var st = new ObjectCreationExpression();
-				st.Type = oce.Type;
+				st.Type = ParseType(oce.Type, semanticModel);
 				st.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
 
 				return st;
@@ -462,16 +462,29 @@ namespace LanguageTranslator.Parser
 
 		public TypeSpecifier ParseType(TypeSyntax syntax, SemanticModel semanticModel)
 		{
-			TypeInfo? type = null;
-			type = semanticModel.GetTypeInfo(syntax);
+			TypeInfo? typeInfo = null;
+			typeInfo = semanticModel.GetTypeInfo(syntax);
+			if (typeInfo == null) return null;
+			if (!typeInfo.HasValue) return null;
 
-			if (type == null) return null;
-			if (!type.HasValue) return null;
+			ITypeSymbol type = null;
+			if(typeInfo.Value.Type != null)
+			{
+				type = typeInfo.Value.Type;
+			}
+			else
+			{
+				var symbolInfo = semanticModel.GetSymbolInfo(syntax);
+				if(symbolInfo.Symbol != null)
+				{
+					type = symbolInfo.Symbol as ITypeSymbol;
+				}
 
-			var value = type.Value;
+				if (type == null) return null;
+			}
 
-			var namedType = value.Type as INamedTypeSymbol;
-			var arrayType = value.Type as IArrayTypeSymbol;
+			var namedType = type as INamedTypeSymbol;
+			var arrayType = type as IArrayTypeSymbol;
 			var isGeneric = namedType != null && namedType.IsGenericType;
 
 
@@ -479,8 +492,8 @@ namespace LanguageTranslator.Parser
 			{
 				var ret = new GenericType();
 
-				var name_ = value.Type.Name;
-				var namespace_ = value.Type.ContainingNamespace.ToString();
+				var name_ = type.Name;
+				var namespace_ = type.ContainingNamespace.ToString();
 				ret.OuterType = new SimpleType
 				{
 					Namespace = namespace_,
@@ -496,7 +509,7 @@ namespace LanguageTranslator.Parser
 
 				return ret;
 			}
-			else if (value.Type.TypeKind == TypeKind.Array)
+			else if (type.TypeKind == TypeKind.Array)
 			{
 				var ret = new ArrayType();
 				var name_ = arrayType.ElementType.Name;
@@ -511,8 +524,8 @@ namespace LanguageTranslator.Parser
 			}
 			else
 			{
-				var name_ = value.Type.Name;
-				var namespace_ = value.Type.ContainingNamespace.ToString();
+				var name_ = type.Name;
+				var namespace_ = type.ContainingNamespace.ToString();
 				var ret = new SimpleType
 				{
 					Namespace = namespace_,

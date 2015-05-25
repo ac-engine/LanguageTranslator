@@ -45,9 +45,9 @@ namespace LanguageTranslator.Definition
 	class ObjectCreationExpression : Expression
 	{
 		/// <summary>
-		/// 種類(仮)
+		/// 型
 		/// </summary>
-		public TypeSyntax Type;
+		public TypeSpecifier Type;
 
 		public Expression[] Args;
 	}

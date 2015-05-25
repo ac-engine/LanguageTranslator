@@ -98,26 +98,101 @@ namespace LanguageTranslator
 
 		public void Convert()
 		{
-			foreach(var structDef in definitions.Structs)
+			foreach(var def in definitions.Structs)
 			{
-				foreach(var field in structDef.Fields)
+				foreach(var field in def.Fields)
 				{
 					field.Type = ConvertType(field.Type);
+					field.Initializer = ConvertExpression(field.Initializer);
 				}
 
-				foreach(var prop in structDef.Properties)
+				foreach(var prop in def.Properties)
 				{
 					prop.Type = ConvertType(prop.Type);
+					if(prop.Getter != null)
+					{
+						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+					}
+
+					if (prop.Setter != null)
+					{
+						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+					}
 				}
 
-				foreach(var method in structDef.Methods)
+				foreach(var m in def.Operators)
 				{
-					foreach(var paramDef in method.Parameters)
+					foreach (var paramDef in m.Parameters)
 					{
 						paramDef.Type = ConvertType(paramDef.Type);
 					}
 
-					method.ReturnType = ConvertType(method.ReturnType);
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach(var m in def.Methods)
+				{
+					foreach(var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+			}
+
+			foreach (var def in definitions.Classes)
+			{
+				foreach (var field in def.Fields)
+				{
+					field.Type = ConvertType(field.Type);
+					field.Initializer = ConvertExpression(field.Initializer);
+				}
+
+				foreach (var prop in def.Properties)
+				{
+					prop.Type = ConvertType(prop.Type);
+					if (prop.Getter != null)
+					{
+						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+					}
+
+					if (prop.Setter != null)
+					{
+						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+					}
+				}
+
+				foreach (var m in def.Operators)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Methods)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+			}
+
+			foreach(var def in definitions.Enums)
+			{
+				foreach(var m in def.Members)
+				{
+					m.Value = ConvertExpression(m.Value);
 				}
 			}
 		}
@@ -135,6 +210,144 @@ namespace LanguageTranslator
 			}
 
 			return typeString;
+		}
+
+		Definition.Statement ConvertStatement(Definition.Statement s)
+		{
+			if (s == null) return s;
+
+			if (s is Definition.BlockStatement)
+			{
+				var s_ = s as Definition.BlockStatement;
+				s_.Statements = s_.Statements.Select(_ => ConvertStatement(_)).ToArray();
+				return s_;
+			}
+			else if (s is Definition.VariableDeclarationStatement)
+			{
+				var s_ = s as Definition.VariableDeclarationStatement;
+				s_.Type = ConvertType(s_.Type);
+				s_.Value = ConvertExpression(s_.Value);
+				return s_;
+			}
+			else if (s is Definition.ForeachStatement)
+			{
+				var s_ = s as Definition.ForeachStatement;
+				s_.Type = ConvertType(s_.Type);
+				s_.Value = ConvertExpression(s_.Value);
+				s_.Statement = ConvertStatement(s_.Statement);
+				return s_;
+			}
+			else if (s is Definition.ForStatement)
+			{
+				var s_ = s as Definition.ForStatement;
+				s_.Condition = ConvertExpression(s_.Condition);
+				s_.Incrementor = ConvertExpression(s_.Incrementor);
+				s_.Statement = ConvertStatement(s_.Statement);
+				return s_;
+			}
+			else if (s is Definition.IfStatement)
+			{
+				var s_ = s as Definition.IfStatement;
+				s_.Condition = ConvertExpression(s_.Condition);
+				s_.TrueStatement = ConvertStatement(s_.TrueStatement);
+				s_.FalseStatement = ConvertStatement(s_.FalseStatement);
+				return s_;
+			}
+			else if (s is Definition.ReturnStatement)
+			{
+				var s_ = s as Definition.ReturnStatement;
+				s_.Return = ConvertExpression(s_.Return);
+				return s_;
+			}
+			else if (s is Definition.ContinueStatement)
+			{
+				return s;
+			}
+			else if (s is Definition.ExpressionStatement)
+			{
+				var s_ = s as Definition.ExpressionStatement;
+				s_.Expression = ConvertExpression(s_.Expression);
+				return s_;
+			}
+
+			throw new Exception();
+		}
+
+		Definition.Expression ConvertExpression(Definition.Expression e)
+		{
+			if (e == null)
+			{
+				return e;
+			}
+			else if (e is Definition.MemberAccessExpression)
+			{
+				var e_ = e as Definition.MemberAccessExpression;
+				e_.Expression = ConvertExpression(e_.Expression);
+				return e_;
+			}
+			else if (e is Definition.CastExpression)
+			{
+				var e_ = e as Definition.CastExpression;
+				e_.Type = ConvertType(e_.Type);
+				e_.Expression = ConvertExpression(e_.Expression);
+				return e_;
+			}
+			else if (e is Definition.LiteralExpression)
+			{
+				return e;
+			}
+			else if (e is Definition.InvocationExpression)
+			{
+				var e_ = e as Definition.InvocationExpression;
+				e_.Method = ConvertExpression(e_.Method);
+				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				return e_;
+			}
+			else if (e is Definition.ObjectCreationExpression)
+			{
+				var e_ = e as Definition.ObjectCreationExpression;
+				e_.Type = ConvertType(e_.Type);
+				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				return e_;
+			}
+			else if (e is Definition.AssignmentExpression)
+			{
+				var e_ = e as Definition.AssignmentExpression;
+				e_.Target = ConvertExpression(e_.Target);
+				e_.Expression = ConvertExpression(e_.Expression);
+				return e_;
+			}
+			else if (e is Definition.ElementAccessExpression)
+			{
+				var e_ = e as Definition.ElementAccessExpression;
+				e_.Value = ConvertExpression(e_.Value);
+				e_.Arg = ConvertExpression(e_.Arg);
+				return e_;
+			}
+			else if (e is Definition.ThisExpression)
+			{
+				return e;
+			}
+			else if (e is Definition.IdentifierNameExpression)
+			{
+				var e_ = e as Definition.IdentifierNameExpression;
+				return e_;
+			}
+			else if (e is Definition.BinaryExpression)
+			{
+				var e_ = e as Definition.BinaryExpression;
+				e_.Left = ConvertExpression(e_.Left);
+				e_.Right = ConvertExpression(e_.Right);
+				return e_;
+			}
+			else if (e is Definition.PrefixUnaryExpression)
+			{
+				var e_ = e as Definition.PrefixUnaryExpression;
+				e_.Expression = ConvertExpression(e_.Expression);
+				return e_;
+			}
+
+			throw new Exception();
 		}
 
 		Definition.TypeSpecifier ConvertType(Definition.TypeSpecifier typeSpecifier)
