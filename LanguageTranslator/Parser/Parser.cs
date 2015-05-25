@@ -12,234 +12,414 @@ using LanguageTranslator.Definition;
 
 namespace LanguageTranslator.Parser
 {
-    class Parser
-    {
-        Definition.Definitions definitions = null;
+	class Parser
+	{
+		Definition.Definitions definitions = null;
 
-        public Definition.Definitions Parse(string[] pathes)
-        {
-            definitions = new Definition.Definitions();
+		public List<string> TypesNotParsed = new List<string>();
 
-            List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
-            foreach (var path in pathes)
-            {
-                var tree = CSharpSyntaxTree.ParseText(System.IO.File.ReadAllText(path), null, path);
-                syntaxTrees.Add(tree);
-            }
+		public List<string> TypesWhosePrivateNotParsed = new List<string>();
 
-            var assemblyPath = System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location);
+		public Definition.Definitions Parse(string[] pathes)
+		{
+			definitions = new Definition.Definitions();
 
-            var mscorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "mscorlib.dll"));
+			List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
+			foreach (var path in pathes)
+			{
+				var tree = CSharpSyntaxTree.ParseText(System.IO.File.ReadAllText(path), null, path);
+				syntaxTrees.Add(tree);
+			}
 
-            var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
-                        "Compilation",
-                        syntaxTrees: syntaxTrees.ToArray(),
-                        references: new[] { mscorelib },
-                        options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
-                                                  Microsoft.CodeAnalysis.OutputKind.ConsoleApplication));
+			var assemblyPath = System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location);
 
-            // 定義のみ取得
-            foreach (var tree in syntaxTrees)
-            {
-                var semanticModel = compilation.GetSemanticModel(tree);
+			var mscorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "mscorlib.dll"));
 
-                var decl = semanticModel.GetDeclarationDiagnostics();
-                var methodBodies = semanticModel.GetMethodBodyDiagnostics();
-                var root = semanticModel.SyntaxTree.GetRoot();
+			var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+						"Compilation",
+						syntaxTrees: syntaxTrees.ToArray(),
+						references: new[] { mscorelib },
+						options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
+												  Microsoft.CodeAnalysis.OutputKind.ConsoleApplication));
 
-                ParseRoot(root, semanticModel);
-            }
+			// 定義のみ取得
+			foreach (var tree in syntaxTrees)
+			{
+				var semanticModel = compilation.GetSemanticModel(tree);
 
-            var blockParser = new BlockParser();
-            blockParser.Parse(definitions, syntaxTrees, compilation);
+				var decl = semanticModel.GetDeclarationDiagnostics();
+				var methodBodies = semanticModel.GetMethodBodyDiagnostics();
+				var root = semanticModel.SyntaxTree.GetRoot();
 
-            return definitions;
-        }
+				ParseRoot(root, semanticModel);
+			}
 
-        void ParseRoot(SyntaxNode root, SemanticModel semanticModel)
-        {
-            var compilationUnitSyntax = root as CompilationUnitSyntax;
+			var blockParser = new BlockParser();
+			blockParser.Parse(definitions, syntaxTrees, compilation);
 
-            var usings = compilationUnitSyntax.Usings;
-            var members = compilationUnitSyntax.Members;
+			return definitions;
+		}
 
-            foreach (var member in members)
-            {
-                var namespaceSyntax = member as NamespaceDeclarationSyntax;
-                ParseNamespace(namespaceSyntax, semanticModel);
-            }
-        }
+		private void ParseRoot(SyntaxNode root, SemanticModel semanticModel)
+		{
+			var compilationUnitSyntax = root as CompilationUnitSyntax;
 
-        void ParseNamespace(NamespaceDeclarationSyntax namespaceSyntax, SemanticModel semanticModel)
-        {
-            var members = namespaceSyntax.Members;
+			var usings = compilationUnitSyntax.Usings;
+			var members = compilationUnitSyntax.Members;
 
-            // TODO 正しいnamespaceの処理
-            var nameSyntax_I = namespaceSyntax.Name as IdentifierNameSyntax;
-            var nameSyntax_Q = namespaceSyntax.Name as QualifiedNameSyntax;
+			foreach (var member in members)
+			{
+				var namespaceSyntax = member as NamespaceDeclarationSyntax;
+				ParseNamespace(namespaceSyntax, semanticModel);
+			}
+		}
 
-            string namespace_ = string.Empty;
-            if (nameSyntax_I != null) namespace_ = nameSyntax_I.Identifier.ValueText;
-            if (nameSyntax_Q != null)
-            {
-                namespace_ = nameSyntax_Q.ToFullString().Trim();
-            }
+		private void ParseNamespace(NamespaceDeclarationSyntax namespaceSyntax, SemanticModel semanticModel)
+		{
+			var members = namespaceSyntax.Members;
 
-            foreach (var member in members)
-            {
-                var classSyntax = member as ClassDeclarationSyntax;
-                var enumSyntax = member as EnumDeclarationSyntax;
-                var structSyntax = member as StructDeclarationSyntax;
+			// TODO 正しいnamespaceの処理
+			var nameSyntax_I = namespaceSyntax.Name as IdentifierNameSyntax;
+			var nameSyntax_Q = namespaceSyntax.Name as QualifiedNameSyntax;
 
-                if (enumSyntax != null)
-                {
-                    ParseEnum(namespace_, enumSyntax, semanticModel);
-                }
-                if (classSyntax != null)
-                {
-                    ParseClass(namespace_, classSyntax);
-                }
-            }
-        }
+			string namespace_ = string.Empty;
+			if (nameSyntax_I != null) namespace_ = nameSyntax_I.Identifier.ValueText;
+			if (nameSyntax_Q != null)
+			{
+				namespace_ = nameSyntax_Q.ToFullString().Trim();
+			}
 
-        void ParseClass(string namespace_, ClassDeclarationSyntax classSyntax)
-        {
-            var classDef = new ClassDef();
+			foreach (var member in members)
+			{
+				var classSyntax = member as ClassDeclarationSyntax;
+				var enumSyntax = member as EnumDeclarationSyntax;
+				var structSyntax = member as StructDeclarationSyntax;
 
-            // swig
-            classDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+				if (enumSyntax != null)
+				{
+					ParseEnum(namespace_, enumSyntax, semanticModel);
+				}
+				if (classSyntax != null)
+				{
+					ParseClass(namespace_, classSyntax, semanticModel);
+				}
+				if (structSyntax != null)
+				{
+					ParseStrcut(namespace_, structSyntax, semanticModel);
+				}
+			}
+		}
 
-            classDef.Name = classSyntax.Identifier.ValueText;
+		private void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
+		{
+			var enumDef = new EnumDef();
 
-            foreach (var member in classSyntax.Members)
-            {
-                var methodSyntax = member as MethodDeclarationSyntax;
-                var propertySyntax = member as PropertyDeclarationSyntax;
+			// 名称
+			enumDef.Name = enumSyntax.Identifier.ValueText;
 
-                if (methodSyntax != null)
-                {
-                    classDef.Methods.Add(ParseMethod(methodSyntax));
-                }
-                if (propertySyntax != null)
-                {
-                    classDef.Properties.Add(ParseProperty(propertySyntax));
-                }
-            }
+			// ネームスペース
+			enumDef.Namespace = namespace_;
 
-            definitions.Classes.Add(classDef);
-        }
+			// swig
+			enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
 
-        private PropertyDef ParseProperty(PropertyDeclarationSyntax propertySyntax)
-        {
-            var propertyDef = new PropertyDef();
-            propertyDef.Name = propertySyntax.Identifier.ValueText;
-            propertyDef.Type = ParseTypeSpecifier(propertySyntax.Type);
+			foreach (var member in enumSyntax.Members)
+			{
+				var def = ParseEnumMember(member, semanticModel);
+				enumDef.Members.Add(def);
+			}
 
-            foreach (var accessor in propertySyntax.AccessorList.Accessors)
-            {
-                if (accessor.Keyword.Text == "get")
-                {
-                    propertyDef.Getter = new AccessorDef();
-                }
-                else if (accessor.Keyword.Text == "set")
-                {
-                    propertyDef.Setter = new AccessorDef();
-                }
-            }
+			definitions.Enums.Add(enumDef);
+		}
 
-            return propertyDef;
-        }
+		private EnumMemberDef ParseEnumMember(EnumMemberDeclarationSyntax syntax, SemanticModel semanticModel)
+		{
+			EnumMemberDef dst = new EnumMemberDef();
 
-        private MethodDef ParseMethod(MethodDeclarationSyntax methodSyntax)
-        {
-            var methodDef = new MethodDef();
-            methodDef.Name = methodSyntax.Identifier.ValueText;
-            methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType);
+			// 名称
+			dst.Name = syntax.Identifier.ValueText;
+			dst.Internal = syntax;
 
-            foreach (var parameter in methodSyntax.ParameterList.Parameters)
-            {
-                methodDef.Parameters.Add(ParseParameter(parameter));
-            }
+			return dst;
+		}
 
+		private void ParseClass(string namespace_, ClassDeclarationSyntax classSyntax, SemanticModel semanticModel)
+		{
+			var classDef = new ClassDef();
+
+			// swig
+			classDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+
+			classDef.Namespace = namespace_;
+			classDef.Name = classSyntax.Identifier.ValueText;
+
+			var fullName = namespace_ + "." + classDef.Name;
+
+			{
+				var partial = definitions.Classes.FirstOrDefault(x => x.Namespace + "." + x.Name == fullName);
+				if (partial != null)
+				{
+					classDef = partial;
+				}
+			}
+
+			if (TypesNotParsed.Contains(fullName))
+			{
+				return;
+			}
+
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(fullName);
+
+			if (classSyntax.TypeParameterList != null)
+			{
+				foreach (var item in classSyntax.TypeParameterList.Parameters)
+				{
+					classDef.TypeParameters.Add(item.Identifier.ValueText);
+				}
+			}
+
+			if (classSyntax.BaseList != null)
+			{
+				foreach (var item in classSyntax.BaseList.Types)
+				{
+					classDef.BaseTypes.Add(ParseTypeSpecifier(item.Type, semanticModel));
+				}
+			}
+
+			Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
+			foreach (var member in classSyntax.Members)
+			{
+				var methodSyntax = member as MethodDeclarationSyntax;
+				var propertySyntax = member as PropertyDeclarationSyntax;
+				var fieldSyntax = member as FieldDeclarationSyntax;
+				var operatorSyntax = member as OperatorDeclarationSyntax;
+
+				if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
+				{
+					classDef.Methods.Add(ParseMethod(methodSyntax, semanticModel));
+				}
+				if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
+				{
+					classDef.Properties.Add(ParseProperty(propertySyntax, semanticModel));
+				}
+				if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
+				{
+					classDef.Fields.Add(ParseField(fieldSyntax, semanticModel));
+				}
+				if (operatorSyntax != null)
+				{
+					classDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
+				}
+			}
+
+			definitions.Classes.Add(classDef);
+		}
+
+		private void ParseStrcut(string namespace_, StructDeclarationSyntax structSyntax, SemanticModel semanticModel)
+		{
+			var structDef = new StructDef();
+			structDef.Internal = structSyntax;
+
+			structDef.Namespace = namespace_;
+			structDef.Name = structSyntax.Identifier.ValueText;
+
+			var fullName = namespace_ + "." + structDef.Name;
+
+			{
+				var partial = definitions.Structs.FirstOrDefault(x => x.Namespace + "." + x.Name == fullName);
+				if (partial != null)
+				{
+					structDef = partial;
+				}
+			}
+
+			if (TypesNotParsed.Contains(fullName))
+			{
+				return;
+			}
+
+			bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(fullName);
+
+			if (structSyntax.TypeParameterList != null)
+			{
+				foreach (var item in structSyntax.TypeParameterList.Parameters)
+				{
+					structDef.TypeParameters.Add(item.Identifier.ValueText);
+				}
+			}
+
+			Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
+			foreach (var member in structSyntax.Members)
+			{
+				var methodSyntax = member as MethodDeclarationSyntax;
+				var propertySyntax = member as PropertyDeclarationSyntax;
+				var fieldSyntax = member as FieldDeclarationSyntax;
+				var operatorSyntax = member as OperatorDeclarationSyntax;
+
+				if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
+				{
+					structDef.Methods.Add(ParseMethod(methodSyntax, semanticModel));
+				}
+				if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
+				{
+					structDef.Properties.Add(ParseProperty(propertySyntax, semanticModel));
+				}
+				if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
+				{
+					structDef.Fields.Add(ParseField(fieldSyntax, semanticModel));
+				}
+				if (operatorSyntax != null)
+				{
+					structDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
+				}
+			}
+
+			definitions.Structs.Add(structDef);
+		}
+
+		private FieldDef ParseField(FieldDeclarationSyntax fieldSyntax, SemanticModel semanticModel)
+		{
+			var fieldDef = new FieldDef();
+
+			if (fieldSyntax.Declaration.Variables.Count != 1)
+			{
+				var span = fieldSyntax.SyntaxTree.GetLineSpan(fieldSyntax.Declaration.Variables.Span);
+				throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
+			}
+
+			var type = ParseTypeSpecifier(fieldSyntax.Declaration.Type, semanticModel);
+
+			fieldDef.Internal = fieldSyntax;
+			fieldDef.Name = fieldSyntax.Declaration.Variables[0].Identifier.ValueText;
+			fieldDef.Type = type;
+
+			return fieldDef;
+		}
+
+		private PropertyDef ParseProperty(PropertyDeclarationSyntax propertySyntax, SemanticModel semanticModel)
+		{
+			var propertyDef = new PropertyDef();
+			propertyDef.Internal = propertySyntax;
+
+			propertyDef.Name = propertySyntax.Identifier.ValueText;
+			propertyDef.Type = ParseTypeSpecifier(propertySyntax.Type, semanticModel);
+
+			foreach (var accessor in propertySyntax.AccessorList.Accessors)
+			{
+				if (accessor.Keyword.Text == "get")
+				{
+					var acc = new AccessorDef();
+					acc.Internal = accessor;
+					propertyDef.Getter = acc;
+				}
+				else if (accessor.Keyword.Text == "set")
+				{
+					var acc = new AccessorDef();
+					acc.Internal = accessor;
+					propertyDef.Setter = acc;
+				}
+			}
+
+			return propertyDef;
+		}
+
+		private MethodDef ParseMethod(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel)
+		{
+			var methodDef = new MethodDef();
 			methodDef.Internal = methodSyntax;
 
-            return methodDef;
-        }
+			methodDef.Name = methodSyntax.Identifier.ValueText;
+			methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType, semanticModel);
 
-        private TypeSpecifier ParseTypeSpecifier(TypeSyntax typeSyntax)
-        {
-            if (typeSyntax is ArrayTypeSyntax)
-            {
-                return new ArrayType
-                {
-                    BaseType = ((ArrayTypeSyntax)typeSyntax).ElementType.GetText().ToString().Trim(),
-                };
-            }
-            else if (typeSyntax is NullableTypeSyntax)
-            {
-                return new NullableType
-                {
-                    BaseType = ((NullableTypeSyntax)typeSyntax).ElementType.GetText().ToString().Trim(),
-                };
-            }
-            else if (typeSyntax is GenericNameSyntax)
-            {
-                var g = (GenericNameSyntax)typeSyntax;
-                return new GenericType
-                {
-                    OuterType = g.Identifier.ValueText,
-                    InnerType = g.TypeArgumentList.Arguments.Select(x => x.GetText().ToString().Trim()).ToList(),
-                };
-            }
-            else
-            {
-                return new SimpleType
-                {
-                    Type = typeSyntax.GetText().ToString().Trim(),
-                };
-            }
-        }
+			foreach (var parameter in methodSyntax.ParameterList.Parameters)
+			{
+				methodDef.Parameters.Add(ParseParameter(parameter, semanticModel));
+			}
 
-        private ParameterDef ParseParameter(ParameterSyntax parameter)
-        {
-            var parameterDef = new ParameterDef();
-            parameterDef.Name = parameter.Identifier.ValueText;
-            parameterDef.Type = ParseTypeSpecifier(parameter.Type);
+			return methodDef;
+		}
 
-            return parameterDef;
-        }
+		private OperatorDef ParseOperator(OperatorDeclarationSyntax operatorSyntax, SemanticModel semanticModel)
+		{
+			var operatorDef = new OperatorDef();
+			operatorDef.Operator = operatorSyntax.OperatorToken.ValueText;
+			operatorDef.ReturnType = ParseTypeSpecifier(operatorSyntax.ReturnType, semanticModel);
 
-        void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
-        {
-            var enumDef = new EnumDef();
+			foreach (var item in operatorSyntax.ParameterList.Parameters)
+			{
+				operatorDef.Parameters.Add(ParseParameter(item, semanticModel));
+			}
 
-            // 名称
-            enumDef.Name = enumSyntax.Identifier.ValueText;
+			return operatorDef;
+		}
 
-            // ネームスペース
-            enumDef.Namespace = namespace_;
+		private ParameterDef ParseParameter(ParameterSyntax parameter, SemanticModel semanticModel)
+		{
+			var parameterDef = new ParameterDef();
+			parameterDef.Name = parameter.Identifier.ValueText;
+			parameterDef.Type = ParseTypeSpecifier(parameter.Type, semanticModel);
 
-            // swig
-            enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+			return parameterDef;
+		}
 
-            foreach (var member in enumSyntax.Members)
-            {
-                var def = ParseEnumMember(member, semanticModel);
-                enumDef.Members.Add(def);
-            }
-
-            definitions.Enums.Add(enumDef);
-        }
-
-        EnumMemberDef ParseEnumMember(EnumMemberDeclarationSyntax syntax, SemanticModel semanticModel)
-        {
-            EnumMemberDef dst = new EnumMemberDef();
-
-            // 名称
-            dst.Name = syntax.Identifier.ValueText;
-            dst.Internal = syntax;
-
-            return dst;
-        }
-    }
+		private TypeSpecifier ParseTypeSpecifier(TypeSyntax typeSyntax, SemanticModel semanticModel)
+		{
+			if (typeSyntax is ArrayTypeSyntax)
+			{
+				try
+				{
+					return new ArrayType
+					{
+						BaseType = (SimpleType)ParseTypeSpecifier(((ArrayTypeSyntax)typeSyntax).ElementType, semanticModel),
+					};
+				}
+				catch (InvalidCastException)
+				{
+					throw new ParseException("SimpleType以外の配列は使用禁止です。");
+				}
+			}
+			else if (typeSyntax is NullableTypeSyntax)
+			{
+				try
+				{
+					return new NullableType
+					{
+						BaseType = (SimpleType)ParseTypeSpecifier(((NullableTypeSyntax)typeSyntax).ElementType, semanticModel),
+					};
+				}
+				catch (InvalidCastException)
+				{
+					throw new ParseException("SimpleType以外のnull可能型は使用禁止です。");
+				}
+			}
+			else if (typeSyntax is GenericNameSyntax)
+			{
+				var g = (GenericNameSyntax)typeSyntax;
+				try
+				{
+					return new GenericType
+					{
+						OuterType = new SimpleType
+						{
+							Namespace = semanticModel.GetTypeInfo(typeSyntax).Type.ContainingNamespace.ToString(),
+							TypeName = g.Identifier.ValueText,
+						},
+						InnerType = g.TypeArgumentList.Arguments.Select(x => (SimpleType)ParseTypeSpecifier(x, semanticModel)).ToList(),
+					};
+				}
+				catch (InvalidCastException)
+				{
+					throw new ParseException("SimpleType以外のジェネリック型は使用禁止です。");
+				}
+			}
+			else
+			{
+				return new SimpleType
+				{
+					Namespace = semanticModel.GetTypeInfo(typeSyntax).Type.ContainingNamespace.ToString(),
+					TypeName = typeSyntax.GetText().ToString().Trim(),
+				};
+			}
+		}
+	}
 }

@@ -10,6 +10,7 @@ namespace LanguageTranslator.Definition
 	{
 		public List<EnumDef> Enums = new List<EnumDef>();
 		public List<ClassDef> Classes = new List<ClassDef>();
+        public List<StructDef> Structs = new List<StructDef>();
 	}
 
 	class EnumDef
@@ -47,11 +48,16 @@ namespace LanguageTranslator.Definition
 
 	class ClassDef
 	{
+		public string Namespace = string.Empty;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
+        public List<TypeSpecifier> BaseTypes = new List<TypeSpecifier>();
+        public List<string> TypeParameters = new List<string>();
+
 		public List<MethodDef> Methods = new List<MethodDef>();
 		public List<PropertyDef> Properties = new List<PropertyDef>();
 		public List<FieldDef> Fields = new List<FieldDef>();
+		public List<OperatorDef> Operators = new List<OperatorDef>();
 
 		public override string ToString()
 		{
@@ -61,12 +67,40 @@ namespace LanguageTranslator.Definition
 		public bool IsDefinedBySWIG = false;
 	}
 
+    class StructDef
+    {
+		public string Namespace = string.Empty;
+        public string Name = string.Empty;
+        public string Brief = string.Empty;
+        public List<string> TypeParameters = new List<string>();
+
+        public List<MethodDef> Methods = new List<MethodDef>();
+        public List<PropertyDef> Properties = new List<PropertyDef>();
+        public List<FieldDef> Fields = new List<FieldDef>();
+		public List<OperatorDef> Operators = new List<OperatorDef>();
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.StructDeclarationSyntax Internal = null;
+
+        public override string ToString()
+        {
+            return string.Format("StructDef {0}", Name);
+        }
+    }
+
 	class FieldDef
 	{
 		public TypeSpecifier Type = null;
 		public string Name = string.Empty;
 		public Expression Initializer = null;
 		public string Brief = string.Empty;
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax Internal = null;
 
 		public override string ToString()
 		{
@@ -82,6 +116,11 @@ namespace LanguageTranslator.Definition
 		public AccessorDef Setter = null;
 		public string Brief = string.Empty;
 
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax Internal = null;
+
 		public override string ToString()
 		{
 			return string.Format("PropertyDef {0}", Name);
@@ -90,7 +129,12 @@ namespace LanguageTranslator.Definition
 
 	class AccessorDef
 	{
-		public List<Statement> Body = new List<Statement>();
+		public Statement Body = null;
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax Internal = null;
 	}
 
 	class MethodDef
@@ -121,6 +165,19 @@ namespace LanguageTranslator.Definition
 		public override string ToString()
 		{
 			return string.Format("ParameterDef {0}", Name);
+		}
+	}
+
+    class OperatorDef
+    {
+        public TypeSpecifier ReturnType = null;
+        public string Operator = string.Empty;
+		public List<ParameterDef> Parameters = new List<ParameterDef>();
+		public List<Statement> Body = new List<Statement>();
+
+		public override string ToString()
+		{
+			return string.Format("ParameterDef {0}", Operator);
 		}
 	}
 }

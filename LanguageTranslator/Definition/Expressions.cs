@@ -12,7 +12,11 @@ namespace LanguageTranslator.Definition
 {
 	class MemberAccessExpression : Expression
 	{
-		public EnumDef Enum = null;
+		//public EnumDef Enum = null;
+
+		/// <summary>
+		/// メンバーへのアクセスがenumのメンバーだった場合の値
+		/// </summary>
 		public EnumMemberDef EnumMember = null;
 
 		public Expression Expression = null;
