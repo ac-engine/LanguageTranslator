@@ -94,6 +94,7 @@ namespace LanguageTranslator.Parser
 				var classSyntax = member as ClassDeclarationSyntax;
 				var enumSyntax = member as EnumDeclarationSyntax;
 				var structSyntax = member as StructDeclarationSyntax;
+                var interfaceSyntax = member as InterfaceDeclarationSyntax;
 
 				if (enumSyntax != null)
 				{
@@ -107,10 +108,48 @@ namespace LanguageTranslator.Parser
 				{
 					ParseStrcut(namespace_, structSyntax, semanticModel);
 				}
+                if (interfaceSyntax != null)
+                {
+                    ParseInterface(namespace_, interfaceSyntax, semanticModel);
+                }
 			}
 		}
 
-		private void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
+        private void ParseInterface(string namespace_, InterfaceDeclarationSyntax interfaceSyntax, SemanticModel semanticModel)
+        {
+            var interfaceDef = new InterfaceDef();
+            interfaceDef.Namespace = namespace_;
+            interfaceDef.Name = interfaceSyntax.Identifier.ValueText;
+
+            var fullName = interfaceDef.Namespace + "." + interfaceDef.Name;
+
+            if (TypesNotParsed.Contains(fullName))
+            {
+                return;
+            }
+
+            bool isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(fullName);
+
+            Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
+            foreach (var member in interfaceSyntax.Members)
+            {
+                var methodSyntax = member as MethodDeclarationSyntax;
+                var propertySyntax = member as PropertyDeclarationSyntax;
+
+                if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
+                {
+                    interfaceDef.Methods.Add(ParseMethod(methodSyntax, semanticModel));
+                }
+                if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
+                {
+                    interfaceDef.Properties.Add(ParseProperty(propertySyntax, semanticModel));
+                }
+            }
+
+            definitions.Interfaces.Add(interfaceDef);
+        }
+
+        private void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)
 		{
 			var enumDef = new EnumDef();
 

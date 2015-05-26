@@ -11,6 +11,7 @@ namespace LanguageTranslator.Definition
 		public List<EnumDef> Enums = new List<EnumDef>();
 		public List<ClassDef> Classes = new List<ClassDef>();
         public List<StructDef> Structs = new List<StructDef>();
+        public List<InterfaceDef> Interfaces = new List<InterfaceDef>();
 	}
 
 	class EnumDef
@@ -87,6 +88,22 @@ namespace LanguageTranslator.Definition
         public override string ToString()
         {
             return string.Format("StructDef {0}", Name);
+        }
+    }
+
+    class InterfaceDef
+    {
+        public string Namespace = string.Empty;
+        public string Name = string.Empty;
+        public string Brief = string.Empty;
+        public List<string> TypeParameters = new List<string>();
+
+        public List<MethodDef> Methods = new List<MethodDef>();
+        public List<PropertyDef> Properties = new List<PropertyDef>();
+
+        public override string ToString()
+        {
+            return string.Format("InterfaceDef {0}", Name);
         }
     }
 

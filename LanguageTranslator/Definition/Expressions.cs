@@ -12,12 +12,21 @@ namespace LanguageTranslator.Definition
 {
 	class MemberAccessExpression : Expression
 	{
+		public string Name = string.Empty;
 		//public EnumDef Enum = null;
 
 		/// <summary>
 		/// メンバーへのアクセスがenumのメンバーだった場合の値
 		/// </summary>
+		/// <remarks>
+		/// 必ずExpressionはnullになる。
+		/// </remarks>
 		public EnumMemberDef EnumMember = null;
+
+		/// <summary>
+		/// メンバーへのアクセスがメソッドだった場合の値
+		/// </summary>
+		public MethodDef Method = null;
 
 		public Expression Expression = null;
 	}
@@ -45,9 +54,9 @@ namespace LanguageTranslator.Definition
 	class ObjectCreationExpression : Expression
 	{
 		/// <summary>
-		/// 種類(仮)
+		/// 型
 		/// </summary>
-		public TypeSyntax Type;
+		public TypeSpecifier Type;
 
 		public Expression[] Args;
 	}
