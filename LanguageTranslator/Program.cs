@@ -62,12 +62,15 @@ namespace LanguageTranslator
 
 			Editor editor = new Editor(definitions);
 
+			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
+
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "bool");
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
+			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 
 			editor.Convert();
 			
@@ -85,6 +88,8 @@ namespace LanguageTranslator
 
 		Dictionary<string, Tuple<string, string>> typeConverter = new Dictionary<string, Tuple<string, string>>();
 
+		Dictionary<string, string> methodConverter = new Dictionary<string, string>();
+
 		public Editor(Definition.Definitions definitions)
 		{
 			this.definitions = definitions;
@@ -96,31 +101,35 @@ namespace LanguageTranslator
 			typeConverter.Add(from, Tuple.Create(toNamespace, toType));
 		}
 
+		public void AddMethodConverter(string namespace_, string type_, string fromMethod, string toMethod)
+		{
+			var methodString = GetTypeString(namespace_, type_) + "." + fromMethod;
+			methodConverter.Add(methodString, toMethod);
+		}
+
 		public void Convert()
 		{
-			foreach(var def in definitions.Structs)
+			ConvertMethod();
+			ConvertTypeName();
+		}
+
+		void ConvertMethod()
+		{
+			foreach (var def in definitions.Structs)
 			{
-				foreach(var field in def.Fields)
+				foreach (var m in def.Methods)
 				{
-					field.Type = ConvertType(field.Type);
-					field.Initializer = ConvertExpression(field.Initializer);
-				}
-
-				foreach(var prop in def.Properties)
-				{
-					prop.Type = ConvertType(prop.Type);
-					if(prop.Getter != null)
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + m.Name;
+					if(methodConverter.ContainsKey(methodString))
 					{
-						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
-					}
-
-					if (prop.Setter != null)
-					{
-						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+						m.Name = methodConverter[methodString];
 					}
 				}
+			}
 
-				foreach(var m in def.Operators)
+			foreach (var def in definitions.Classes)
+			{
+				foreach (var m in def.Methods)
 				{
 					foreach (var paramDef in m.Parameters)
 					{
@@ -130,10 +139,13 @@ namespace LanguageTranslator
 					m.ReturnType = ConvertType(m.ReturnType);
 					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
 				}
+			}
 
-				foreach(var m in def.Methods)
+			foreach (var def in definitions.Interfaces)
+			{
+				foreach (var m in def.Methods)
 				{
-					foreach(var paramDef in m.Parameters)
+					foreach (var paramDef in m.Parameters)
 					{
 						paramDef.Type = ConvertType(paramDef.Type);
 					}
@@ -142,9 +154,21 @@ namespace LanguageTranslator
 					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
 				}
 			}
+		}
 
-			foreach (var def in definitions.Classes)
+		void ConvertTypeName()
+		{
+			foreach(var def in definitions.Structs)
 			{
+				{
+					var typeString = GetTypeString(def.Namespace, def.Name);
+					if(typeConverter.ContainsKey(typeString))
+					{
+						def.Namespace = typeConverter[typeString].Item1;
+						def.Name = typeConverter[typeString].Item2;
+					}
+				}
+
 				foreach (var field in def.Fields)
 				{
 					field.Type = ConvertType(field.Type);
@@ -188,8 +212,108 @@ namespace LanguageTranslator
 				}
 			}
 
+			foreach (var def in definitions.Classes)
+			{
+				{
+					var typeString = GetTypeString(def.Namespace, def.Name);
+					if (typeConverter.ContainsKey(typeString))
+					{
+						def.Namespace = typeConverter[typeString].Item1;
+						def.Name = typeConverter[typeString].Item2;
+					}
+				}
+
+				foreach (var field in def.Fields)
+				{
+					field.Type = ConvertType(field.Type);
+					field.Initializer = ConvertExpression(field.Initializer);
+				}
+
+				foreach (var prop in def.Properties)
+				{
+					prop.Type = ConvertType(prop.Type);
+					if (prop.Getter != null)
+					{
+						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+					}
+
+					if (prop.Setter != null)
+					{
+						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+					}
+				}
+
+				foreach (var m in def.Operators)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Methods)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+			}
+
+			foreach (var def in definitions.Interfaces)
+			{
+				{
+					var typeString = GetTypeString(def.Namespace, def.Name);
+					if (typeConverter.ContainsKey(typeString))
+					{
+						def.Namespace = typeConverter[typeString].Item1;
+						def.Name = typeConverter[typeString].Item2;
+					}
+				}
+
+				foreach (var prop in def.Properties)
+				{
+					prop.Type = ConvertType(prop.Type);
+					if (prop.Getter != null)
+					{
+						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+					}
+
+					if (prop.Setter != null)
+					{
+						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+					}
+				}
+
+				foreach (var m in def.Methods)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+			}
+
 			foreach(var def in definitions.Enums)
 			{
+				{
+					var typeString = GetTypeString(def.Namespace, def.Name);
+					if (typeConverter.ContainsKey(typeString))
+					{
+						def.Namespace = typeConverter[typeString].Item1;
+						def.Name = typeConverter[typeString].Item2;
+					}
+				}
+
 				foreach(var m in def.Members)
 				{
 					m.Value = ConvertExpression(m.Value);

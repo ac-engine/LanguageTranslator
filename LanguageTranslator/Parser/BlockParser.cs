@@ -69,11 +69,11 @@ namespace LanguageTranslator.Parser
 			def.Value = ParseExpression(eqValue, semanticModel);
 		}
 
-		void ParseClass(Definition.ClassDef classDef)
+		void ParseClass(Definition.ClassDef def)
 		{
-			if (classDef.IsDefinedBySWIG) return;
+			if (def.IsDefinedBySWIG) return;
 
-			foreach(var field in classDef.Fields)
+			foreach(var field in def.Fields)
 			{
 				var semanticModel = compilation.GetSemanticModel(field.Internal.SyntaxTree);
 
@@ -84,7 +84,7 @@ namespace LanguageTranslator.Parser
 				}
 			}
 
-			foreach(var prop in classDef.Properties)
+			foreach(var prop in def.Properties)
 			{
 				var semanticModel = compilation.GetSemanticModel(prop.Internal.SyntaxTree);
 
@@ -99,7 +99,7 @@ namespace LanguageTranslator.Parser
 				}
 			}
 
-			foreach (var method in classDef.Methods)
+			foreach (var method in def.Methods)
 			{
 				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
 
@@ -112,9 +112,65 @@ namespace LanguageTranslator.Parser
 			}
 		}
 
-		void ParseStruct(Definition.StructDef classDef)
+		void ParseStruct(Definition.StructDef def)
 		{
-			foreach (var method in classDef.Methods)
+			foreach (var field in def.Fields)
+			{
+				var semanticModel = compilation.GetSemanticModel(field.Internal.SyntaxTree);
+
+				var v = field.Internal.Declaration.Variables[0];
+				if (v.Initializer != null && v.Initializer.Value != null)
+				{
+					field.Initializer = ParseExpression(v.Initializer.Value, semanticModel);
+				}
+			}
+
+			foreach (var prop in def.Properties)
+			{
+				var semanticModel = compilation.GetSemanticModel(prop.Internal.SyntaxTree);
+
+				if (prop.Getter != null && prop.Getter.Internal.Body != null)
+				{
+					prop.Getter.Body = ParseStatement(prop.Getter.Internal.Body, semanticModel);
+				}
+
+				if (prop.Setter != null)
+				{
+					prop.Setter.Body = ParseStatement(prop.Setter.Internal.Body, semanticModel);
+				}
+			}
+
+			foreach (var method in def.Methods)
+			{
+				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
+
+				if (method.Internal.Body == null)
+				{
+					continue;
+				}
+
+				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+		}
+
+		void ParseInterface(Definition.InterfaceDef def)
+		{
+			foreach (var prop in def.Properties)
+			{
+				var semanticModel = compilation.GetSemanticModel(prop.Internal.SyntaxTree);
+
+				if (prop.Getter != null && prop.Getter.Internal.Body != null)
+				{
+					prop.Getter.Body = ParseStatement(prop.Getter.Internal.Body, semanticModel);
+				}
+
+				if (prop.Setter != null)
+				{
+					prop.Setter.Body = ParseStatement(prop.Setter.Internal.Body, semanticModel);
+				}
+			}
+
+			foreach (var method in def.Methods)
 			{
 				var semanticModel = compilation.GetSemanticModel(method.Internal.SyntaxTree);
 
@@ -152,6 +208,8 @@ namespace LanguageTranslator.Parser
 			{
 				MemberAccessExpression exp = new MemberAccessExpression();
 
+				exp.Name = mae.Name.ToString();
+
 				TypeInfo? selfType = null;
 				selfType = semanticModel.GetTypeInfo(mae);
 
@@ -159,11 +217,29 @@ namespace LanguageTranslator.Parser
 				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
 
 				// 親の種類を探索
+				ClassDef classDefP = null;
 				EnumDef enumDefP = null;
+				InterfaceDef interfaceDefP = null;
 
 				if (parentType.HasValue && parentType.Value.Type != null)
 				{
-					if (parentType.Value.Type.TypeKind == TypeKind.Enum)
+					if (parentType.Value.Type.TypeKind == TypeKind.Interface)
+					{
+						var memName = mae.Name.ToString();
+						var sym = semanticModel.GetSymbolInfo(mae);
+						var name_ = parentType.Value.Type.Name;
+						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						interfaceDefP = definitions.Interfaces.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
+					}
+					else if(parentType.Value.Type.TypeKind == TypeKind.Class)
+					{
+						var memName = mae.Name.ToString();
+						var sym = semanticModel.GetSymbolInfo(mae);
+						var name_ = parentType.Value.Type.Name;
+						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						classDefP = definitions.Classes.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
+					}
+					else if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
 						var enumName = selfType.Value.Type.Name;
 						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
@@ -172,28 +248,77 @@ namespace LanguageTranslator.Parser
 				}
 
 				// 親から子を探索
+				if(interfaceDefP != null)
+				{
+					var symbol = semanticModel.GetSymbolInfo(mae);
+					var methodSymbol = symbol.Symbol as IMethodSymbol;
 
+					if (methodSymbol != null)
+					{
+						var method = interfaceDefP.Methods.Where(_ =>
+						{
+							if (_.Name != methodSymbol.Name) return false;
+							if (_.Parameters.Count() != methodSymbol.Parameters.Count()) return false;
+
+							for (int i = 0; i < _.Parameters.Count(); i++)
+							{
+								if (_.Parameters[i].Name != methodSymbol.Parameters[i].Name) return false;
+
+								// TODO 正しい変換
+								//if(_.Parameters[i].Type != methodSymbol.Parameters[i].Type)
+							}
+
+							return true;
+						}).FirstOrDefault();
+
+						if (method != null)
+						{
+							exp.Name = null;
+							exp.Method = method;
+						}
+					}
+
+				}
+				else if(classDefP != null)
+				{
+					var symbol = semanticModel.GetSymbolInfo(mae);
+					var methodSymbol = symbol.Symbol as IMethodSymbol;
+
+					if (methodSymbol != null)
+					{
+						var method = classDefP.Methods.Where(_ =>
+							{
+								if (_.Name != methodSymbol.Name) return false;
+								if (_.Parameters.Count() != methodSymbol.Parameters.Count()) return false;
+
+								for (int i = 0; i < _.Parameters.Count(); i++)
+								{
+									if (_.Parameters[i].Name != methodSymbol.Parameters[i].Name) return false;
+									
+									// TODO 正しい変換
+									//if(_.Parameters[i].Type != methodSymbol.Parameters[i].Type)
+								}
+
+								return true;
+							}).FirstOrDefault();
+
+						if(method != null)
+						{
+							exp.Name = null;
+							exp.Method = method;
+						}
+					}
+				}
 				if (enumDefP != null)
 				{
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
+					if (exp.EnumMember != null) exp.Name = null;
 				}
-				/*
-				else
-				{
-					if (selfType.HasValue && selfType.Value.Type != null)
-					{
-						if (selfType.Value.Type.TypeKind == TypeKind.Enum)
-						{
-							var enumName = selfType.Value.Type.Name;
-							var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
-							exp.Enum = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
-						}
-					}
-				}
-				*/
 
-				if (mae.Expression != null && (exp.EnumMember == null))
+				if (mae.Expression != null &&
+					(exp.EnumMember == null)	// enumのメンバーだった場合、親は必ずenumなのでこれ以上走査しない
+					)
 				{
 					exp.Expression = ParseExpression(mae.Expression, semanticModel);
 				}
