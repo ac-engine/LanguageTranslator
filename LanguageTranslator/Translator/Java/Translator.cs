@@ -25,15 +25,132 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("/* {0} */\n", brief);
 		}
 
+		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o) {
+			switch (o)
+			{
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Add:
+					return "+";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
+					return "-";
+				default:
+					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
+			}
+		}
+
+		private string GetPrefixUnaryExpressionOperator(Definition.PrefixUnaryExpression.OperatorType o)
+		{
+			switch (o)
+			{
+				case Definition.PrefixUnaryExpression.OperatorType.PlusPlus:
+					return "++";
+				case Definition.PrefixUnaryExpression.OperatorType.MinusMinus:
+					return "--";
+				default:
+					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
+			}
+		}
+
+		private string GetTypeSpecifier(Definition.TypeSpecifier t) {
+			if (t is Definition.SimpleType)
+			{
+				var t2 = (Definition.SimpleType)t;
+				t2.Namespace = t2.Namespace == null? "": t2.Namespace + ".";
+				return string.Format("{0}{1}", t2.Namespace, t2.TypeName);
+			}
+			else if (t is Definition.ArrayType)
+			{
+				var t2 = (Definition.ArrayType)t;
+				return string.Format("{0}[]", GetTypeSpecifier(t2.BaseType));
+			}
+			else if (t is Definition.GenericType)
+			{
+				var t2 = (Definition.GenericType)t;
+				return string.Format("{0}<{1}>", GetTypeSpecifier(t2.OuterType), string.Join(", ", t2.InnerType.ConvertAll(GetTypeSpecifier)));
+			}
+			else if (t is Definition.NullableType)
+			{
+				var t2 = (Definition.NullableType)t;
+				return string.Format("Optional<{0}>", GetTypeSpecifier(t2.BaseType));
+			}
+			else
+			{
+				throw new NotImplementedException("unknown type " + Enum.GetName(t.GetType(), t));
+			}
+		}
+
 		private string GetExpression(Definition.Expression e)
 		{
 			// not implemented
-			return "";
+			if (e is Definition.BinaryExpression)
+			{
+				var e2 = (Definition.BinaryExpression) e;
+				return string.Format("({0} {1} {2})", GetExpression(e2.Left), GetBinaryExpressionOperator(e2.Operator), GetExpression(e2.Right));
+			}
+			else if (e is Definition.AssignmentExpression)
+			{
+				var e2 = (Definition.AssignmentExpression) e;
+				return string.Format("({0} = {2})", GetExpression(e2.Target), GetExpression(e2.Expression));
+
+			}
+			else if (e is Definition.CastExpression)
+			{
+				var e2 = (Definition.CastExpression)e;
+				return string.Format("(({0}){2})", GetTypeSpecifier(e2.Type), GetExpression(e2.Expression));
+
+			}
+			else if (e is Definition.ElementAccessExpression)
+			{
+				var e2 = (Definition.ElementAccessExpression)e;
+				return string.Format("({0}[{1}])", GetExpression(e2.Value), GetExpression(e2.Arg));
+			}
+			else if (e is Definition.IdentifierNameExpression)
+			{
+				var e2 = (Definition.IdentifierNameExpression)e;
+				return e2.Name;
+			}
+			else if (e is Definition.InvocationExpression)
+			{
+				var e2 = (Definition.InvocationExpression)e;
+				return string.Format("({0}({1}))", GetExpression(e2.Method), string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
+			}
+			else if (e is Definition.LiteralExpression)
+			{
+				var e2 = (Definition.LiteralExpression)e;
+				return string.Format("\"{0}\"", e2.Text);
+			}
+			else if (e is Definition.MemberAccessExpression)
+			{
+				var e2 = (Definition.MemberAccessExpression)e;
+				return string.Format("{0}.{1}", GetExpression(e2.Expression), (e2.EnumMember));
+			}
+			else if (e is Definition.ObjectCreationExpression)
+			{
+				var e2 = (Definition.ObjectCreationExpression)e;
+				return string.Format("new {0}({1})", e2.Type, string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
+			}
+			else if (e is Definition.PrefixUnaryExpression)
+			{
+				var e2 = (Definition.PrefixUnaryExpression)e;
+				return string.Format("({0}{1})", GetPrefixUnaryExpressionOperator(e2.Type), GetExpression(e2.Expression));
+			}
+			else if (e is Definition.ThisExpression)
+			{
+				return "this";
+			}
+			else
+			{
+				throw new NotImplementedException("unknown expression " + e.GetType().ToString());
+			}
 		}
 
 		private void OutputStatement(Definition.Statement s)
 		{
-			// not implemented
+
+			if (s is Definition.BlockStatement)
+			{
+				var s2 = (Definition.BlockStatement)s;
+			}
+			
 		}
 
 
