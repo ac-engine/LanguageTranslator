@@ -453,10 +453,12 @@ namespace LanguageTranslator.Parser
 			}
 			else
 			{
+				var type = semanticModel.GetTypeInfo(typeSyntax);
+
 				return new SimpleType
 				{
-					Namespace = semanticModel.GetTypeInfo(typeSyntax).Type.ContainingNamespace.ToString(),
-					TypeName = typeSyntax.GetText().ToString().Trim(),
+					Namespace = type.Type.ContainingNamespace.ToString(),
+					TypeName = type.Type.Name,
 				};
 			}
 		}
