@@ -62,15 +62,33 @@ namespace LanguageTranslator
 
 			Editor editor = new Editor(definitions);
 
+			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
+			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
+			// sort
+
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
+			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
+			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
+
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Add", "put");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
+			// get
 
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "bool");
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
+
+			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
+
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
+			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
+
+
 
 			editor.Convert();
 			
