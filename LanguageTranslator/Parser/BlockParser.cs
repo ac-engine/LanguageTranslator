@@ -440,7 +440,8 @@ namespace LanguageTranslator.Parser
 			var locals = syntax as LocalDeclarationStatementSyntax;
 			var exs = syntax as ExpressionStatementSyntax;
 			var fxs = syntax as FixedStatementSyntax;
-			
+			var locks = syntax as LockStatementSyntax;
+
 			if (bs != null)
 			{
 				return ParseBlockStatement(bs, semanticModel);
@@ -528,6 +529,14 @@ namespace LanguageTranslator.Parser
 				(blocks as BlockStatement).Statements = (new[] { vs }).Concat((blocks as BlockStatement).Statements).ToArray();
 
 				return blocks;
+			}
+			else if(locks != null)
+			{
+				var st = new LockStatement();
+				st.Expression = ParseExpression(locks.Expression, semanticModel);
+				st.Statement = ParseStatement(locks.Statement, semanticModel);
+
+				return st;
 			}
 
 			return null;

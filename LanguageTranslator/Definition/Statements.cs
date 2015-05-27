@@ -120,6 +120,20 @@ namespace LanguageTranslator.Definition
 		public Expression Expression = null;
 	}
 
+	class LockStatement : Statement
+	{
+		/// <summary>
+		/// lockされるオブジェクト
+		/// </summary>
+		public Expression Expression = null;
+
+		/// <summary>
+		/// 実行される内容
+		/// </summary>
+		public Statement Statement = null;
+	}
+
+
 	class Statement
 	{
 	}
