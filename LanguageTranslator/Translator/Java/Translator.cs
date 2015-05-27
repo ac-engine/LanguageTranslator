@@ -32,6 +32,8 @@ namespace LanguageTranslator.Translator.Java
 					return "+";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
 					return "-";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
+					return "instanceof";
 				default:
 					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
 			}
@@ -54,8 +56,7 @@ namespace LanguageTranslator.Translator.Java
 			if (t is Definition.SimpleType)
 			{
 				var t2 = (Definition.SimpleType)t;
-				t2.Namespace = t2.Namespace == null? "": t2.Namespace + ".";
-				return string.Format("{0}{1}", t2.Namespace, t2.TypeName);
+				return string.Format("{0}{1}", t2.Namespace == null || t2.Namespace == "" ? "" : t2.Namespace + ".", t2.TypeName);
 			}
 			else if (t is Definition.ArrayType)
 			{
@@ -84,6 +85,13 @@ namespace LanguageTranslator.Translator.Java
 			if (e is Definition.BinaryExpression)
 			{
 				var e2 = (Definition.BinaryExpression) e;
+
+				// as 対応
+				if (e2.Operator == Definition.BinaryExpression.OperatorType.As)
+				{
+					return string.Format("({0} instanceof {1}? ({1}){0}: null)", GetExpression(e2.Left), GetExpression(e2.Right));
+
+				}
 				return string.Format("({0} {1} {2})", GetExpression(e2.Left), GetBinaryExpressionOperator(e2.Operator), GetExpression(e2.Right));
 			}
 			else if (e is Definition.AssignmentExpression)
@@ -121,7 +129,22 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.MemberAccessExpression)
 			{
 				var e2 = (Definition.MemberAccessExpression)e;
-				return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Name);
+				if (e2.EnumMember != null)
+				{
+					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.EnumMember.Name);
+				}
+				else if (e2.Method != null)
+				{
+					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Method.Name);
+				}
+				else if (e2.Expression != null)
+				{
+					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Name);
+				}
+				else
+				{
+					return e2.Name;
+				}
 				
 			}
 			else if (e is Definition.ObjectCreationExpression)
@@ -146,27 +169,33 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputStatement(Definition.Statement s)
 		{
-
-			if (s is Definition.BlockStatement)
+			if (s == null)
+			{
+				MakeIndent();
+				Res.AppendLine("/* debug: null statement */");
+			}
+			else if (s is Definition.BlockStatement)
 			{
 				var s2 = (Definition.BlockStatement)s;
 				foreach (var e in s2.Statements)
 				{
-					MakeIndent();
 					OutputStatement(e);
-					Res.AppendLine();
+					// Res.AppendLine();
 					
 				}
 			} else if (s is Definition.ContinueStatement) {
+				MakeIndent();
 				Res.AppendLine("continue;");
 			}
 			else if (s is Definition.ExpressionStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.ExpressionStatement)s;
-				Res.AppendFormat("{0};", GetExpression(s2.Expression));
+				Res.AppendFormat("{0};\n", GetExpression(s2.Expression));
 			}
 			else if (s is Definition.ForeachStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.ForeachStatement)s;
 				Res.AppendFormat("for({0} {1}: {2}) {{\n", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
 				IndentDepth++;
@@ -177,6 +206,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.ForStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.ForStatement)s;
 				Res.AppendFormat("for(;{0}; {1}) {{\n", GetExpression(s2.Condition), GetExpression(s2.Incrementor));
 				IndentDepth++;
@@ -187,6 +217,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.IfStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.IfStatement)s;
 				Res.AppendFormat("if({0}) {{\n", GetExpression(s2.Condition));
 				IndentDepth++;
@@ -210,11 +241,13 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.ReturnStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.ReturnStatement)s;
-				Res.AppendFormat("return {0};", GetExpression(s2.Return));
+				Res.AppendFormat("return {0};\n", GetExpression(s2.Return));
 			}
 			else if (s is Definition.VariableDeclarationStatement)
 			{
+				MakeIndent();
 				var s2 = (Definition.VariableDeclarationStatement)s;
 				Res.AppendFormat("{0} {1}", GetTypeSpecifier(s2.Type), s2.Name);
 				if (s2.Value != null)
@@ -225,6 +258,26 @@ namespace LanguageTranslator.Translator.Java
 				{
 					Res.AppendLine(";");
 				}
+			}
+			else if (s is Definition.LockStatement)
+			{
+
+				var s2 = (Definition.LockStatement)s;
+				MakeIndent();
+				Res.Append(GetExpression(s2.Expression)).Append(".lock();\n");
+				MakeIndent();
+				Res.AppendLine("try {");
+				IndentDepth++;
+				OutputStatement(s2.Statement);
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("} finary {");
+				IndentDepth++;
+				MakeIndent();
+				Res.Append(GetExpression(s2.Expression)).Append(".unlock();\n");
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
 			}
 			else
 			{
@@ -294,36 +347,51 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(f.Brief);
 				MakeIndent();
-				Res.AppendFormat("public {0} {1} = {2};\n", GetTypeSpecifier(f.Type), f.Name, GetExpression(f.Initializer));
+				Res.AppendFormat("public {0} {1}", GetTypeSpecifier(f.Type), f.Name);
+				if (f.Initializer != null)
+				{
+					Res.AppendFormat(" = {0};\n", GetExpression(f.Initializer));
+				}
+				else
+				{
+					Res.AppendLine(";");
+				}
 			}
 
 			foreach (var p in cs.Properties)
 			{
-				MakeBrief(p.Brief);
-				MakeIndent();
-				Res.AppendFormat("private {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
-				MakeIndent();
-
+				var needVariable = true;
 				
 				if (p.Setter != null && p.Setter.Body != null)
 				{
-					Res.AppendFormat("public void set{0} {{\n", p.Name);
+					MakeIndent();
+					Res.AppendFormat("public void set{0}({1} value) {{\n", p.Name, GetTypeSpecifier(p.Type));
 					IndentDepth++;
 					OutputStatement(p.Setter.Body);
 					IndentDepth--;
 					MakeIndent();
 					Res.AppendLine("}");
+					needVariable = false;
 				}
 				
-
 				
 				if (p.Getter != null && p.Getter.Body != null)
 				{
-					Res.AppendFormat("public void get{0} {{\n", p.Name);
+					MakeIndent();
+					Res.AppendFormat("public void get{0}() {{\n", p.Name);
 					IndentDepth++;
 					OutputStatement(p.Getter.Body);
 					IndentDepth--;
+					MakeIndent();
 					Res.AppendLine("}");
+					needVariable = false;
+				}
+
+				if (needVariable)
+				{
+					MakeBrief(p.Brief);
+					MakeIndent();
+					Res.AppendFormat("public {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
 				}
 				
 			}
@@ -340,6 +408,7 @@ namespace LanguageTranslator.Translator.Java
 					OutputStatement(s);
 				}
 				IndentDepth--;
+				MakeIndent();
 				Res.AppendLine("}");
 			}
 
@@ -351,7 +420,9 @@ namespace LanguageTranslator.Translator.Java
 		{
 			foreach (Definition.EnumDef e in definisions.Enums)
 			{
-				var of = System.IO.File.CreateText(targetDir + e.Name + ".java");
+				var subDir = targetDir + string.Join("\\", e.Namespace.Split('.'));
+				System.IO.Directory.CreateDirectory(subDir);
+				var of = System.IO.File.CreateText(subDir + e.Name + ".java");
 				OutputEnum(e);
 				of.Write(Res.ToString());
 				of.Close();
@@ -360,7 +431,9 @@ namespace LanguageTranslator.Translator.Java
 
 			foreach (var c in definisions.Classes)
 			{
-				var of = System.IO.File.CreateText(targetDir + c.Name + ".java");
+				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
+				System.IO.Directory.CreateDirectory(subDir);
+				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");
 				OutputClass(c);
 				of.Write(Res.ToString());
 				of.Close();
