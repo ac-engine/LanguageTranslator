@@ -149,6 +149,85 @@ namespace LanguageTranslator.Translator.Java
 			if (s is Definition.BlockStatement)
 			{
 				var s2 = (Definition.BlockStatement)s;
+				foreach (var e in s2.Statements)
+				{
+					MakeIndent();
+					OutputStatement(e);
+					Res.AppendLine();
+					
+				}
+			} else if (s is Definition.ContinueStatement) {
+				Res.AppendLine("continue;");
+			}
+			else if (s is Definition.ExpressionStatement)
+			{
+				var s2 = (Definition.ExpressionStatement)s;
+				Res.AppendFormat("{0};", GetExpression(s2.Expression));
+			}
+			else if (s is Definition.ForeachStatement)
+			{
+				var s2 = (Definition.ForeachStatement)s;
+				Res.AppendFormat("for({0} {1}: {2}) {{\n", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
+				IndentDepth++;
+				OutputStatement(s2.Statement);
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
+			}
+			else if (s is Definition.ForStatement)
+			{
+				var s2 = (Definition.ForStatement)s;
+				Res.AppendFormat("for(;{0}; {1}) {{\n", GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				IndentDepth++;
+				OutputStatement(s2.Statement);
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
+			}
+			else if (s is Definition.IfStatement)
+			{
+				var s2 = (Definition.IfStatement)s;
+				Res.AppendFormat("if({0}) {{\n", GetExpression(s2.Condition));
+				IndentDepth++;
+				OutputStatement(s2.TrueStatement);
+				IndentDepth--;
+				MakeIndent();
+
+				if (s2.FalseStatement != null)
+				{
+					Res.AppendLine("} else {");
+					IndentDepth++;
+					OutputStatement(s2.TrueStatement);
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+				}
+				else
+				{
+					Res.AppendLine("}");
+				}
+			}
+			else if (s is Definition.ReturnStatement)
+			{
+				var s2 = (Definition.ReturnStatement)s;
+				Res.AppendFormat("return {0};", GetExpression(s2.Return));
+			}
+			else if (s is Definition.VariableDeclarationStatement)
+			{
+				var s2 = (Definition.VariableDeclarationStatement)s;
+				Res.AppendFormat("{0} {1}", GetTypeSpecifier(s2.Type), s2.Name);
+				if (s2.Value != null)
+				{
+					Res.AppendFormat(" = {0};\n");
+				}
+				else
+				{
+					Res.AppendLine(";");
+				}
+			}
+			else
+			{
+				throw new NotImplementedException("unknown statement " + s.GetType().ToString());
 			}
 			
 		}
