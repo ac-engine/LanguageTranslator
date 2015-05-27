@@ -47,13 +47,26 @@ namespace LanguageTranslator.Definition
 		internal Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax Internal = null;
 	}
 
+    class TypeParameterDef
+    {
+        public string Name = string.Empty;
+        public bool IsConstraintedAsValueType = false;
+        public bool IsConstraintedAsReferenceType = false;
+        public List<TypeSpecifier> BaseTypeConstraints = new List<TypeSpecifier>();
+
+        public override string ToString()
+        {
+            return string.Format("TypeParameterDef {0}", Name);
+        }
+    }
+
 	class ClassDef
 	{
 		public string Namespace = string.Empty;
 		public string Name = string.Empty;
 		public string Brief = string.Empty;
         public List<TypeSpecifier> BaseTypes = new List<TypeSpecifier>();
-        public List<string> TypeParameters = new List<string>();
+        public List<TypeParameterDef> TypeParameters = new List<TypeParameterDef>();
 
 		public List<MethodDef> Methods = new List<MethodDef>();
 		public List<PropertyDef> Properties = new List<PropertyDef>();
