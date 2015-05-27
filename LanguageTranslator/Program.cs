@@ -411,6 +411,13 @@ namespace LanguageTranslator
 				s_.Expression = ConvertExpression(s_.Expression);
 				return s_;
 			}
+			else if (s is Definition.LockStatement)
+			{
+				var s_ = s as Definition.LockStatement;
+				s_.Expression = ConvertExpression(s_.Expression);
+				s_.Statement = ConvertStatement(s_.Statement);
+				return s_;
+			}
 
 			throw new Exception();
 		}
