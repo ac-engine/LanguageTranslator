@@ -13,13 +13,18 @@ namespace LanguageTranslator.Definition
 	class MemberAccessExpression : Expression
 	{
 		public string Name = string.Empty;
-		//public EnumDef Enum = null;
+		
+		/// <summary>
+		/// メンバーへのアクセスがenumのメンバーだった場合のenum
+		/// </summary>
+		public EnumDef Enum = null;
 
 		/// <summary>
-		/// メンバーへのアクセスがenumのメンバーだった場合の値
+		/// メンバーへのアクセスがenumのメンバーだった場合のenumのメンバー
 		/// </summary>
 		/// <remarks>
 		/// 必ずExpressionはnullになる。
+		/// このフィールド
 		/// </remarks>
 		public EnumMemberDef EnumMember = null;
 
@@ -101,6 +106,7 @@ namespace LanguageTranslator.Definition
 			Subtract,
 			As,
 			Is,
+			EqualsEquals,
 		}
 	}
 

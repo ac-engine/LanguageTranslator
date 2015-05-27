@@ -313,7 +313,12 @@ namespace LanguageTranslator.Parser
 				{
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
-					if (exp.EnumMember != null) exp.Name = null;
+					if (exp.EnumMember != null)
+					{
+						exp.Enum = enumDefP;
+						exp.Name = null;
+					}
+
 				}
 
 				if (mae.Expression != null &&
@@ -411,6 +416,7 @@ namespace LanguageTranslator.Parser
 				if (be.Kind() == SyntaxKind.SubtractExpression) st.Operator = BinaryExpression.OperatorType.Subtract;
 				if (be.Kind() == SyntaxKind.IsExpression) st.Operator = BinaryExpression.OperatorType.Is;
 				if (be.Kind() == SyntaxKind.AsExpression) st.Operator = BinaryExpression.OperatorType.As;
+				if (be.Kind() == SyntaxKind.EqualsEqualsToken) st.Operator = BinaryExpression.OperatorType.EqualsEquals;
 
 				return st;
 			}
