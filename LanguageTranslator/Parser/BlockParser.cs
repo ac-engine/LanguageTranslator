@@ -409,6 +409,8 @@ namespace LanguageTranslator.Parser
 
 				if (be.Kind() == SyntaxKind.AddExpression) st.Operator = BinaryExpression.OperatorType.Add;
 				if (be.Kind() == SyntaxKind.SubtractExpression) st.Operator = BinaryExpression.OperatorType.Subtract;
+				if (be.Kind() == SyntaxKind.IsExpression) st.Operator = BinaryExpression.OperatorType.Is;
+				if (be.Kind() == SyntaxKind.AsExpression) st.Operator = BinaryExpression.OperatorType.As;
 
 				return st;
 			}
@@ -438,7 +440,7 @@ namespace LanguageTranslator.Parser
 			var locals = syntax as LocalDeclarationStatementSyntax;
 			var exs = syntax as ExpressionStatementSyntax;
 			var fxs = syntax as FixedStatementSyntax;
-
+			
 			if (bs != null)
 			{
 				return ParseBlockStatement(bs, semanticModel);

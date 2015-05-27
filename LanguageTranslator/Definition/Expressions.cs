@@ -99,6 +99,8 @@ namespace LanguageTranslator.Definition
 		{
 			Add,
 			Subtract,
+			As,
+			Is,
 		}
 	}
 
@@ -115,6 +117,11 @@ namespace LanguageTranslator.Definition
 			PlusPlus,
 			MinusMinus,
 		}
+	}
+
+	class AsExpression : Expression
+	{
+
 	}
 
 	class Expression
