@@ -80,7 +80,7 @@ namespace LanguageTranslator.Translator.Java
 
 		private string GetExpression(Definition.Expression e)
 		{
-			// not implemented
+			if (e == null) { return ""; }
 			if (e is Definition.BinaryExpression)
 			{
 				var e2 = (Definition.BinaryExpression) e;
@@ -89,13 +89,13 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.AssignmentExpression)
 			{
 				var e2 = (Definition.AssignmentExpression) e;
-				return string.Format("({0} = {2})", GetExpression(e2.Target), GetExpression(e2.Expression));
+				return string.Format("({0} = {1})", GetExpression(e2.Target), GetExpression(e2.Expression));
 
 			}
 			else if (e is Definition.CastExpression)
 			{
 				var e2 = (Definition.CastExpression)e;
-				return string.Format("(({0}){2})", GetTypeSpecifier(e2.Type), GetExpression(e2.Expression));
+				return string.Format("(({0}){1})", GetTypeSpecifier(e2.Type), GetExpression(e2.Expression));
 
 			}
 			else if (e is Definition.ElementAccessExpression)
@@ -116,12 +116,13 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.LiteralExpression)
 			{
 				var e2 = (Definition.LiteralExpression)e;
-				return string.Format("\"{0}\"", e2.Text);
+				return e2.Text;
 			}
 			else if (e is Definition.MemberAccessExpression)
 			{
 				var e2 = (Definition.MemberAccessExpression)e;
-				return string.Format("{0}.{1}", GetExpression(e2.Expression), (e2.EnumMember));
+				return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Name);
+				
 			}
 			else if (e is Definition.ObjectCreationExpression)
 			{
@@ -218,7 +219,7 @@ namespace LanguageTranslator.Translator.Java
 				Res.AppendFormat("{0} {1}", GetTypeSpecifier(s2.Type), s2.Name);
 				if (s2.Value != null)
 				{
-					Res.AppendFormat(" = {0};\n");
+					Res.AppendFormat(" = {0};\n", GetExpression(s2.Value));
 				}
 				else
 				{
@@ -247,7 +248,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					res.Append(", ");
 				}
-				res.Append(p.Type);
+				res.Append(GetTypeSpecifier(p.Type));
 				res.Append(" ");
 				res.Append(p.Name);
 			}
@@ -264,7 +265,16 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(e.Brief);
 				MakeIndent();
-				Res.AppendFormat("{0} = {1},\n", e.Name, GetExpression(e.Value));
+				Res.Append(e.Name);
+				if (e.Value != null)
+				{
+					Res.AppendFormat(" = {0},\n", GetExpression(e.Value));
+				}
+				else
+				{
+					Res.AppendLine(",");
+				}
+				
 			}
 			IndentDepth--;
 			MakeIndent();
@@ -284,34 +294,38 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(f.Brief);
 				MakeIndent();
-				Res.AppendFormat("public {0} {1} = {2};\n", f.Type, f.Name, GetExpression(f.Initializer));
+				Res.AppendFormat("public {0} {1} = {2};\n", GetTypeSpecifier(f.Type), f.Name, GetExpression(f.Initializer));
 			}
 
 			foreach (var p in cs.Properties)
 			{
 				MakeBrief(p.Brief);
 				MakeIndent();
-				Res.AppendFormat("private {0} {1};\n", p.Type, p.Name);
+				Res.AppendFormat("private {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
 				MakeIndent();
 
-				Res.AppendFormat("public void set{0} {{\n", p.Name);
-				IndentDepth++;
-				if (p.Setter.Body != null)
+				
+				if (p.Setter != null && p.Setter.Body != null)
 				{
+					Res.AppendFormat("public void set{0} {{\n", p.Name);
+					IndentDepth++;
 					OutputStatement(p.Setter.Body);
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
 				}
-				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				
 
-				Res.AppendFormat("public void get{0} {{\n", p.Name);
-				IndentDepth++;
-				if (p.Getter.Body != null)
+				
+				if (p.Getter != null && p.Getter.Body != null)
 				{
+					Res.AppendFormat("public void get{0} {{\n", p.Name);
+					IndentDepth++;
 					OutputStatement(p.Getter.Body);
+					IndentDepth--;
+					Res.AppendLine("}");
 				}
-				IndentDepth--;
-				Res.AppendLine("}");
+				
 			}
 
 			foreach (var m in cs.Methods)
@@ -319,7 +333,7 @@ namespace LanguageTranslator.Translator.Java
 				MakeBrief(m.Brief);
 				MakeIndent();
 
-				Res.AppendFormat("public {0} {1}({2}) {{\n", m.ReturnType, m.Name, GetParamStr(m.Parameters));
+				Res.AppendFormat("public {0} {1}({2}) {{\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
 				IndentDepth++;
 				foreach (var s in m.Body)
 				{
@@ -337,15 +351,22 @@ namespace LanguageTranslator.Translator.Java
 		{
 			foreach (Definition.EnumDef e in definisions.Enums)
 			{
+				var of = System.IO.File.CreateText(targetDir + e.Name + ".java");
 				OutputEnum(e);
+				of.Write(Res.ToString());
+				of.Close();
+				Res.Clear();
 			}
 
 			foreach (var c in definisions.Classes)
 			{
+				var of = System.IO.File.CreateText(targetDir + c.Name + ".java");
 				OutputClass(c);
+				of.Write(Res.ToString());
+				of.Close();
+				Res.Clear();
 			}
-			Console.Write(Res.ToString());
-			Console.ReadLine();
+
 		}
 	}
 }
