@@ -38,6 +38,7 @@ namespace LanguageTranslator
 
 			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.GC");
 			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.Helper");
+			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.Dictionary");
 
 			Definition.Definitions definitions = null;
 			
@@ -62,9 +63,10 @@ namespace LanguageTranslator
 
 			Editor editor = new Editor(definitions);
 
+	
+
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
-			// sort
 
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
@@ -74,7 +76,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
-			// get
+			
 
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "bool");
@@ -84,11 +86,14 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
 
+			editor.AddTypeConverter("System", "IntPtr", "", "long");
+
+
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
 
-
+			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
 
 			editor.Convert();
 			
