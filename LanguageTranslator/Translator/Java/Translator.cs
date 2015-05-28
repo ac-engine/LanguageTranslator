@@ -356,36 +356,53 @@ namespace LanguageTranslator.Translator.Java
 			{
 				var needVariable = true;
 				
-				if (p.Setter != null && p.Setter.Body != null)
+				if (p.Setter != null)
 				{
-					MakeIndent();
-					Res.AppendFormat("public void set{0}({1} value) {{\n", p.Name, GetTypeSpecifier(p.Type));
-					IndentDepth++;
-					OutputStatement(p.Setter.Body);
-					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
-					needVariable = false;
+					if (p.Setter.Body != null)
+					{
+						MakeIndent();
+						Res.AppendFormat("public void set{0}({1} value) {{\n", p.Name, GetTypeSpecifier(p.Type));
+						IndentDepth++;
+						OutputStatement(p.Setter.Body);
+						IndentDepth--;
+						MakeIndent();
+						Res.AppendLine("}");
+						needVariable = false;
+					}
+					else
+					{
+						MakeIndent();
+						Res.AppendFormat("public void set{0}({1} value) {{ {0} = value; }}\n", p.Name, GetTypeSpecifier(p.Type));
+					}
 				}
 				
 				
-				if (p.Getter != null && p.Getter.Body != null)
+				if (p.Getter != null)
 				{
-					MakeIndent();
-					Res.AppendFormat("public void get{0}() {{\n", p.Name);
-					IndentDepth++;
-					OutputStatement(p.Getter.Body);
-					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
-					needVariable = false;
+					if (p.Getter.Body != null)
+					{
+						MakeIndent();
+						Res.AppendFormat("public {0} get{1}() {{\n", GetTypeSpecifier(p.Type), p.Name);
+						IndentDepth++;
+						OutputStatement(p.Getter.Body);
+						IndentDepth--;
+						MakeIndent();
+						Res.AppendLine("}");
+						needVariable = false;
+					}
+					else
+					{
+						MakeIndent();
+						Res.AppendFormat("public {0} get{1}() {{ return {1}; }}\n", GetTypeSpecifier(p.Type), p.Name);
+					}
+					
 				}
 
 				if (needVariable)
 				{
 					MakeBrief(p.Brief);
 					MakeIndent();
-					Res.AppendFormat("public {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
+					Res.AppendFormat("private {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
 				}
 				
 			}
