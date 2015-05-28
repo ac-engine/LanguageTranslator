@@ -439,8 +439,8 @@ namespace LanguageTranslator.Parser
 
 				st.Operand = ParseExpression(poue.Operand, semanticModel);
 
-				if (preue.Kind() == SyntaxKind.PostIncrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostIncrement;
-				if (preue.Kind() == SyntaxKind.PostDecrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostDecrement;
+				if (poue.Kind() == SyntaxKind.PostIncrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostIncrement;
+				if (poue.Kind() == SyntaxKind.PostDecrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostDecrement;
 
 				return st;
 			}
