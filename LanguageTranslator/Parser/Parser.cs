@@ -15,9 +15,7 @@ namespace LanguageTranslator.Parser
     class Parser
     {
         Definition.Definitions definitions = null;
-
         public List<string> TypesNotParsed = new List<string>();
-
         public List<string> TypesWhosePrivateNotParsed = new List<string>();
 
         public Definition.Definitions Parse(string[] pathes)
@@ -148,8 +146,12 @@ namespace LanguageTranslator.Parser
             return dst;
         }
 
+
         private void ParseTypeDeclaration(TypeDef typeDef, TypeDeclarationSyntax typeSyntax, SemanticModel semanticModel)
         {
+            typeDef.AccessLevel = ParseAccessLevel(typeSyntax.Modifiers) ?? AccessLevel.Internal;
+
+            #region Generics
             if (typeSyntax.TypeParameterList != null)
             {
                 foreach (var item in typeSyntax.TypeParameterList.Parameters)
@@ -182,7 +184,8 @@ namespace LanguageTranslator.Parser
                         }
                     }
                 }
-            }
+            } 
+            #endregion
 
             var isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
 
@@ -194,30 +197,98 @@ namespace LanguageTranslator.Parser
                 }
             }
 
-            Func<SyntaxTokenList, bool> isSkipped = ts => isPrivateNotParsed && ts.Any(t => t.ValueText == "private");
+            #region Members
+            Func<AccessLevel, bool> isSkipped = level => isPrivateNotParsed && level == AccessLevel.Private;
             foreach (var member in typeSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
-                var propertySyntax = member as PropertyDeclarationSyntax;
-                var fieldSyntax = member as FieldDeclarationSyntax;
-                var operatorSyntax = member as OperatorDeclarationSyntax;
+                if (methodSyntax != null)
+                {
+                    var method = ParseMethod(methodSyntax, semanticModel);
+                    if (!isSkipped(method.AccessLevel))
+                    {
+                        typeDef.Methods.Add(method);
+                    }
+                }
 
-                if (methodSyntax != null && !isSkipped(methodSyntax.Modifiers))
+                var propertySyntax = member as PropertyDeclarationSyntax;
+                if (propertySyntax != null)
                 {
-                    typeDef.Methods.Add(ParseMethod(methodSyntax, semanticModel));
+                    var property = ParseProperty(propertySyntax, semanticModel);
+                    if (!isSkipped(property.AccessLevel))
+                    {
+                        typeDef.Properties.Add(property);
+                    }
                 }
-                if (propertySyntax != null && !isSkipped(propertySyntax.Modifiers))
+
+                var fieldSyntax = member as FieldDeclarationSyntax;
+                if (fieldSyntax != null)
                 {
-                    typeDef.Properties.Add(ParseProperty(propertySyntax, semanticModel));
+                    var field = ParseField(fieldSyntax, semanticModel);
+                    if (!isSkipped(field.AccessLevel))
+                    {
+                        typeDef.Fields.Add(field);
+                    }
                 }
-                if (fieldSyntax != null && !isSkipped(fieldSyntax.Modifiers))
-                {
-                    typeDef.Fields.Add(ParseField(fieldSyntax, semanticModel));
-                }
+
+                var operatorSyntax = member as OperatorDeclarationSyntax;
                 if (operatorSyntax != null)
                 {
-                    typeDef.Operators.Add(ParseOperator(operatorSyntax, semanticModel));
+                    var @operator = ParseOperator(operatorSyntax, semanticModel);
+                    if (!isSkipped(@operator.AccessLevel))
+                    {
+                        typeDef.Operators.Add(@operator);
+                    }
                 }
+
+                var constructorSyntax = member as ConstructorDeclarationSyntax;
+                if (constructorSyntax != null)
+                {
+                    var constructor = ParseConstructor(constructorSyntax, semanticModel);
+                    if (!isSkipped(constructor.AccessLevel))
+                    {
+                        typeDef.Constructors.Add(constructor);
+                    }
+                }
+
+                var destructorSyntax = member as DestructorDeclarationSyntax;
+                if (destructorSyntax != null)
+                {
+                    typeDef.Destructors.Add(ParseDestructor(destructorSyntax, semanticModel));
+                }
+            } 
+            #endregion
+        }
+
+        private static AccessLevel? ParseAccessLevel(SyntaxTokenList modifiers)
+        {
+            var modifiersText = modifiers.Select(x => x.ValueText);
+            if (modifiersText.Contains("protected"))
+            {
+                if (modifiersText.Contains("internal"))
+                {
+                    return AccessLevel.ProtectedInternal;
+                }
+                else
+                {
+                    return AccessLevel.Protected;
+                }
+            }
+            else if (modifiersText.Contains("public"))
+            {
+                return AccessLevel.Public;
+            }
+            else if (modifiersText.Contains("private"))
+            {
+                return AccessLevel.Private;
+            }
+            else if (modifiersText.Contains("internal"))
+            {
+                return AccessLevel.Internal;
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -242,6 +313,11 @@ namespace LanguageTranslator.Parser
             if (partial != null)
             {
                 classDef = partial;
+            }
+
+            if (classSyntax.Modifiers.Any(x => x.ValueText == "abstract"))
+            {
+                classDef.IsAbstract = true;
             }
 
             ParseTypeDeclaration(classDef, classSyntax, semanticModel);
@@ -295,6 +371,7 @@ namespace LanguageTranslator.Parser
             definitions.Interfaces.Add(interfaceDef);
         }
 
+
         private FieldDef ParseField(FieldDeclarationSyntax fieldSyntax, SemanticModel semanticModel)
         {
             var fieldDef = new FieldDef();
@@ -310,6 +387,8 @@ namespace LanguageTranslator.Parser
             fieldDef.Internal = fieldSyntax;
             fieldDef.Name = fieldSyntax.Declaration.Variables[0].Identifier.ValueText;
             fieldDef.Type = type;
+            fieldDef.AccessLevel = ParseAccessLevel(fieldSyntax.Modifiers) ?? AccessLevel.Private;
+            fieldDef.IsStatic = fieldSyntax.Modifiers.Any(x => x.ValueText == "static");
 
             return fieldDef;
         }
@@ -321,19 +400,21 @@ namespace LanguageTranslator.Parser
 
             propertyDef.Name = propertySyntax.Identifier.ValueText;
             propertyDef.Type = ParseTypeSpecifier(propertySyntax.Type, semanticModel);
+            propertyDef.AccessLevel = ParseAccessLevel(propertySyntax.Modifiers) ?? AccessLevel.Private;
+            propertyDef.IsStatic = propertySyntax.Modifiers.Any(x => x.ValueText == "static");
 
             foreach (var accessor in propertySyntax.AccessorList.Accessors)
             {
+                var acc = new AccessorDef();
+                acc.Internal = accessor;
+                acc.AccessLevel = ParseAccessLevel(accessor.Modifiers) ?? propertyDef.AccessLevel;
+
                 if (accessor.Keyword.Text == "get")
                 {
-                    var acc = new AccessorDef();
-                    acc.Internal = accessor;
                     propertyDef.Getter = acc;
                 }
                 else if (accessor.Keyword.Text == "set")
                 {
-                    var acc = new AccessorDef();
-                    acc.Internal = accessor;
                     propertyDef.Setter = acc;
                 }
             }
@@ -348,6 +429,8 @@ namespace LanguageTranslator.Parser
 
             methodDef.Name = methodSyntax.Identifier.ValueText;
             methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType, semanticModel);
+            methodDef.AccessLevel = ParseAccessLevel(methodSyntax.Modifiers) ?? AccessLevel.Private;
+            methodDef.IsStatic = methodSyntax.Modifiers.Any(x => x.ValueText == "static");
 
             foreach (var parameter in methodSyntax.ParameterList.Parameters)
             {
@@ -362,6 +445,7 @@ namespace LanguageTranslator.Parser
             var operatorDef = new OperatorDef();
             operatorDef.Operator = operatorSyntax.OperatorToken.ValueText;
             operatorDef.ReturnType = ParseTypeSpecifier(operatorSyntax.ReturnType, semanticModel);
+            operatorDef.AccessLevel = ParseAccessLevel(operatorSyntax.Modifiers) ?? AccessLevel.Private;
 
             foreach (var item in operatorSyntax.ParameterList.Parameters)
             {
@@ -379,6 +463,34 @@ namespace LanguageTranslator.Parser
 
             return parameterDef;
         }
+
+        private ConstructorDef ParseConstructor(ConstructorDeclarationSyntax constructorSyntax, SemanticModel semanticModel)
+        {
+            var constructorDef = new ConstructorDef();
+            constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
+            constructorDef.IsStatic = constructorSyntax.Modifiers.Any(x => x.ValueText == "static");
+
+            if (constructorSyntax.Initializer != null)
+            {
+                constructorDef.Initializer = new ConstructorInitializer
+                {
+                    ThisOrBase = constructorSyntax.Initializer.ThisOrBaseKeyword.ValueText,
+                };
+            }
+
+            foreach (var parameter in constructorSyntax.ParameterList.Parameters)
+            {
+                constructorDef.Parameters.Add(ParseParameter(parameter, semanticModel));
+            }
+
+            return constructorDef;
+        }
+
+        private DestructorDef ParseDestructor(DestructorDeclarationSyntax destructorSyntax, SemanticModel semanticModel)
+        {
+            return new DestructorDef();
+        }
+
 
         private TypeSpecifier ParseTypeSpecifier(TypeSyntax typeSyntax, SemanticModel semanticModel)
         {
@@ -434,11 +546,38 @@ namespace LanguageTranslator.Parser
             {
                 var type = semanticModel.GetTypeInfo(typeSyntax);
 
-                return new SimpleType
+                var specifier = new SimpleType
                 {
                     Namespace = type.Type.ContainingNamespace.ToString(),
                     TypeName = type.Type.Name,
                 };
+
+                switch (type.Type.TypeKind)
+                {
+                case TypeKind.Class:
+                    specifier.TypeKind = SimpleTypeKind.Class;
+                    break;
+                case TypeKind.Enum:
+                    specifier.TypeKind = SimpleTypeKind.Enum;
+                    break;
+                case TypeKind.Error:
+                    specifier.TypeKind = SimpleTypeKind.Error;
+                    break;
+                case TypeKind.Interface:
+                    specifier.TypeKind = SimpleTypeKind.Interface;
+                    break;
+                case TypeKind.Struct:
+                    specifier.TypeKind = SimpleTypeKind.Struct;
+                    break;
+                case TypeKind.TypeParameter:
+                    specifier.TypeKind = SimpleTypeKind.TypeParameter;
+                    break;
+                default:
+                    specifier.TypeKind = SimpleTypeKind.Other;
+                    break;
+                }
+
+                return specifier;
             }
         }
     }

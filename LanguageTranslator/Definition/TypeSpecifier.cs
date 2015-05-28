@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace LanguageTranslator.Definition
 {
+    enum SimpleTypeKind
+    {
+        Class, Struct, Interface, TypeParameter, Error, Enum, Other
+    }
+
 	abstract class TypeSpecifier
 	{
 	}
@@ -14,6 +19,7 @@ namespace LanguageTranslator.Definition
 	{
 		public string Namespace = string.Empty;
 		public string TypeName = string.Empty;
+        public SimpleTypeKind TypeKind = SimpleTypeKind.Other;
 
 		public override string ToString()
 		{
