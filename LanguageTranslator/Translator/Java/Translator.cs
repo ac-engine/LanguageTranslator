@@ -358,7 +358,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("{1} class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel));
+			Res.AppendFormat("{1} {2}class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract? "abstract ":"");
 			IndentDepth++;
 
 			
@@ -366,7 +366,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(f.Brief);
 				MakeIndent();
-				Res.AppendFormat("public {0} {1}", GetTypeSpecifier(f.Type), f.Name);
+				Res.AppendFormat("{2} {3}{0} {1}", GetTypeSpecifier(f.Type), f.Name, GetAccessLevel(f.AccessLevel), f.IsStatic? "static ":"");
 				if (f.Initializer != null)
 				{
 					Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
@@ -437,7 +437,7 @@ namespace LanguageTranslator.Translator.Java
 				MakeBrief(m.Brief);
 				MakeIndent();
 
-				Res.AppendFormat("public {0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
+				Res.AppendFormat("{3} {4}{0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "");
 				IndentDepth++;
 				foreach (var s in m.Body)
 				{
