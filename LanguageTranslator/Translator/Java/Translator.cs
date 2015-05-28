@@ -66,9 +66,19 @@ namespace LanguageTranslator.Translator.Java
 		{
 			switch (o)
 			{
-				case Definition.PrefixUnaryExpression.OperatorType.PlusPlus:
+				case Definition.PrefixUnaryExpression.OperatorType.LogicalNot:
+					return "!";
+				default:
+					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
+			}
+		}
+		private string GetPostfixUnaryExpressionOperator(Definition.PostfixUnaryExpression.OperatorType o)
+		{
+			switch (o)
+			{
+				case Definition.PostfixUnaryExpression.OperatorType.PostIncrement:
 					return "++";
-				case Definition.PrefixUnaryExpression.OperatorType.MinusMinus:
+				case Definition.PostfixUnaryExpression.OperatorType.PostDecrement:
 					return "--";
 				default:
 					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
@@ -179,6 +189,11 @@ namespace LanguageTranslator.Translator.Java
 			{
 				var e2 = (Definition.PrefixUnaryExpression)e;
 				return string.Format("({0}{1})", GetPrefixUnaryExpressionOperator(e2.Type), GetExpression(e2.Expression));
+			}
+			else if (e is Definition.PostfixUnaryExpression)
+			{
+				var e2 = (Definition.PostfixUnaryExpression)e;
+				return string.Format("({0}{1})", GetExpression(e2.Operand), GetPostfixUnaryExpressionOperator(e2.Type));
 			}
 			else if (e is Definition.ThisExpression)
 			{
