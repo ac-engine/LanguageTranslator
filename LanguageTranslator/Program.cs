@@ -501,6 +501,12 @@ namespace LanguageTranslator
 				e_.Expression = ConvertExpression(e_.Expression);
 				return e_;
 			}
+			else if (e is Definition.PostfixUnaryExpression)
+			{
+				var e_ = e as Definition.PostfixUnaryExpression;
+				e_.Operand = ConvertExpression(e_.Operand);
+				return e_;
+			}
 			else if( e is Definition.BaseExpression)
 			{
 				return e;

@@ -114,6 +114,21 @@ namespace LanguageTranslator.Definition
 	/// <summary>
 	/// ++等
 	/// </summary>
+	class PostfixUnaryExpression : Expression
+	{
+		public Expression Operand;
+		public OperatorType Type;
+
+		public enum OperatorType
+		{
+			PostIncrement,
+			PostDecrement,
+		}
+	}
+
+	/// <summary>
+	/// !等
+	/// </summary>
 	class PrefixUnaryExpression : Expression
 	{
 		public Expression Expression;
@@ -121,8 +136,7 @@ namespace LanguageTranslator.Definition
 
 		public enum OperatorType
 		{
-			PlusPlus,
-			MinusMinus,
+			LogicalNot,
 		}
 	}
 
