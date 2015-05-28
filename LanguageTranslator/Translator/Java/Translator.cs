@@ -538,7 +538,8 @@ namespace LanguageTranslator.Translator.Java
 				if (e.IsDefinedBySWIG) { continue; }
 				var subDir = targetDir + string.Join("\\", e.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + e.Name + ".java");
+				var of = System.IO.File.CreateText(subDir + "\\" + e.Name + ".java");
+				Res.AppendFormat("package {0};\r\n\r\n", e.Namespace);
 				OutputEnum(e);
 				of.Write(Res.ToString());
 				of.Close();
@@ -551,6 +552,7 @@ namespace LanguageTranslator.Translator.Java
 				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
 				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");
+				Res.AppendFormat("package {0};\r\n\r\n", c.Namespace);
 				OutputClass(c);
 				of.Write(Res.ToString());
 				of.Close();
