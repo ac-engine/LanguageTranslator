@@ -53,6 +53,8 @@ namespace LanguageTranslator.Translator.Java
 					return "-";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Equals:
 					return "==";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.NotEquals:
+					return "!=";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
 					return "instanceof";
 				default:
@@ -181,6 +183,10 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.ThisExpression)
 			{
 				return "this";
+			}
+			else if (e is Definition.BaseExpression)
+			{
+				return "super";
 			}
 			else
 			{
