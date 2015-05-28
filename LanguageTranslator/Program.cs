@@ -388,6 +388,7 @@ namespace LanguageTranslator
 			else if (s is Definition.ForStatement)
 			{
 				var s_ = s as Definition.ForStatement;
+				s_.Declaration = ConvertStatement(s_.Declaration) as Definition.VariableDeclarationStatement;
 				s_.Condition = ConvertExpression(s_.Condition);
 				s_.Incrementor = ConvertExpression(s_.Incrementor);
 				s_.Statement = ConvertStatement(s_.Statement);

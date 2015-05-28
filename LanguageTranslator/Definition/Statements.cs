@@ -60,6 +60,11 @@ namespace LanguageTranslator.Definition
 	class ForStatement : Statement
 	{
 		/// <summary>
+		/// 変数宣言
+		/// </summary>
+		public VariableDeclarationStatement Declaration;
+
+		/// <summary>
 		/// 条件
 		/// </summary>
 		public Expression Condition = null;

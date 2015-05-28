@@ -487,15 +487,21 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new ForStatement();
 
+				
 				st.Condition = ParseExpression(fors.Condition, semanticModel);
+
+				if (fors.Declaration.Variables.Count != 1)
+				{
+					var span = syntax.SyntaxTree.GetLineSpan(fors.Declaration.Variables.Span);
+					throw new ParseException(string.Format("{0} : for内の変数の複数同時宣言は禁止です。", span));
+				}
 
 				if (fors.Incrementors.Count >= 2)
 				{
 					throw new ParseException("for文内の,は使用禁止です。");
 				}
 
-				// TODO
-				// 変数処理(大幅に機能制限する)
+				st.Declaration = ParseVariableDeclarationSyntax(fors.Declaration, semanticModel);
 
 				if (fors.Incrementors.Count == 1)
 				{
