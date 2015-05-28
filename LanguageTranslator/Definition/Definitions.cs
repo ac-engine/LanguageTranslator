@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace LanguageTranslator.Definition
 {
+    enum AccessLevel
+    {
+        Public, Protected, Private, Internal, ProtectedInternal
+    }
+
     class Definitions
     {
         public List<EnumDef> Enums = new List<EnumDef>();
@@ -62,29 +67,44 @@ namespace LanguageTranslator.Definition
 
     abstract class TypeDef
     {
+        public AccessLevel AccessLevel { get; set; }
         public string Namespace { get; set; }
         public string Name { get; set; }
-        public List<TypeSpecifier> BaseTypes { get; private set; }
-        public List<TypeParameterDef> TypeParameters { get; private set; }
-        public List<MethodDef> Methods { get; private set; }
-        public List<PropertyDef> Properties { get; private set; }
-        public List<FieldDef> Fields { get; private set; }
-        public List<OperatorDef> Operators { get; private set; }
+        public List<TypeSpecifier> BaseTypes { get; protected set; }
+        public List<TypeParameterDef> TypeParameters { get; protected set; }
+
+        public List<ConstructorDef> Constructors { get; protected set; }
+        public List<DestructorDef> Destructors { get; protected set; }
+        public List<MethodDef> Methods { get; protected set; }
+        public List<PropertyDef> Properties { get; protected set; }
+        public List<FieldDef> Fields { get; protected set; }
+        public List<OperatorDef> Operators { get; protected set; }
 
         public TypeDef()
         {
+            Namespace = "";
+            Name = "";
             BaseTypes = new List<TypeSpecifier>();
             TypeParameters = new List<TypeParameterDef>();
             Methods = new List<MethodDef>();
             Properties = new List<PropertyDef>();
             Fields = new List<FieldDef>();
             Operators = new List<OperatorDef>();
+            Constructors = new List<ConstructorDef>();
+            Destructors = new List<DestructorDef>();
         }
     }
 
     class ClassDef : TypeDef
     {
+        public bool IsAbstract { get; set; }
         public string Brief { get; set; }
+
+        public ClassDef()
+        {
+            IsAbstract = false;
+            Brief = "";
+        }
 
         public override string ToString()
         {
@@ -105,6 +125,12 @@ namespace LanguageTranslator.Definition
         /// </summary>
         internal Microsoft.CodeAnalysis.CSharp.Syntax.StructDeclarationSyntax Internal = null;
 
+        public StructDef()
+        {
+            BaseTypes = null;
+            Brief = "";
+        }
+
         public override string ToString()
         {
             return string.Format("StructDef {0}", Name);
@@ -117,100 +143,18 @@ namespace LanguageTranslator.Definition
 
         public string Brief { get; set; }
 
+        public InterfaceDef()
+        {
+            Fields = null;
+            Operators = null;
+            Constructors = null;
+            Destructors = null;
+            Brief = "";
+        }
+
         public override string ToString()
         {
             return string.Format("InterfaceDef {0}", Name);
-        }
-    }
-
-    class FieldDef
-    {
-        public TypeSpecifier Type = null;
-        public string Name = string.Empty;
-        public Expression Initializer = null;
-        public string Brief = string.Empty;
-
-        /// <summary>
-        /// パーサー内部処理用
-        /// </summary>
-        internal Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax Internal = null;
-
-        public override string ToString()
-        {
-            return string.Format("FieldDef {0}", Name);
-        }
-    }
-
-    class PropertyDef
-    {
-        public TypeSpecifier Type = null;
-        public string Name = string.Empty;
-        public AccessorDef Getter = null;
-        public AccessorDef Setter = null;
-        public string Brief = string.Empty;
-
-        /// <summary>
-        /// パーサー内部処理用
-        /// </summary>
-        internal Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax Internal = null;
-
-        public override string ToString()
-        {
-            return string.Format("PropertyDef {0}", Name);
-        }
-    }
-
-    class AccessorDef
-    {
-        public Statement Body = null;
-
-        /// <summary>
-        /// パーサー内部処理用
-        /// </summary>
-        internal Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax Internal = null;
-    }
-
-    class MethodDef
-    {
-        public TypeSpecifier ReturnType = null;
-        public string Name = string.Empty;
-        public string Brief = string.Empty;
-        public List<ParameterDef> Parameters = new List<ParameterDef>();
-        public List<Statement> Body = new List<Statement>();
-
-        /// <summary>
-        /// パーサー内部処理用
-        /// </summary>
-        internal Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax Internal = null;
-
-        public override string ToString()
-        {
-            return string.Format("MethodDef {0}", Name);
-        }
-    }
-
-    class ParameterDef
-    {
-        public TypeSpecifier Type = null;
-        public string Name = string.Empty;
-        public string Brief = string.Empty;
-
-        public override string ToString()
-        {
-            return string.Format("ParameterDef {0}", Name);
-        }
-    }
-
-    class OperatorDef
-    {
-        public TypeSpecifier ReturnType = null;
-        public string Operator = string.Empty;
-        public List<ParameterDef> Parameters = new List<ParameterDef>();
-        public List<Statement> Body = new List<Statement>();
-
-        public override string ToString()
-        {
-            return string.Format("ParameterDef {0}", Operator);
         }
     }
 }
