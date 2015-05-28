@@ -25,6 +25,25 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("/* {0} */\r\n", brief);
 		}
 
+		private string GetAccessLevel(Definition.AccessLevel a)
+		{
+			switch (a)
+			{
+				case LanguageTranslator.Definition.AccessLevel.Public:
+					return "public";
+				case LanguageTranslator.Definition.AccessLevel.Protected:
+					return "protected";
+				case LanguageTranslator.Definition.AccessLevel.Private:
+					return "private";
+				case LanguageTranslator.Definition.AccessLevel.Internal:
+					return "internal";
+				case LanguageTranslator.Definition.AccessLevel.ProtectedInternal:
+					return "protected internal";
+				default:
+					throw new NotImplementedException("unknown access modifier " + Enum.GetName(a.GetType(), a));
+			}
+		}
+
 		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o) {
 			switch (o)
 			{
@@ -333,10 +352,10 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("public class {0} {{\r\n", cs.Name);
+			Res.AppendFormat("{1} class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel));
 			IndentDepth++;
 
-
+			
 			foreach (var f in cs.Fields)
 			{
 				MakeBrief(f.Brief);
@@ -361,7 +380,7 @@ namespace LanguageTranslator.Translator.Java
 					if (p.Setter.Body != null)
 					{
 						MakeIndent();
-						Res.AppendFormat("public void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type));
+						Res.AppendFormat("{2} {3}void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic? "static ": "");
 						IndentDepth++;
 						OutputStatement(p.Setter.Body);
 						IndentDepth--;
@@ -372,7 +391,7 @@ namespace LanguageTranslator.Translator.Java
 					else
 					{
 						MakeIndent();
-						Res.AppendFormat("public void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type));
+						Res.AppendFormat("{2} {3}void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					}
 				}
 				
@@ -382,7 +401,7 @@ namespace LanguageTranslator.Translator.Java
 					if (p.Getter.Body != null)
 					{
 						MakeIndent();
-						Res.AppendFormat("public {0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name);
+						Res.AppendFormat("{2} {3}{0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic? "static ": "");
 						IndentDepth++;
 						OutputStatement(p.Getter.Body);
 						IndentDepth--;
@@ -393,7 +412,7 @@ namespace LanguageTranslator.Translator.Java
 					else
 					{
 						MakeIndent();
-						Res.AppendFormat("public {0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name);
+						Res.AppendFormat("{2} {3}{0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					}
 					
 				}
