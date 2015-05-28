@@ -85,6 +85,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 		}
 
+
 		private string GetTypeSpecifier(Definition.TypeSpecifier t) {
 			if (t is Definition.SimpleType)
 			{
@@ -321,7 +322,7 @@ namespace LanguageTranslator.Translator.Java
 		}
 
 
-		public string GetParamStr(List<Definition.ParameterDef> ps)
+		private string GetParamStr(List<Definition.ParameterDef> ps)
 		{
 			var isFirst = true;
 			var res = new StringBuilder();
@@ -341,6 +342,8 @@ namespace LanguageTranslator.Translator.Java
 			}
 			return res.ToString();
 		}
+
+
 
 		private void OutputEnum(Definition.EnumDef es)
 		{
@@ -447,6 +450,8 @@ namespace LanguageTranslator.Translator.Java
 				
 			}
 
+			
+
 			foreach (var m in cs.Methods)
 			{
 				MakeBrief(m.Brief);
@@ -462,6 +467,63 @@ namespace LanguageTranslator.Translator.Java
 				MakeIndent();
 				Res.AppendLine("}");
 			}
+
+			if (cs.Constructors != null)
+			{
+				foreach (var c in cs.Constructors)
+				{
+					MakeBrief(c.Brief);
+					MakeIndent();
+
+					Res.AppendFormat("{0} {1}({2}) {{\r\n", GetAccessLevel(c.AccessLevel), cs.Name, GetParamStr(c.Parameters));
+					IndentDepth++;
+					if (c.Initializer != null)
+					{
+						MakeIndent();
+						Res.AppendFormat("{0}({1});\r\n", c.Initializer.ThisOrBase, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
+					}
+
+					foreach (var s in c.Body)
+					{
+						OutputStatement(s);
+					}
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+				}
+			}
+
+			if (cs.Destructors != null)
+			{
+				foreach (var d in cs.Destructors)
+				{
+					MakeIndent();
+					Res.AppendLine("@Override");
+					MakeIndent();
+					Res.AppendLine("protected void finalize() {");
+					IndentDepth++;
+					if (cs.BaseTypes != null)
+					{
+						MakeIndent();
+						Res.AppendLine("try { super.finalize(); } finally {");
+						IndentDepth++;
+					}
+					foreach (var s in d.Body)
+					{
+						OutputStatement(s);
+					}
+					if (cs.BaseTypes != null)
+					{
+						MakeIndent();
+						Res.AppendLine("}");
+						IndentDepth--;
+					}
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+				}
+			}
+
 
 			IndentDepth--;
 			MakeIndent();
