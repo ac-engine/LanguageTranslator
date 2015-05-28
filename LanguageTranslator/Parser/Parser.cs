@@ -434,11 +434,38 @@ namespace LanguageTranslator.Parser
             {
                 var type = semanticModel.GetTypeInfo(typeSyntax);
 
-                return new SimpleType
+                var specifier = new SimpleType
                 {
                     Namespace = type.Type.ContainingNamespace.ToString(),
                     TypeName = type.Type.Name,
                 };
+
+                switch (type.Type.TypeKind)
+                {
+                case TypeKind.Class:
+                    specifier.TypeKind = SimpleTypeKind.Class;
+                    break;
+                case TypeKind.Enum:
+                    specifier.TypeKind = SimpleTypeKind.Enum;
+                    break;
+                case TypeKind.Error:
+                    specifier.TypeKind = SimpleTypeKind.Error;
+                    break;
+                case TypeKind.Interface:
+                    specifier.TypeKind = SimpleTypeKind.Interface;
+                    break;
+                case TypeKind.Struct:
+                    specifier.TypeKind = SimpleTypeKind.Struct;
+                    break;
+                case TypeKind.TypeParameter:
+                    specifier.TypeKind = SimpleTypeKind.TypeParameter;
+                    break;
+                default:
+                    specifier.TypeKind = SimpleTypeKind.Other;
+                    break;
+                }
+
+                return specifier;
             }
         }
     }
