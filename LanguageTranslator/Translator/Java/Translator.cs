@@ -22,7 +22,7 @@ namespace LanguageTranslator.Translator.Java
 				return;
 			}
 			MakeIndent();
-			Res.AppendFormat("/* {0} */\n", brief);
+			Res.AppendFormat("/* {0} */\r\n", brief);
 		}
 
 		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o) {
@@ -193,13 +193,13 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.ExpressionStatement)s;
-				Res.AppendFormat("{0};\n", GetExpression(s2.Expression));
+				Res.AppendFormat("{0};\r\n", GetExpression(s2.Expression));
 			}
 			else if (s is Definition.ForeachStatement)
 			{
 				MakeIndent();
 				var s2 = (Definition.ForeachStatement)s;
-				Res.AppendFormat("for({0} {1}: {2}) {{\n", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
+				Res.AppendFormat("for({0} {1}: {2}) {{\r\n", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
@@ -210,7 +210,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.ForStatement)s;
-				Res.AppendFormat("for(;{0}; {1}) {{\n", GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				Res.AppendFormat("for(;{0}; {1}) {{\r\n", GetExpression(s2.Condition), GetExpression(s2.Incrementor));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
@@ -221,7 +221,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.IfStatement)s;
-				Res.AppendFormat("if({0}) {{\n", GetExpression(s2.Condition));
+				Res.AppendFormat("if({0}) {{\r\n", GetExpression(s2.Condition));
 				IndentDepth++;
 				OutputStatement(s2.TrueStatement);
 				IndentDepth--;
@@ -245,7 +245,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.ReturnStatement)s;
-				Res.AppendFormat("return {0};\n", GetExpression(s2.Return));
+				Res.AppendFormat("return {0};\r\n", GetExpression(s2.Return));
 			}
 			else if (s is Definition.VariableDeclarationStatement)
 			{
@@ -254,7 +254,7 @@ namespace LanguageTranslator.Translator.Java
 				Res.AppendFormat("{0} {1}", GetTypeSpecifier(s2.Type), s2.Name);
 				if (s2.Value != null)
 				{
-					Res.AppendFormat(" = {0};\n", GetExpression(s2.Value));
+					Res.AppendFormat(" = {0};\r\n", GetExpression(s2.Value));
 				}
 				else
 				{
@@ -306,7 +306,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(es.Brief);
 			MakeIndent();
-			Res.AppendFormat("public enum {0} {{\n", es.Name);
+			Res.AppendFormat("public enum {0} {{\r\n", es.Name);
 			IndentDepth++;
 			foreach (var e in es.Members)
 			{
@@ -315,7 +315,7 @@ namespace LanguageTranslator.Translator.Java
 				Res.Append(e.Name);
 				if (e.Value != null)
 				{
-					Res.AppendFormat(" = {0},\n", GetExpression(e.Value));
+					Res.AppendFormat(" = {0},\r\n", GetExpression(e.Value));
 				}
 				else
 				{
@@ -325,7 +325,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 			IndentDepth--;
 			MakeIndent();
-			Res.AppendFormat("}}\n");
+			Res.AppendFormat("}}\r\n");
 		}
 
 
@@ -333,7 +333,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("public class {0} {{\n", cs.Name);
+			Res.AppendFormat("public class {0} {{\r\n", cs.Name);
 			IndentDepth++;
 
 
@@ -344,7 +344,7 @@ namespace LanguageTranslator.Translator.Java
 				Res.AppendFormat("public {0} {1}", GetTypeSpecifier(f.Type), f.Name);
 				if (f.Initializer != null)
 				{
-					Res.AppendFormat(" = {0};\n", GetExpression(f.Initializer));
+					Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
 				}
 				else
 				{
@@ -361,7 +361,7 @@ namespace LanguageTranslator.Translator.Java
 					if (p.Setter.Body != null)
 					{
 						MakeIndent();
-						Res.AppendFormat("public void set{0}({1} value) {{\n", p.Name, GetTypeSpecifier(p.Type));
+						Res.AppendFormat("public void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type));
 						IndentDepth++;
 						OutputStatement(p.Setter.Body);
 						IndentDepth--;
@@ -372,7 +372,7 @@ namespace LanguageTranslator.Translator.Java
 					else
 					{
 						MakeIndent();
-						Res.AppendFormat("public void set{0}({1} value) {{ {0} = value; }}\n", p.Name, GetTypeSpecifier(p.Type));
+						Res.AppendFormat("public void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type));
 					}
 				}
 				
@@ -382,7 +382,7 @@ namespace LanguageTranslator.Translator.Java
 					if (p.Getter.Body != null)
 					{
 						MakeIndent();
-						Res.AppendFormat("public {0} get{1}() {{\n", GetTypeSpecifier(p.Type), p.Name);
+						Res.AppendFormat("public {0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name);
 						IndentDepth++;
 						OutputStatement(p.Getter.Body);
 						IndentDepth--;
@@ -393,7 +393,7 @@ namespace LanguageTranslator.Translator.Java
 					else
 					{
 						MakeIndent();
-						Res.AppendFormat("public {0} get{1}() {{ return {1}; }}\n", GetTypeSpecifier(p.Type), p.Name);
+						Res.AppendFormat("public {0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name);
 					}
 					
 				}
@@ -402,7 +402,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					MakeBrief(p.Brief);
 					MakeIndent();
-					Res.AppendFormat("private {0} {1};\n", GetTypeSpecifier(p.Type), p.Name);
+					Res.AppendFormat("private {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name);
 				}
 				
 			}
@@ -412,7 +412,7 @@ namespace LanguageTranslator.Translator.Java
 				MakeBrief(m.Brief);
 				MakeIndent();
 
-				Res.AppendFormat("public {0} {1}({2}) {{\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
+				Res.AppendFormat("public {0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
 				IndentDepth++;
 				foreach (var s in m.Body)
 				{
