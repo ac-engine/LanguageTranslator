@@ -36,9 +36,9 @@ namespace LanguageTranslator.Translator.Java
 				case LanguageTranslator.Definition.AccessLevel.Private:
 					return "private";
 				case LanguageTranslator.Definition.AccessLevel.Internal:
-					return "internal";
+					return "";
 				case LanguageTranslator.Definition.AccessLevel.ProtectedInternal:
-					return "protected internal";
+					return "protected";
 				default:
 					throw new NotImplementedException("unknown access modifier " + Enum.GetName(a.GetType(), a));
 			}
@@ -502,7 +502,7 @@ namespace LanguageTranslator.Translator.Java
 					MakeIndent();
 					Res.AppendLine("protected void finalize() {");
 					IndentDepth++;
-					if (cs.BaseTypes != null)
+					if (cs.BaseTypes != null && cs.BaseTypes.Count > 0)
 					{
 						MakeIndent();
 						Res.AppendLine("try { super.finalize(); } finally {");
@@ -514,9 +514,10 @@ namespace LanguageTranslator.Translator.Java
 					}
 					if (cs.BaseTypes != null)
 					{
+						IndentDepth--;
 						MakeIndent();
 						Res.AppendLine("}");
-						IndentDepth--;
+						
 					}
 					IndentDepth--;
 					MakeIndent();
