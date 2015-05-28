@@ -306,7 +306,7 @@ namespace LanguageTranslator.Translator.Java
 
 				var s2 = (Definition.LockStatement)s;
 				MakeIndent();
-				Res.AppendFormat("synchronized({0}) {{", GetExpression(s2.Expression));
+				Res.AppendFormat("synchronized({0}) {{\n", GetExpression(s2.Expression));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
