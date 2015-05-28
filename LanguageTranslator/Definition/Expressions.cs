@@ -106,7 +106,8 @@ namespace LanguageTranslator.Definition
 			Subtract,
 			As,
 			Is,
-			EqualsEquals,
+			Equals,
+			NotEquals,
 		}
 	}
 

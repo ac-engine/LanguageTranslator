@@ -32,7 +32,7 @@ namespace LanguageTranslator.Translator.Java
 					return "+";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
 					return "-";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.EqualsEquals:
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Equals:
 					return "==";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
 					return "instanceof";
