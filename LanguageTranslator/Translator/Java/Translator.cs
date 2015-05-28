@@ -8,6 +8,7 @@ namespace LanguageTranslator.Translator.Java
 {
 	class Translator : ITranslator
 	{
+		private const string PackageName = "ace";
 		private StringBuilder Res = new StringBuilder();
 		private int IndentDepth = 0;
 		private void MakeIndent()
@@ -251,7 +252,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.ForStatement)s;
-				Res.AppendFormat("for(;{0}; {1}) {{\r\n", GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				Res.AppendFormat("for({0} {1} = {2}; {3}; {4}) {{\r\n", GetTypeSpecifier(s2.Declaration.Type), s2.Declaration.Name, GetExpression(s2.Declaration.Value), GetExpression(s2.Condition), GetExpression(s2.Incrementor));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
@@ -307,7 +308,7 @@ namespace LanguageTranslator.Translator.Java
 
 				var s2 = (Definition.LockStatement)s;
 				MakeIndent();
-				Res.AppendFormat("synchronized({0}) {{\n", GetExpression(s2.Expression));
+				Res.AppendFormat("synchronized({0}) {{\r\n", GetExpression(s2.Expression));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
