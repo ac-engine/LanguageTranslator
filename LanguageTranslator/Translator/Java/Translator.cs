@@ -32,6 +32,8 @@ namespace LanguageTranslator.Translator.Java
 					return "+";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
 					return "-";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.EqualsEquals:
+					return "==";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
 					return "instanceof";
 				default:
@@ -131,7 +133,7 @@ namespace LanguageTranslator.Translator.Java
 				var e2 = (Definition.MemberAccessExpression)e;
 				if (e2.EnumMember != null)
 				{
-					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.EnumMember.Name);
+					return string.Format("{0}.{1}", e2.Enum.Name, e2.EnumMember.Name);
 				}
 				else if (e2.Method != null)
 				{
@@ -264,17 +266,9 @@ namespace LanguageTranslator.Translator.Java
 
 				var s2 = (Definition.LockStatement)s;
 				MakeIndent();
-				Res.Append(GetExpression(s2.Expression)).Append(".lock();\n");
-				MakeIndent();
-				Res.AppendLine("try {");
+				Res.AppendFormat("synchronized({0}) {{", GetExpression(s2.Expression));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
-				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("} finary {");
-				IndentDepth++;
-				MakeIndent();
-				Res.Append(GetExpression(s2.Expression)).Append(".unlock();\n");
 				IndentDepth--;
 				MakeIndent();
 				Res.AppendLine("}");
@@ -420,6 +414,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			foreach (Definition.EnumDef e in definisions.Enums)
 			{
+				if (e.IsDefinedBySWIG) { continue; }
 				var subDir = targetDir + string.Join("\\", e.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
 				var of = System.IO.File.CreateText(subDir + e.Name + ".java");
@@ -431,6 +426,7 @@ namespace LanguageTranslator.Translator.Java
 
 			foreach (var c in definisions.Classes)
 			{
+				if (c.IsDefinedBySWIG) { continue; }
 				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
 				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");
