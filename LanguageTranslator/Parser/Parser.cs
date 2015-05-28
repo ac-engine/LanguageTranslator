@@ -260,24 +260,6 @@ namespace LanguageTranslator.Parser
             #endregion
         }
 
-        private DestructorDef ParseDestructor(DestructorDeclarationSyntax destructorSyntax, SemanticModel semanticModel)
-        {
-            return new DestructorDef();
-        }
-
-        private ConstructorDef ParseConstructor(ConstructorDeclarationSyntax constructorSyntax, SemanticModel semanticModel)
-        {
-            var constructorDef = new ConstructorDef();
-            constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
-
-            foreach (var parameter in constructorSyntax.ParameterList.Parameters)
-            {
-                constructorDef.Parameters.Add(ParseParameter(parameter, semanticModel));
-            }
-
-            return constructorDef;
-        }
-
         private static AccessLevel? ParseAccessLevel(SyntaxTokenList modifiers)
         {
             var modifiersText = modifiers.Select(x => x.ValueText);
@@ -406,6 +388,7 @@ namespace LanguageTranslator.Parser
             fieldDef.Name = fieldSyntax.Declaration.Variables[0].Identifier.ValueText;
             fieldDef.Type = type;
             fieldDef.AccessLevel = ParseAccessLevel(fieldSyntax.Modifiers) ?? AccessLevel.Private;
+            fieldDef.IsStatic = fieldSyntax.Modifiers.Any(x => x.ValueText == "static");
 
             return fieldDef;
         }
@@ -418,6 +401,7 @@ namespace LanguageTranslator.Parser
             propertyDef.Name = propertySyntax.Identifier.ValueText;
             propertyDef.Type = ParseTypeSpecifier(propertySyntax.Type, semanticModel);
             propertyDef.AccessLevel = ParseAccessLevel(propertySyntax.Modifiers) ?? AccessLevel.Private;
+            propertyDef.IsStatic = propertySyntax.Modifiers.Any(x => x.ValueText == "static");
 
             foreach (var accessor in propertySyntax.AccessorList.Accessors)
             {
@@ -446,6 +430,7 @@ namespace LanguageTranslator.Parser
             methodDef.Name = methodSyntax.Identifier.ValueText;
             methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType, semanticModel);
             methodDef.AccessLevel = ParseAccessLevel(methodSyntax.Modifiers) ?? AccessLevel.Private;
+            methodDef.IsStatic = methodSyntax.Modifiers.Any(x => x.ValueText == "static");
 
             foreach (var parameter in methodSyntax.ParameterList.Parameters)
             {
@@ -477,6 +462,25 @@ namespace LanguageTranslator.Parser
             parameterDef.Type = ParseTypeSpecifier(parameter.Type, semanticModel);
 
             return parameterDef;
+        }
+
+        private ConstructorDef ParseConstructor(ConstructorDeclarationSyntax constructorSyntax, SemanticModel semanticModel)
+        {
+            var constructorDef = new ConstructorDef();
+            constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
+            constructorDef.IsStatic = constructorSyntax.Modifiers.Any(x => x.ValueText == "static");
+
+            foreach (var parameter in constructorSyntax.ParameterList.Parameters)
+            {
+                constructorDef.Parameters.Add(ParseParameter(parameter, semanticModel));
+            }
+
+            return constructorDef;
+        }
+
+        private DestructorDef ParseDestructor(DestructorDeclarationSyntax destructorSyntax, SemanticModel semanticModel)
+        {
+            return new DestructorDef();
         }
 
 

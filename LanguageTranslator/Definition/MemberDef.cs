@@ -5,6 +5,8 @@ namespace LanguageTranslator.Definition
     class FieldDef
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
+        public bool IsStatic = false;
+
         public TypeSpecifier Type = null;
         public string Name = string.Empty;
         public Expression Initializer = null;
@@ -24,6 +26,8 @@ namespace LanguageTranslator.Definition
     class PropertyDef
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
+        public bool IsStatic = false;
+
         public TypeSpecifier Type = null;
         public string Name = string.Empty;
         public AccessorDef Getter = null;
@@ -55,6 +59,8 @@ namespace LanguageTranslator.Definition
     class MethodDef
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
+        public bool IsStatic = false;
+
         public TypeSpecifier ReturnType = null;
         public string Name = string.Empty;
         public string Brief = string.Empty;
@@ -101,6 +107,8 @@ namespace LanguageTranslator.Definition
     class ConstructorDef
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
+        public bool IsStatic = false;
+
         public string Brief = string.Empty;
         public List<ParameterDef> Parameters = new List<ParameterDef>();
         public List<Statement> Body = new List<Statement>();
