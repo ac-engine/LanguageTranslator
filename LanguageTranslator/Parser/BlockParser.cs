@@ -202,7 +202,8 @@ namespace LanguageTranslator.Parser
 			var ine = syntax as IdentifierNameSyntax;
 			var eae = syntax as ElementAccessExpressionSyntax;
 			var be = syntax as BinaryExpressionSyntax;
-			var pue = syntax as PrefixUnaryExpressionSyntax;
+			var preue = syntax as PrefixUnaryExpressionSyntax;
+			var poue = syntax as PostfixUnaryExpressionSyntax;
 			var basee = syntax as BaseExpressionSyntax;
 
 			if (mae != null)
@@ -422,14 +423,24 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
-			else if (pue != null)
+			else if (preue != null)
 			{
 				var st = new PrefixUnaryExpression();
 
-				st.Expression = ParseExpression(pue.Operand, semanticModel);
+				st.Expression = ParseExpression(preue.Operand, semanticModel);
 
-				if (pue.Kind() == SyntaxKind.PlusPlusToken) st.Type = PrefixUnaryExpression.OperatorType.PlusPlus;
-				if (pue.Kind() == SyntaxKind.MinusMinusToken) st.Type = PrefixUnaryExpression.OperatorType.MinusMinus;
+				if (preue.Kind() == SyntaxKind.PlusPlusToken) st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
+				
+				return st;
+			}
+			else if (poue != null)
+			{
+				var st = new PostfixUnaryExpression();
+
+				st.Operand = ParseExpression(poue.Operand, semanticModel);
+
+				if (preue.Kind() == SyntaxKind.PostIncrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostIncrement;
+				if (preue.Kind() == SyntaxKind.PostDecrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostDecrement;
 
 				return st;
 			}
