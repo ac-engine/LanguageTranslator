@@ -13,7 +13,12 @@ namespace LanguageTranslator.Definition
 	class MemberAccessExpression : Expression
 	{
 		public string Name = string.Empty;
-		
+
+		/// <summary>
+		/// メンバーへのアクセスがクラスの保有する何かだった場合のclass
+		/// </summary>
+		public ClassDef Class = null;
+
 		/// <summary>
 		/// メンバーへのアクセスがenumのメンバーだった場合のenum
 		/// </summary>
@@ -32,6 +37,11 @@ namespace LanguageTranslator.Definition
 		/// メンバーへのアクセスがメソッドだった場合の値
 		/// </summary>
 		public MethodDef Method = null;
+
+		/// <summary>
+		/// メンバーへのアクセスがプロパティだった場合の値
+		/// </summary>
+		public PropertyDef Property = null;
 
 		public Expression Expression = null;
 	}

@@ -279,12 +279,12 @@ namespace LanguageTranslator.Parser
 							exp.Method = method;
 						}
 					}
-
 				}
 				else if(classDefP != null)
 				{
 					var symbol = semanticModel.GetSymbolInfo(mae);
 					var methodSymbol = symbol.Symbol as IMethodSymbol;
+					var propertySymbol = symbol.Symbol as IPropertySymbol;
 
 					if (methodSymbol != null)
 					{
@@ -307,7 +307,23 @@ namespace LanguageTranslator.Parser
 						if(method != null)
 						{
 							exp.Name = null;
+							exp.Class = classDefP;
 							exp.Method = method;
+						}
+					}
+					else if(propertySymbol != null)
+					{
+						var prop = classDefP.Properties.Where(_ =>
+						{
+							if (_.Name != propertySymbol.Name) return false;
+							return true;
+						}).FirstOrDefault();
+
+						if (prop != null)
+						{
+							exp.Name = null;
+							exp.Class = classDefP;
+							exp.Property = prop;
 						}
 					}
 				}
