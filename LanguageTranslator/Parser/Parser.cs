@@ -470,6 +470,14 @@ namespace LanguageTranslator.Parser
             constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
             constructorDef.IsStatic = constructorSyntax.Modifiers.Any(x => x.ValueText == "static");
 
+            if (constructorSyntax.Initializer != null)
+            {
+                constructorDef.Initializer = new ConstructorInitializer
+                {
+                    ThisOrBase = constructorSyntax.Initializer.ThisOrBaseKeyword.ValueText,
+                };
+            }
+
             foreach (var parameter in constructorSyntax.ParameterList.Parameters)
             {
                 constructorDef.Parameters.Add(ParseParameter(parameter, semanticModel));

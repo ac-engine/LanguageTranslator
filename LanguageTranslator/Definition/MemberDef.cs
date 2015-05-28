@@ -111,12 +111,19 @@ namespace LanguageTranslator.Definition
 
         public string Brief = string.Empty;
         public List<ParameterDef> Parameters = new List<ParameterDef>();
+        public ConstructorInitializer Initializer = null;
         public List<Statement> Body = new List<Statement>();
 
         public override string ToString()
         {
             return string.Format("ConstructorDef");
         }
+    }
+
+    class ConstructorInitializer
+    {
+        public string ThisOrBase = string.Empty;
+        public List<Expression> Arguments = new List<Expression>();
     }
 
     class DestructorDef
