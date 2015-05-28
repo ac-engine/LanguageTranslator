@@ -203,6 +203,7 @@ namespace LanguageTranslator.Parser
 			var eae = syntax as ElementAccessExpressionSyntax;
 			var be = syntax as BinaryExpressionSyntax;
 			var pue = syntax as PrefixUnaryExpressionSyntax;
+			var basee = syntax as BaseExpressionSyntax;
 
 			if (mae != null)
 			{
@@ -430,6 +431,11 @@ namespace LanguageTranslator.Parser
 				if (pue.Kind() == SyntaxKind.PlusPlusToken) st.Type = PrefixUnaryExpression.OperatorType.PlusPlus;
 				if (pue.Kind() == SyntaxKind.MinusMinusToken) st.Type = PrefixUnaryExpression.OperatorType.MinusMinus;
 
+				return st;
+			}
+			else if(basee != null)
+			{
+				var st = new BaseExpression();
 				return st;
 			}
 

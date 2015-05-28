@@ -131,6 +131,11 @@ namespace LanguageTranslator.Definition
 
 	}
 
+	class BaseExpression : Expression
+	{
+
+	}
+
 	class Expression
 	{
 
