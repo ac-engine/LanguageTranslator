@@ -106,7 +106,8 @@ namespace LanguageTranslator.Definition
 			Subtract,
 			As,
 			Is,
-			EqualsEquals,
+			Equals,
+			NotEquals,
 		}
 	}
 
@@ -126,6 +127,11 @@ namespace LanguageTranslator.Definition
 	}
 
 	class AsExpression : Expression
+	{
+
+	}
+
+	class BaseExpression : Expression
 	{
 
 	}

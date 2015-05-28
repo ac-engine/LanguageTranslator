@@ -88,6 +88,7 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System", "IntPtr", "", "long");
 
+			editor.AddTypeConverter("System", "String", "java.lang", "String");
 
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
@@ -499,6 +500,10 @@ namespace LanguageTranslator
 				var e_ = e as Definition.PrefixUnaryExpression;
 				e_.Expression = ConvertExpression(e_.Expression);
 				return e_;
+			}
+			else if( e is Definition.BaseExpression)
+			{
+				return e;
 			}
 
 			throw new Exception();
