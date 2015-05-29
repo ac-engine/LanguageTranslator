@@ -53,6 +53,20 @@ namespace LanguageTranslator.Translator.Java
 					return "+";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
 					return "-";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Multiply:
+					return "*";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Divide:
+					return "/";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalAnd:
+					return "&&";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalOr:
+					return "||";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.GreaterThan:
+					return ">";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThan:
+					return "<";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThanOrEqual:
+					return "<=";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Equals:
 					return "==";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.NotEquals:
@@ -70,6 +84,8 @@ namespace LanguageTranslator.Translator.Java
 			{
 				case Definition.PrefixUnaryExpression.OperatorType.LogicalNot:
 					return "!";
+				case Definition.PrefixUnaryExpression.OperatorType.UnaryMinus:
+					return "-";
 				default:
 					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
 			}
