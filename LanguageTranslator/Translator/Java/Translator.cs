@@ -45,7 +45,8 @@ namespace LanguageTranslator.Translator.Java
 			}
 		}
 
-		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o) {
+		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o)
+		{
 			switch (o)
 			{
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Add:
@@ -87,7 +88,8 @@ namespace LanguageTranslator.Translator.Java
 		}
 
 
-		private string GetTypeSpecifier(Definition.TypeSpecifier t) {
+		private string GetTypeSpecifier(Definition.TypeSpecifier t)
+		{
 			if (t is Definition.SimpleType)
 			{
 				var t2 = (Definition.SimpleType)t;
@@ -119,7 +121,7 @@ namespace LanguageTranslator.Translator.Java
 			if (e == null) { return ""; }
 			if (e is Definition.BinaryExpression)
 			{
-				var e2 = (Definition.BinaryExpression) e;
+				var e2 = (Definition.BinaryExpression)e;
 
 				// as 対応
 				if (e2.Operator == Definition.BinaryExpression.OperatorType.As)
@@ -131,7 +133,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (e is Definition.AssignmentExpression)
 			{
-				var e2 = (Definition.AssignmentExpression) e;
+				var e2 = (Definition.AssignmentExpression)e;
 				return string.Format("({0} = {1})", GetExpression(e2.Target), GetExpression(e2.Expression));
 
 			}
@@ -180,7 +182,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					return e2.Name;
 				}
-				
+
 			}
 			else if (e is Definition.ObjectCreationExpression)
 			{
@@ -225,9 +227,11 @@ namespace LanguageTranslator.Translator.Java
 				{
 					OutputStatement(e);
 					// Res.AppendLine();
-					
+
 				}
-			} else if (s is Definition.ContinueStatement) {
+			}
+			else if (s is Definition.ContinueStatement)
+			{
 				MakeIndent();
 				Res.AppendLine("continue;");
 			}
@@ -319,7 +323,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				throw new NotImplementedException("unknown statement " + s.GetType().ToString());
 			}
-			
+
 		}
 
 
@@ -344,153 +348,143 @@ namespace LanguageTranslator.Translator.Java
 			return res.ToString();
 		}
 
-
-
-		private void OutputEnum(Definition.EnumDef es)
+		private void OutputField(Definition.FieldDef f)
 		{
-			MakeBrief(es.Brief);
+			MakeBrief(f.Brief);
 			MakeIndent();
-			Res.AppendFormat("public enum {0} {{\r\n", es.Name);
-			IndentDepth++;
-			foreach (var e in es.Members)
+			Res.AppendFormat("{2} {3}{0} {1}", GetTypeSpecifier(f.Type), f.Name, GetAccessLevel(f.AccessLevel), f.IsStatic ? "static " : "");
+			if (f.Initializer != null)
 			{
-				MakeBrief(e.Brief);
+				Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
+			}
+			else
+			{
+				Res.AppendLine(";");
+			}
+		}
+
+		private void OutputConstructor(string name, Definition.ConstructorDef c)
+		{
+			MakeBrief(c.Brief);
+			MakeIndent();
+
+			Res.AppendFormat("{0} {1}({2}) {{\r\n", GetAccessLevel(c.AccessLevel), name, GetParamStr(c.Parameters));
+			IndentDepth++;
+			if (c.Initializer != null)
+			{
 				MakeIndent();
-				Res.Append(e.Name);
-				if (e.Value != null)
-				{
-					Res.AppendFormat(" = {0},\r\n", GetExpression(e.Value));
-				}
-				else
-				{
-					Res.AppendLine(",");
-				}
-				
+				Res.AppendFormat("{0}({1});\r\n", c.Initializer.ThisOrBase, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
+			}
+
+			foreach (var s in c.Body)
+			{
+				OutputStatement(s);
 			}
 			IndentDepth--;
 			MakeIndent();
-			Res.AppendFormat("}}\r\n");
+			Res.AppendLine("}");
 		}
 
+		private void OutputMethod(Definition.MethodDef m)
+		{
+			MakeBrief(m.Brief);
+			MakeIndent();
+
+			Res.AppendFormat("{3} {4}{0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "");
+			IndentDepth++;
+			foreach (var s in m.Body)
+			{
+				OutputStatement(s);
+			}
+			IndentDepth--;
+			MakeIndent();
+			Res.AppendLine("}");
+		}
+
+		private void OutputProperty(Definition.PropertyDef p)
+		{
+
+			var needVariable = true;
+
+			if (p.Setter != null)
+			{
+				if (p.Setter.Body != null)
+				{
+					MakeIndent();
+					Res.AppendFormat("{2} {3}void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					IndentDepth++;
+					OutputStatement(p.Setter.Body);
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+					needVariable = false;
+				}
+				else
+				{
+					MakeIndent();
+					Res.AppendFormat("{2} {3}void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+				}
+			}
+
+
+			if (p.Getter != null)
+			{
+				if (p.Getter.Body != null)
+				{
+					MakeIndent();
+					Res.AppendFormat("{2} {3}{0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					IndentDepth++;
+					OutputStatement(p.Getter.Body);
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+					needVariable = false;
+				}
+				else
+				{
+					MakeIndent();
+					Res.AppendFormat("{2} {3}{0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+				}
+
+			}
+
+			if (needVariable)
+			{
+				MakeBrief(p.Brief);
+				MakeIndent();
+				Res.AppendFormat("private {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name);
+			}
+
+		}
 
 		private void OutputClass(Definition.ClassDef cs)
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("{1} {2}class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract? "abstract ":"");
+			Res.AppendFormat("{1} {2}class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "");
 			IndentDepth++;
-
 			
+
 			foreach (var f in cs.Fields)
 			{
-				MakeBrief(f.Brief);
-				MakeIndent();
-				Res.AppendFormat("{2} {3}{0} {1}", GetTypeSpecifier(f.Type), f.Name, GetAccessLevel(f.AccessLevel), f.IsStatic? "static ":"");
-				if (f.Initializer != null)
-				{
-					Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
-				}
-				else
-				{
-					Res.AppendLine(";");
-				}
+				OutputField(f);
 			}
 
 			foreach (var p in cs.Properties)
 			{
-				var needVariable = true;
-				
-				if (p.Setter != null)
-				{
-					if (p.Setter.Body != null)
-					{
-						MakeIndent();
-						Res.AppendFormat("{2} {3}void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic? "static ": "");
-						IndentDepth++;
-						OutputStatement(p.Setter.Body);
-						IndentDepth--;
-						MakeIndent();
-						Res.AppendLine("}");
-						needVariable = false;
-					}
-					else
-					{
-						MakeIndent();
-						Res.AppendFormat("{2} {3}void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
-					}
-				}
-				
-				
-				if (p.Getter != null)
-				{
-					if (p.Getter.Body != null)
-					{
-						MakeIndent();
-						Res.AppendFormat("{2} {3}{0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic? "static ": "");
-						IndentDepth++;
-						OutputStatement(p.Getter.Body);
-						IndentDepth--;
-						MakeIndent();
-						Res.AppendLine("}");
-						needVariable = false;
-					}
-					else
-					{
-						MakeIndent();
-						Res.AppendFormat("{2} {3}{0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
-					}
-					
-				}
-
-				if (needVariable)
-				{
-					MakeBrief(p.Brief);
-					MakeIndent();
-					Res.AppendFormat("private {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name);
-				}
-				
+				OutputProperty(p);
 			}
-
-			
 
 			foreach (var m in cs.Methods)
 			{
-				MakeBrief(m.Brief);
-				MakeIndent();
-
-				Res.AppendFormat("{3} {4}{0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "");
-				IndentDepth++;
-				foreach (var s in m.Body)
-				{
-					OutputStatement(s);
-				}
-				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				OutputMethod(m);
 			}
 
 			if (cs.Constructors != null)
 			{
 				foreach (var c in cs.Constructors)
 				{
-					MakeBrief(c.Brief);
-					MakeIndent();
-
-					Res.AppendFormat("{0} {1}({2}) {{\r\n", GetAccessLevel(c.AccessLevel), cs.Name, GetParamStr(c.Parameters));
-					IndentDepth++;
-					if (c.Initializer != null)
-					{
-						MakeIndent();
-						Res.AppendFormat("{0}({1});\r\n", c.Initializer.ThisOrBase, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
-					}
-
-					foreach (var s in c.Body)
-					{
-						OutputStatement(s);
-					}
-					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+					OutputConstructor(cs.Name, c);
 				}
 			}
 
@@ -518,7 +512,98 @@ namespace LanguageTranslator.Translator.Java
 						IndentDepth--;
 						MakeIndent();
 						Res.AppendLine("}");
-						
+
+					}
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+				}
+			}
+		}
+
+		private void OutputEnum(Definition.EnumDef es)
+		{
+			MakeBrief(es.Brief);
+			MakeIndent();
+			Res.AppendFormat("public enum {0} {{\r\n", es.Name);
+			IndentDepth++;
+			foreach (var e in es.Members)
+			{
+				MakeBrief(e.Brief);
+				MakeIndent();
+				Res.Append(e.Name);
+				if (e.Value != null)
+				{
+					Res.AppendFormat(" = {0},\r\n", GetExpression(e.Value));
+				}
+				else
+				{
+					Res.AppendLine(",");
+				}
+
+			}
+			IndentDepth--;
+			MakeIndent();
+			Res.AppendFormat("}}\r\n");
+		}
+
+
+		private void OutputStruct(Definition.StructDef ss)
+		{
+			MakeBrief(ss.Brief);
+			MakeIndent();
+			Res.AppendFormat("{1} struct {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
+			IndentDepth++;
+
+
+			foreach (var f in ss.Fields)
+			{
+				OutputField(f);
+			}
+
+			foreach (var p in ss.Properties)
+			{
+				OutputProperty(p);
+			}
+
+			foreach (var m in ss.Methods)
+			{
+				OutputMethod(m);
+			}
+
+			if (ss.Constructors != null)
+			{
+				foreach (var c in ss.Constructors)
+				{
+					OutputConstructor(ss.Name, c);
+				}
+			}
+
+			if (ss.Destructors != null)
+			{
+				foreach (var d in ss.Destructors)
+				{
+					MakeIndent();
+					Res.AppendLine("@Override");
+					MakeIndent();
+					Res.AppendLine("protected void finalize() {");
+					IndentDepth++;
+					if (ss.BaseTypes != null && ss.BaseTypes.Count > 0)
+					{
+						MakeIndent();
+						Res.AppendLine("try { super.finalize(); } finally {");
+						IndentDepth++;
+					}
+					foreach (var s in d.Body)
+					{
+						OutputStatement(s);
+					}
+					if (ss.BaseTypes != null)
+					{
+						IndentDepth--;
+						MakeIndent();
+						Res.AppendLine("}");
+
 					}
 					IndentDepth--;
 					MakeIndent();
@@ -531,10 +616,80 @@ namespace LanguageTranslator.Translator.Java
 			MakeIndent();
 			Res.AppendFormat("}}");
 		}
+
+		private void OutputInterface(Definition.InterfaceDef i) {
+			MakeBrief(i.Brief);
+			MakeIndent();
+			Res.AppendFormat("{1} interface {0} {{\r\n", i.Name, GetAccessLevel(i.AccessLevel));
+			IndentDepth++;
+
+			if (i.Fields != null)
+			{
+				foreach (var f in i.Fields)
+				{
+					OutputField(f);
+				}
+			}
+
+			foreach (var p in i.Properties)
+			{
+				OutputProperty(p);
+			}
+
+			foreach (var m in i.Methods)
+			{
+				OutputMethod(m);
+			}
+
+			if (i.Constructors != null)
+			{
+				foreach (var c in i.Constructors)
+				{
+					OutputConstructor(i.Name, c);
+				}
+			}
+
+			if (i.Destructors != null)
+			{
+				foreach (var d in i.Destructors)
+				{
+					MakeIndent();
+					Res.AppendLine("@Override");
+					MakeIndent();
+					Res.AppendLine("protected void finalize() {");
+					IndentDepth++;
+					if (i.BaseTypes != null && i.BaseTypes.Count > 0)
+					{
+						MakeIndent();
+						Res.AppendLine("try { super.finalize(); } finally {");
+						IndentDepth++;
+					}
+					foreach (var s in d.Body)
+					{
+						OutputStatement(s);
+					}
+					if (i.BaseTypes != null)
+					{
+						IndentDepth--;
+						MakeIndent();
+						Res.AppendLine("}");
+
+					}
+					IndentDepth--;
+					MakeIndent();
+					Res.AppendLine("}");
+				}
+			}
+			IndentDepth--;
+			MakeIndent();
+			Res.AppendFormat("}}");
+		}
+
 		public void Translate(string targetDir, Definition.Definitions definisions)
 		{
 			foreach (Definition.EnumDef e in definisions.Enums)
 			{
+				IndentDepth = 0;
 				if (e.IsDefinedBySWIG) { continue; }
 				var subDir = targetDir + string.Join("\\", e.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
@@ -548,12 +703,39 @@ namespace LanguageTranslator.Translator.Java
 
 			foreach (var c in definisions.Classes)
 			{
+				IndentDepth = 0;
 				if (c.IsDefinedBySWIG) { continue; }
 				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
 				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");
 				Res.AppendFormat("package {0};\r\n\r\n", c.Namespace);
 				OutputClass(c);
+				of.Write(Res.ToString());
+				of.Close();
+				Res.Clear();
+			}
+
+			foreach (var s in definisions.Structs)
+			{
+				IndentDepth = 0;
+				var subDir = targetDir + string.Join("\\", s.Namespace.Split('.'));
+				System.IO.Directory.CreateDirectory(subDir);
+				var of = System.IO.File.CreateText(subDir + "\\" + s.Name + ".java");
+				Res.AppendFormat("package {0};\r\n\r\n", s.Namespace);
+				OutputStruct(s);
+				of.Write(Res.ToString());
+				of.Close();
+				Res.Clear();
+			}
+
+			foreach (var i in definisions.Interfaces)
+			{
+				IndentDepth = 0;
+				var subDir = targetDir + string.Join("\\", i.Namespace.Split('.'));
+				System.IO.Directory.CreateDirectory(subDir);
+				var of = System.IO.File.CreateText(subDir + "\\" + i.Name + ".java");
+				Res.AppendFormat("package {0};\r\n\r\n", i.Namespace);
+				OutputInterface(i);
 				of.Write(Res.ToString());
 				of.Close();
 				Res.Clear();
