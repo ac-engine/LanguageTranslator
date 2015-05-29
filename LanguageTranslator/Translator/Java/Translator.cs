@@ -185,7 +185,7 @@ namespace LanguageTranslator.Translator.Java
 				
 				if (e2.EnumMember != null)
 				{
-					return string.Format("{0}.{1}", e2.Enum.Name, e2.EnumMember.Name);
+					return string.Format("{0}{1}.{2}", (e2.Enum.Namespace ==null || e2.Enum.Namespace == "") ? "": e2.Enum.Namespace + "." , e2.Enum.Name, e2.EnumMember.Name);
 				}
 				else if (e2.Method != null)
 				{
