@@ -44,6 +44,11 @@ namespace LanguageTranslator.Parser
 			{
 				ParseClass(classDef);
 			}
+
+			foreach (var def in definitions.Structs)
+			{
+				ParseStruct(def);
+			}
 		}
 
 		void ParseEnum(Definition.EnumDef enumDef)
@@ -726,6 +731,7 @@ namespace LanguageTranslator.Parser
 
 			var namedType = type as INamedTypeSymbol;
 			var arrayType = type as IArrayTypeSymbol;
+			var pointerType = type as IPointerTypeSymbol;
 			var isGeneric = namedType != null && namedType.IsGenericType;
 
 
@@ -755,6 +761,20 @@ namespace LanguageTranslator.Parser
 				var ret = new ArrayType();
 				var name_ = arrayType.ElementType.Name;
 				var namespace_ = arrayType.ElementType.ContainingNamespace.ToString();
+				ret.BaseType = new SimpleType
+				{
+					Namespace = namespace_,
+					TypeName = name_,
+				};
+
+				return ret;
+			}
+			else if(type.TypeKind == TypeKind.Pointer)
+			{
+				// ポインタは配列にする。
+				var ret = new ArrayType();
+				var name_ = pointerType.PointedAtType.Name;
+				var namespace_ = pointerType.PointedAtType.ContainingNamespace.ToString();
 				ret.BaseType = new SimpleType
 				{
 					Namespace = namespace_,
