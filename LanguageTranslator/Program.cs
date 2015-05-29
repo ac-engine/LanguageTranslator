@@ -141,6 +141,21 @@ namespace LanguageTranslator
 		{
 			foreach (var def in definitions.Structs)
 			{
+				foreach (var m in def.Constructors)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Destructors)
+				{
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
 				foreach (var m in def.Methods)
 				{
 					var methodString = GetTypeString(def.Namespace, def.Name) + "." + m.Name;
@@ -153,6 +168,21 @@ namespace LanguageTranslator
 
 			foreach (var def in definitions.Classes)
 			{
+				foreach (var m in def.Constructors)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Destructors)
+				{
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
 				foreach (var m in def.Methods)
 				{
 					foreach (var paramDef in m.Parameters)
@@ -224,6 +254,21 @@ namespace LanguageTranslator
 					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
 				}
 
+				foreach (var m in def.Constructors)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Destructors)
+				{
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
 				foreach (var m in def.Methods)
 				{
 					foreach (var paramDef in m.Parameters)
@@ -275,6 +320,21 @@ namespace LanguageTranslator
 					}
 
 					m.ReturnType = ConvertType(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Constructors)
+				{
+					foreach (var paramDef in m.Parameters)
+					{
+						paramDef.Type = ConvertType(paramDef.Type);
+					}
+
+					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				}
+
+				foreach (var m in def.Destructors)
+				{
 					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
 				}
 

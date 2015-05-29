@@ -110,6 +110,30 @@ namespace LanguageTranslator.Parser
 
 				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
 			}
+
+			foreach(var cst in def.Constructors)
+			{
+				if (cst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(cst.Internal.SyntaxTree);
+
+				if (cst.Internal.Body == null) continue;
+
+				
+
+				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach(var dst in def.Destructors)
+			{
+				if (dst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(dst.Internal.SyntaxTree);
+
+				if (dst.Internal.Body == null) continue;
+
+				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
 		}
 
 		void ParseStruct(Definition.StructDef def)
@@ -150,6 +174,30 @@ namespace LanguageTranslator.Parser
 				}
 
 				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach (var cst in def.Constructors)
+			{
+				if (cst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(cst.Internal.SyntaxTree);
+
+				if (cst.Internal.Body == null) continue;
+
+
+
+				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach (var dst in def.Destructors)
+			{
+				if (dst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(dst.Internal.SyntaxTree);
+
+				if (dst.Internal.Body == null) continue;
+
+				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
 			}
 		}
 
@@ -437,6 +485,16 @@ namespace LanguageTranslator.Parser
 				if (be.Kind() == SyntaxKind.EqualsExpression) st.Operator = BinaryExpression.OperatorType.Equals;
 				if (be.Kind() == SyntaxKind.NotEqualsExpression) st.Operator = BinaryExpression.OperatorType.NotEquals;
 
+				if (be.Kind() == SyntaxKind.LogicalAndExpression) st.Operator = BinaryExpression.OperatorType.LogicalAnd;
+				if (be.Kind() == SyntaxKind.LogicalOrExpression) st.Operator = BinaryExpression.OperatorType.LogicalOr;
+
+				if (be.Kind() == SyntaxKind.GreaterThanExpression) st.Operator = BinaryExpression.OperatorType.GreaterThan;
+				if (be.Kind() == SyntaxKind.LessThanExpression) st.Operator = BinaryExpression.OperatorType.LessThan;
+				if (be.Kind() == SyntaxKind.LessThanOrEqualExpression) st.Operator = BinaryExpression.OperatorType.LessThanOrEqual;
+
+				if (be.Kind() == SyntaxKind.MultiplyExpression) st.Operator = BinaryExpression.OperatorType.Multiply;
+				if (be.Kind() == SyntaxKind.DivideExpression) st.Operator = BinaryExpression.OperatorType.Divide;
+
 				return st;
 			}
 			else if (preue != null)
@@ -445,8 +503,9 @@ namespace LanguageTranslator.Parser
 
 				st.Expression = ParseExpression(preue.Operand, semanticModel);
 
-				if (preue.Kind() == SyntaxKind.PlusPlusToken) st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
-				
+				if (preue.Kind() == SyntaxKind.LogicalNotExpression) st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
+				if (preue.Kind() == SyntaxKind.UnaryMinusExpression) st.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
+
 				return st;
 			}
 			else if (poue != null)

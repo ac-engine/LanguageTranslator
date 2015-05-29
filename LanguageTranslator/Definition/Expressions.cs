@@ -118,6 +118,18 @@ namespace LanguageTranslator.Definition
 			Is,
 			Equals,
 			NotEquals,
+
+			LogicalAnd,
+			LogicalOr,
+
+			GreaterThan,
+			LessThan,
+
+			LessThanOrEqual,
+
+			Multiply,
+			Divide,
+
 		}
 	}
 
@@ -147,6 +159,7 @@ namespace LanguageTranslator.Definition
 		public enum OperatorType
 		{
 			LogicalNot,
+			UnaryMinus,
 		}
 	}
 

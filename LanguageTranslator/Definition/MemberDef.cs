@@ -114,6 +114,11 @@ namespace LanguageTranslator.Definition
         public ConstructorInitializer Initializer = null;
         public List<Statement> Body = new List<Statement>();
 
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax Internal = null;
+
         public override string ToString()
         {
             return string.Format("ConstructorDef");
@@ -124,11 +129,21 @@ namespace LanguageTranslator.Definition
     {
         public string ThisOrBase = string.Empty;
         public List<Expression> Arguments = new List<Expression>();
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax Internal = null;	 
     }
 
     class DestructorDef
     {
         public List<Statement> Body = new List<Statement>();
+
+		/// <summary>
+		/// パーサー内部処理用
+		/// </summary>
+		internal Microsoft.CodeAnalysis.CSharp.Syntax.DestructorDeclarationSyntax Internal = null;
 
         public override string ToString()
         {
