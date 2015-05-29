@@ -110,6 +110,30 @@ namespace LanguageTranslator.Parser
 
 				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
 			}
+
+			foreach(var cst in def.Constructors)
+			{
+				if (cst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(cst.Internal.SyntaxTree);
+
+				if (cst.Internal.Body == null) continue;
+
+				
+
+				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach(var dst in def.Destructors)
+			{
+				if (dst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(dst.Internal.SyntaxTree);
+
+				if (dst.Internal.Body == null) continue;
+
+				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
 		}
 
 		void ParseStruct(Definition.StructDef def)
@@ -150,6 +174,30 @@ namespace LanguageTranslator.Parser
 				}
 
 				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach (var cst in def.Constructors)
+			{
+				if (cst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(cst.Internal.SyntaxTree);
+
+				if (cst.Internal.Body == null) continue;
+
+
+
+				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+			}
+
+			foreach (var dst in def.Destructors)
+			{
+				if (dst.Internal == null) continue;
+
+				var semanticModel = compilation.GetSemanticModel(dst.Internal.SyntaxTree);
+
+				if (dst.Internal.Body == null) continue;
+
+				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
 			}
 		}
 

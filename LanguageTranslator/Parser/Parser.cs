@@ -467,7 +467,10 @@ namespace LanguageTranslator.Parser
         private ConstructorDef ParseConstructor(ConstructorDeclarationSyntax constructorSyntax, SemanticModel semanticModel)
         {
             var constructorDef = new ConstructorDef();
-            constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
+
+			constructorDef.Internal = constructorSyntax;
+
+			constructorDef.AccessLevel = ParseAccessLevel(constructorSyntax.Modifiers) ?? AccessLevel.Private;
             constructorDef.IsStatic = constructorSyntax.Modifiers.Any(x => x.ValueText == "static");
 
             if (constructorSyntax.Initializer != null)
@@ -488,7 +491,9 @@ namespace LanguageTranslator.Parser
 
         private DestructorDef ParseDestructor(DestructorDeclarationSyntax destructorSyntax, SemanticModel semanticModel)
         {
-            return new DestructorDef();
+			var def = new DestructorDef();
+			def.Internal = destructorSyntax;
+			return def;
         }
 
 
