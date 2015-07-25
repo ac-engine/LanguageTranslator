@@ -580,6 +580,8 @@ namespace LanguageTranslator.Parser
                     break;
                 case TypeKind.TypeParameter:
                     specifier.TypeKind = SimpleTypeKind.TypeParameter;
+					// 基本的にGenericsの型なのでNamespaceは必要ない
+					specifier.Namespace = string.Empty;
                     break;
                 default:
                     specifier.TypeKind = SimpleTypeKind.Other;
