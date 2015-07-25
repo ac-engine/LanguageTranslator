@@ -32,11 +32,12 @@ namespace LanguageTranslator.Parser
             var assemblyPath = System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location);
 
             var mscorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "mscorlib.dll"));
-
+			var systemlib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "System.dll"));
+				
             var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
                         "Compilation",
                         syntaxTrees: syntaxTrees.ToArray(),
-                        references: new[] { mscorelib },
+                        references: new[] { mscorelib, systemlib },
                         options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
                                                   Microsoft.CodeAnalysis.OutputKind.ConsoleApplication));
 
@@ -532,11 +533,14 @@ namespace LanguageTranslator.Parser
                 var g = (GenericNameSyntax)typeSyntax;
                 try
                 {
+					var typeInfo = semanticModel.GetTypeInfo(typeSyntax);
+					var symbolInfo = semanticModel.GetSymbolInfo(typeSyntax);
+					
                     return new GenericType
                     {
                         OuterType = new SimpleType
                         {
-                            Namespace = semanticModel.GetTypeInfo(typeSyntax).Type.ContainingNamespace.ToString(),
+							Namespace = typeInfo.Type.ContainingNamespace.ToString(),
                             TypeName = g.Identifier.ValueText,
                         },
                         InnerType = g.TypeArgumentList.Arguments.Select(x => (SimpleType)ParseTypeSpecifier(x, semanticModel)).ToList(),
