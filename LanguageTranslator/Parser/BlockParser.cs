@@ -752,7 +752,7 @@ namespace LanguageTranslator.Parser
 				{
 					Namespace = _.ContainingNamespace.ToString(),
 					TypeName = _.Name,
-				}).ToList();
+				}).OfType<TypeSpecifier>().ToList();
 
 				return ret;
 			}

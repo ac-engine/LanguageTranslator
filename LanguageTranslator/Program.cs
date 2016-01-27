@@ -30,15 +30,15 @@ namespace LanguageTranslator
 			var settingsDirectory = Path.GetDirectoryName(args[0]);
 			*/
 
-			var csharpDir = "ace_cs/";
-			var dstDir = "ace_java/";
+			var csharpDir = "asd_cs/";
+			var dstDir = "asd_java/";
 
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
 
-			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.GC");
-			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.Helper");
-			parser.TypesWhosePrivateNotParsed.Add("ace.Particular.Dictionary");
+			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.GC");
+			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Helper");
+			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Dictionary");
 
 			Definition.Definitions definitions = null;
 			
@@ -96,6 +96,10 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
 
+			editor.AddIgnoredType("asd.Particular", "Dictionary");
+			editor.AddIgnoredType("asd.Particular", "GC");
+			editor.AddIgnoredType("asd.Particular", "Helper");
+
 			editor.Convert();
 			
 			// 変換後コードの出力
@@ -114,9 +118,16 @@ namespace LanguageTranslator
 
 		Dictionary<string, string> methodConverter = new Dictionary<string, string>();
 
+		HashSet<Tuple<string, string>> ignoreTypes = new HashSet<Tuple<string, string>>();
+
 		public Editor(Definition.Definitions definitions)
 		{
 			this.definitions = definitions;
+		}
+
+		public void AddIgnoredType(string ns, string type)
+		{
+			ignoreTypes.Add(Tuple.Create(ns, type));
 		}
 
 		public void AddTypeConverter(string fromNamespace, string fromType, string toNamespace, string toType)
@@ -135,6 +146,18 @@ namespace LanguageTranslator
 		{
 			ConvertMethod();
 			ConvertTypeName();
+			RemoveType();
+		}
+
+		void RemoveType()
+		{
+			foreach (var it in ignoreTypes)
+			{
+				definitions.Classes.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
+				definitions.Structs.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
+				definitions.Enums.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
+				definitions.Interfaces.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
+			}
 		}
 
 		void ConvertMethod()
@@ -614,7 +637,7 @@ namespace LanguageTranslator
 				var dst = new Definition.GenericType();
 
 				dst.OuterType = ConvertType(src.OuterType) as Definition.SimpleType;
-				dst.InnerType = src.InnerType.Select(_ => ConvertType(_) as Definition.SimpleType).ToList();
+				dst.InnerType = src.InnerType.Select(_ => ConvertType(_) as Definition.SimpleType).OfType<Definition.TypeSpecifier>().ToList();
 
 				return dst;
 			}

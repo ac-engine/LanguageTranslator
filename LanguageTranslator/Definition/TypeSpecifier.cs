@@ -40,7 +40,7 @@ namespace LanguageTranslator.Definition
 	class GenericType : TypeSpecifier
 	{
 		public SimpleType OuterType = null;
-		public List<SimpleType> InnerType = new List<SimpleType>();
+		public List<TypeSpecifier> InnerType = new List<TypeSpecifier>();
 
 		public override string ToString()
 		{

@@ -125,7 +125,7 @@ namespace LanguageTranslator.Parser
             enumDef.Namespace = namespace_;
 
             // swig
-            enumDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+            enumDef.IsDefinedBySWIG = namespace_.Contains("asd.swig");
 
             foreach (var member in enumSyntax.Members)
             {
@@ -190,7 +190,8 @@ namespace LanguageTranslator.Parser
 
             var isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
 
-            if (typeSyntax.BaseList != null)
+			// 構造体は現状、継承なしとする
+			if (typeSyntax.BaseList != null && typeDef.BaseTypes != null)
             {
                 foreach (var item in typeSyntax.BaseList.Types)
                 {
@@ -298,7 +299,7 @@ namespace LanguageTranslator.Parser
             var classDef = new ClassDef();
 
             // swig
-            classDef.IsDefinedBySWIG = namespace_.Contains("ace.swig");
+            classDef.IsDefinedBySWIG = namespace_.Contains("asd.swig");
 
             classDef.Namespace = namespace_;
             classDef.Name = classSyntax.Identifier.ValueText;
@@ -531,7 +532,7 @@ namespace LanguageTranslator.Parser
             else if (typeSyntax is GenericNameSyntax)
             {
                 var g = (GenericNameSyntax)typeSyntax;
-                try
+                
                 {
 					var typeInfo = semanticModel.GetTypeInfo(typeSyntax);
 					var symbolInfo = semanticModel.GetSymbolInfo(typeSyntax);
@@ -543,12 +544,8 @@ namespace LanguageTranslator.Parser
 							Namespace = typeInfo.Type.ContainingNamespace.ToString(),
                             TypeName = g.Identifier.ValueText,
                         },
-                        InnerType = g.TypeArgumentList.Arguments.Select(x => (SimpleType)ParseTypeSpecifier(x, semanticModel)).ToList(),
+                        InnerType = g.TypeArgumentList.Arguments.Select(x => ParseTypeSpecifier(x, semanticModel)).ToList(),
                     };
-                }
-                catch (InvalidCastException)
-                {
-                    throw new ParseException("SimpleType以外のジェネリック型は使用禁止です。");
                 }
             }
             else

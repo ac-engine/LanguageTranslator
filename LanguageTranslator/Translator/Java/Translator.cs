@@ -8,7 +8,7 @@ namespace LanguageTranslator.Translator.Java
 {
 	class Translator : ITranslator
 	{
-		private const string PackageName = "ace";
+		private const string PackageName = "asd";
 		private StringBuilder Res = new StringBuilder();
 		private int IndentDepth = 0;
 		private void MakeIndent()
