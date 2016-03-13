@@ -259,6 +259,9 @@ namespace LanguageTranslator.Parser
 			var poue = syntax as PostfixUnaryExpressionSyntax;
 			var basee = syntax as BaseExpressionSyntax;
 
+			var ace = syntax as ArrayCreationExpressionSyntax;
+			var sace = syntax as StackAllocArrayCreationExpressionSyntax;
+
 			if (mae != null)
 			{
 				MemberAccessExpression exp = new MemberAccessExpression();
@@ -527,6 +530,20 @@ namespace LanguageTranslator.Parser
 			else if(basee != null)
 			{
 				var st = new BaseExpression();
+				return st;
+			}
+			else if (ace != null || sace != null)
+			{
+				// stackallocも含め、配列の確保として扱う。
+
+				ArrayTypeSyntax ats = null;
+				if (ace != null) ats = ace.Type;
+				if (sace != null) ats = sace.Type as ArrayTypeSyntax;
+
+				var st = new ObjectArrayCreationExpression();
+				st.Type = ParseType(ats.ElementType, semanticModel);
+				st.Args = ats.RankSpecifiers.Select(_ => ParseExpression(_.Sizes.FirstOrDefault(), semanticModel)).ToArray();
+
 				return st;
 			}
 

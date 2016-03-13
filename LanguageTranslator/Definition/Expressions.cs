@@ -76,6 +76,16 @@ namespace LanguageTranslator.Definition
 		public Expression[] Args;
 	}
 
+	class ObjectArrayCreationExpression : Expression
+	{
+		/// <summary>
+		/// 型
+		/// </summary>
+		public TypeSpecifier Type;
+
+		public Expression[] Args;
+	}
+
 	/// <summary>
 	/// Expressionかローカル変数に代入する。
 	/// </summary>

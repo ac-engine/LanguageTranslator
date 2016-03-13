@@ -14,6 +14,8 @@ namespace LanguageTranslator.Parser
 {
     class Parser
     {
+		readonly string swig_namespace_keyword = "asd.swig";
+
         Definition.Definitions definitions = null;
         public List<string> TypesNotParsed = new List<string>();
         public List<string> TypesWhosePrivateNotParsed = new List<string>();
@@ -125,7 +127,7 @@ namespace LanguageTranslator.Parser
             enumDef.Namespace = namespace_;
 
             // swig
-            enumDef.IsDefinedBySWIG = namespace_.Contains("asd.swig");
+			enumDef.IsDefinedBySWIG = namespace_.Contains(swig_namespace_keyword);
 
             foreach (var member in enumSyntax.Members)
             {
@@ -299,7 +301,7 @@ namespace LanguageTranslator.Parser
             var classDef = new ClassDef();
 
             // swig
-            classDef.IsDefinedBySWIG = namespace_.Contains("asd.swig");
+			classDef.IsDefinedBySWIG = namespace_.Contains(swig_namespace_keyword);
 
             classDef.Namespace = namespace_;
             classDef.Name = classSyntax.Identifier.ValueText;
