@@ -244,6 +244,11 @@ namespace LanguageTranslator.Parser
 		/// <returns></returns>
 		Expression ParseExpression(ExpressionSyntax syntax, SemanticModel semanticModel)
 		{
+			if(syntax == null)
+			{
+				return null;
+			}
+
 			var mae = syntax as MemberAccessExpressionSyntax;
 			var le = syntax as LiteralExpressionSyntax;
 			var ie = syntax as InvocationExpressionSyntax;
