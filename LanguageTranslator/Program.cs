@@ -595,6 +595,13 @@ namespace LanguageTranslator
 			{
 				return e;
 			}
+			else if (e is Definition.ObjectArrayCreationExpression)
+			{
+				var e_ = e as Definition.ObjectArrayCreationExpression;
+				e_.Type = ConvertType(e_.Type);
+				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				return e_;
+			}
 
 			throw new Exception();
 		}
