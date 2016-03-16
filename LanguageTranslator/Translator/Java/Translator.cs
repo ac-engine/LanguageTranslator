@@ -242,7 +242,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.ObjectArrayCreationExpression)
 			{
 				var e2 = (Definition.ObjectArrayCreationExpression)e;
-				return string.Format("new {0}({1})[]/*TODO: Make this right notation*/", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
+				return string.Format("new {0}[{1}]", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
 
 			}
 			else
