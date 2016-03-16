@@ -126,6 +126,11 @@ namespace LanguageTranslator.Translator.Java
 				var t2 = (Definition.NullableType)t;
 				return string.Format("Optional<{0}>", GetTypeSpecifier(t2.BaseType));
 			}
+			else if (t is Definition.GenericTypenameType)
+			{
+				var t2 = (Definition.GenericTypenameType)t;
+				return t2.Name;
+			}
 			else
 			{
 				throw new NotImplementedException("unknown type " + Enum.GetName(t.GetType(), t));
@@ -150,19 +155,19 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.AssignmentExpression)
 			{
 				var e2 = (Definition.AssignmentExpression)e;
-				return string.Format("({0} = {1})", GetExpression(e2.Target), GetExpression(e2.Expression));
+				return string.Format("{0} = {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
 
 			}
 			else if (e is Definition.CastExpression)
 			{
 				var e2 = (Definition.CastExpression)e;
-				return string.Format("(({0}){1})", GetTypeSpecifier(e2.Type), GetExpression(e2.Expression));
+				return string.Format("({0}){1}", GetTypeSpecifier(e2.Type), GetExpression(e2.Expression));
 
 			}
 			else if (e is Definition.ElementAccessExpression)
 			{
 				var e2 = (Definition.ElementAccessExpression)e;
-				return string.Format("({0}[{1}])", GetExpression(e2.Value), GetExpression(e2.Arg));
+				return string.Format("{0}[{1}]", GetExpression(e2.Value), GetExpression(e2.Arg));
 			}
 			else if (e is Definition.IdentifierNameExpression)
 			{
@@ -172,7 +177,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.InvocationExpression)
 			{
 				var e2 = (Definition.InvocationExpression)e;
-				return string.Format("({0}({1}))", GetExpression(e2.Method), string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
+				return string.Format("{0}({1})", GetExpression(e2.Method), string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
 			}
 			else if (e is Definition.LiteralExpression)
 			{
@@ -228,10 +233,41 @@ namespace LanguageTranslator.Translator.Java
 			{
 				return "super";
 			}
+			else if (e is Definition.ObjectCreationExpression)
+			{
+				var e2 = (Definition.ObjectCreationExpression)e;
+				return string.Format("new {0}({1})", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
+
+			}
+			else if (e is Definition.ObjectArrayCreationExpression)
+			{
+				var e2 = (Definition.ObjectArrayCreationExpression)e;
+				return string.Format("new {0}({1})[]/*TODO: Make this right notation*/", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
+
+			}
 			else
 			{
 				throw new NotImplementedException("unknown expression " + e.GetType().ToString());
 			}
+		}
+
+		private string MakeExpressionList(Definition.Expression[] exps)
+		{
+			var isFirst = true;
+			var ret = "";
+			foreach (var a in exps)
+			{
+				if (isFirst)
+				{
+					isFirst = false;
+				}
+				else
+				{
+					ret += ", ";
+				}
+				ret += GetExpression(a);
+			}
+			return ret;
 		}
 
 		private void OutputStatement(Definition.Statement s)
