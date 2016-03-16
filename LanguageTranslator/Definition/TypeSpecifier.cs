@@ -48,6 +48,16 @@ namespace LanguageTranslator.Definition
 		}
 	}
 
+	class GenericTypenameType : TypeSpecifier
+	{
+		public string Name = string.Empty;
+
+		public override string ToString()
+		{
+			return "GenericTemplateType " + Name;
+		}
+	}
+
 	class NullableType : TypeSpecifier
 	{
 		public SimpleType BaseType = null;

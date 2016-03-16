@@ -751,6 +751,7 @@ namespace LanguageTranslator.Parser
 				if (type == null) return null;
 			}
 
+			var tType = type as ITypeParameterSymbol;
 			var namedType = type as INamedTypeSymbol;
 			var arrayType = type as IArrayTypeSymbol;
 			var pointerType = type as IPointerTypeSymbol;
@@ -801,6 +802,16 @@ namespace LanguageTranslator.Parser
 				{
 					Namespace = namespace_,
 					TypeName = name_,
+				};
+
+				return ret;
+			}
+			else if (type.TypeKind == TypeKind.TypeParameter)
+			{
+				var name_ = type.Name;
+				var ret = new GenericTypenameType
+				{
+					Name = name_,
 				};
 
 				return ret;
