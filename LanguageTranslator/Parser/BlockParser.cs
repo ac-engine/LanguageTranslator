@@ -250,6 +250,8 @@ namespace LanguageTranslator.Parser
 			}
 
 			var mae = syntax as MemberAccessExpressionSyntax;
+			var gns = syntax as GenericNameSyntax;
+
 			var le = syntax as LiteralExpressionSyntax;
 			var ie = syntax as InvocationExpressionSyntax;
 			var oce = syntax as ObjectCreationExpressionSyntax;
@@ -409,6 +411,13 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
+			else if(gns != null)
+			{
+				var exp = new GenericMemberAccessExpression();
+				exp.Name = gns.Identifier.ValueText;
+				exp.Types = gns.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
+				return exp;
+			}
 			else if (le != null)
 			{
 				var text = le.GetText().ToString();
@@ -552,6 +561,7 @@ namespace LanguageTranslator.Parser
 				return st;
 			}
 
+			//Console.WriteLine("{0}", syntax.GetType());
 			return null;
 		}
 

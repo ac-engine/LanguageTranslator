@@ -528,6 +528,12 @@ namespace LanguageTranslator
 				e_.Expression = ConvertExpression(e_.Expression);
 				return e_;
 			}
+			else if(e is Definition.GenericMemberAccessExpression)
+			{
+				var e_ = e as Definition.GenericMemberAccessExpression;
+				e_.Types = e_.Types.Select(_ => ConvertType(_)).ToArray();
+				return e_;
+			}
 			else if (e is Definition.CastExpression)
 			{
 				var e_ = e as Definition.CastExpression;

@@ -46,6 +46,12 @@ namespace LanguageTranslator.Definition
 		public Expression Expression = null;
 	}
 
+	class GenericMemberAccessExpression : Expression
+	{
+		public string Name = string.Empty;
+		public TypeSpecifier[] Types = new TypeSpecifier[0];
+	}
+
 	class CastExpression : Expression
 	{
 		/// <summary>
