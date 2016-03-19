@@ -76,8 +76,9 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
-			
 
+			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
+			
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "bool");
 			editor.AddTypeConverter("System", "Int32", "", "int");
@@ -93,6 +94,9 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
+			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
+
+			editor.AddTypeConverter("System", "Math", "java.lang", "Math");
 
 			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
 
