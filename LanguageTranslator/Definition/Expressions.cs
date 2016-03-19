@@ -117,6 +117,11 @@ namespace LanguageTranslator.Definition
 		public string Name;
 	}
 
+	class TypeExpression : Expression
+	{
+		public TypeSpecifier Type;
+	}
+
 	/// <summary>
 	/// +等
 	/// </summary>

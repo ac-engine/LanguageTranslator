@@ -612,6 +612,12 @@ namespace LanguageTranslator
 				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
 				return e_;
 			}
+			else if (e is Definition.TypeExpression)
+			{
+				var e_ = e as Definition.TypeExpression;
+				e_.Type = ConvertType(e_.Type);
+				return e_;
+			}
 
 			throw new Exception();
 		}

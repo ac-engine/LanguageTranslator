@@ -259,7 +259,9 @@ namespace LanguageTranslator.Parser
 			var thise = syntax as ThisExpressionSyntax;
 			var ae = syntax as AssignmentExpressionSyntax;
 			var pe = syntax as ParenthesizedExpressionSyntax;
+
 			var ine = syntax as IdentifierNameSyntax;
+
 			var eae = syntax as ElementAccessExpressionSyntax;
 			var be = syntax as BinaryExpressionSyntax;
 			var preue = syntax as PrefixUnaryExpressionSyntax;
@@ -268,7 +270,6 @@ namespace LanguageTranslator.Parser
 
 			var ace = syntax as ArrayCreationExpressionSyntax;
 			var sace = syntax as StackAllocArrayCreationExpressionSyntax;
-
 			/*
 			var coe = syntax as ConditionalExpressionSyntax;
 			var sle = syntax as SimpleLambdaExpressionSyntax;
@@ -296,6 +297,7 @@ namespace LanguageTranslator.Parser
 				ClassDef classDefP = null;
 				EnumDef enumDefP = null;
 				InterfaceDef interfaceDefP = null;
+				StructDef structDefP = null;
 
 				if (parentType.HasValue && parentType.Value.Type != null)
 				{
@@ -320,6 +322,12 @@ namespace LanguageTranslator.Parser
 						var enumName = selfType.Value.Type.Name;
 						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
 						enumDefP = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
+					}
+					else if (parentType.Value.Type.TypeKind == TypeKind.Struct)
+					{
+						//var enumName = selfType.Value.Type.Name;
+						//var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
+						//structDefP = definitions.Structs.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
 					}
 				}
 
@@ -401,6 +409,7 @@ namespace LanguageTranslator.Parser
 						}
 					}
 				}
+
 				if (enumDefP != null)
 				{
 					var name = mae.Name.ToString();
@@ -413,9 +422,11 @@ namespace LanguageTranslator.Parser
 
 				}
 
-				if (mae.Expression != null &&
-					(exp.EnumMember == null)	// enumのメンバーだった場合、親は必ずenumなのでこれ以上走査しない
-					)
+				if(exp.EnumMember != null)
+				{
+					// enumのメンバーだった場合、親は必ずenumなのでこれ以上走査しない
+				}
+				else if (mae.Expression != null)
 				{
 					exp.Expression = ParseExpression(mae.Expression, semanticModel);
 				}
@@ -570,6 +581,28 @@ namespace LanguageTranslator.Parser
 				st.Args = ats.RankSpecifiers.Select(_ => ParseExpression(_.Sizes.FirstOrDefault(), semanticModel)).ToArray();
 
 				return st;
+			}
+			else if (syntax is PredefinedTypeSyntax)
+			{
+				var s = syntax as PredefinedTypeSyntax;
+				TypeInfo? selfType = null;
+				selfType = semanticModel.GetTypeInfo(syntax);
+				var type = ParseType(syntax, selfType, semanticModel);
+
+				var te = new TypeExpression();
+				te.Type = type;
+				return te;
+			}
+			else if (syntax is QualifiedNameSyntax)
+			{
+				var s = syntax as QualifiedNameSyntax;
+				TypeInfo? selfType = null;
+				selfType = semanticModel.GetTypeInfo(syntax);
+				var type = ParseType(syntax, selfType, semanticModel);
+
+				var te = new TypeExpression();
+				te.Type = type;
+				return te;
 			}
 
 			var span = syntax.SyntaxTree.GetLineSpan(syntax.Span);
@@ -754,18 +787,23 @@ namespace LanguageTranslator.Parser
 		{
 			TypeInfo? typeInfo = null;
 			typeInfo = semanticModel.GetTypeInfo(syntax);
+			return ParseType(syntax, typeInfo, semanticModel);
+		}
+
+		private static TypeSpecifier ParseType(ExpressionSyntax syntax, TypeInfo? typeInfo, SemanticModel semanticModel)
+		{
 			if (typeInfo == null) return null;
 			if (!typeInfo.HasValue) return null;
 
 			ITypeSymbol type = null;
-			if(typeInfo.Value.Type != null)
+			if (typeInfo.Value.Type != null)
 			{
 				type = typeInfo.Value.Type;
 			}
 			else
 			{
 				var symbolInfo = semanticModel.GetSymbolInfo(syntax);
-				if(symbolInfo.Symbol != null)
+				if (symbolInfo.Symbol != null)
 				{
 					type = symbolInfo.Symbol as ITypeSymbol;
 				}
@@ -814,7 +852,7 @@ namespace LanguageTranslator.Parser
 
 				return ret;
 			}
-			else if(type.TypeKind == TypeKind.Pointer)
+			else if (type.TypeKind == TypeKind.Pointer)
 			{
 				// ポインタは配列にする。
 				var ret = new ArrayType();
