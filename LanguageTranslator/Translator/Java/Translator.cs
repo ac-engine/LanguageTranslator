@@ -194,11 +194,11 @@ namespace LanguageTranslator.Translator.Java
 				}
 				else if (e2.Method != null)
 				{
-					return string.Format("{0}.{1}",e2.Class.Name, e2.Method.Name);
+					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Method.Name);
 				}
 				else if (e2.Property != null)
 				{
-					return string.Format("{0}.{1}", e2.Class.Name, e2.Property.Name);
+					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Property.Name);
 				}
 				else if (e2.Expression != null)
 				{
