@@ -269,6 +269,17 @@ namespace LanguageTranslator.Parser
 			var ace = syntax as ArrayCreationExpressionSyntax;
 			var sace = syntax as StackAllocArrayCreationExpressionSyntax;
 
+			/*
+			var coe = syntax as ConditionalExpressionSyntax;
+			var sle = syntax as SimpleLambdaExpressionSyntax;
+			var ple = syntax as ParenthesizedLambdaExpressionSyntax;
+			var oase = syntax as OmittedArraySizeExpressionSyntax;
+			var iace = syntax as ImplicitArrayCreationExpressionSyntax;
+
+			var qua = syntax as QualifiedNameSyntax;
+			var predf = syntax as PredefinedTypeSyntax;
+			*/
+
 			if (mae != null)
 			{
 				MemberAccessExpression exp = new MemberAccessExpression();
@@ -561,7 +572,8 @@ namespace LanguageTranslator.Parser
 				return st;
 			}
 
-			//Console.WriteLine("{0}", syntax.GetType());
+			var span = syntax.SyntaxTree.GetLineSpan(syntax.Span);
+			Console.WriteLine(string.Format("{0} : {1} には未対応です。", span, syntax.GetType()));
 			return null;
 		}
 
