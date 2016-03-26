@@ -77,6 +77,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
 
+
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			
 			editor.AddTypeConverter("System", "Void", "", "void");
@@ -95,6 +96,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
+			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
 
 			editor.AddTypeConverter("System", "Math", "java.lang", "Math");
 
