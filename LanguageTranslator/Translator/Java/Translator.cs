@@ -243,7 +243,16 @@ namespace LanguageTranslator.Translator.Java
 			{
 				var e2 = (Definition.ObjectArrayCreationExpression)e;
 				return string.Format("new {0}[{1}]", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
-
+			}
+			else if (e is Definition.GenericMemberAccessExpression)
+			{
+				var e2 = (Definition.GenericMemberAccessExpression)e;
+				return string.Format("{0}<{1}>", e2.Name, string.Join(",", Array.ConvertAll(e2.Types, GetTypeSpecifier)));
+			}
+			else if (e is Definition.TypeExpression)
+			{
+				var e2 = (Definition.TypeExpression)e;
+				return string.Format("{0}", e2.Type);
 			}
 			else
 			{
