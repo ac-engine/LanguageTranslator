@@ -202,7 +202,7 @@ namespace LanguageTranslator.Parser
             }
 
             #region Members
-            Func<AccessLevel, bool> isSkipped = level => isPrivateNotParsed && level == AccessLevel.Private;
+			Func<AccessLevel, bool> isSkipped = level => isPrivateNotParsed;
             foreach (var member in typeSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
