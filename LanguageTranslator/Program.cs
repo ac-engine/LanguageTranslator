@@ -86,7 +86,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
-			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "SortedList");
+			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "SortedMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
 			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
 
