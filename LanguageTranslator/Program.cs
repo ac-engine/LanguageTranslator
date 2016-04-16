@@ -39,7 +39,11 @@ namespace LanguageTranslator
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.GC");
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Helper");
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Dictionary");
-			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Lambda");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
+
+			parser.TypesNotExported.Add("asd.Particular.Lambda");
+			parser.TypesNotExported.Add("asd.Particular.Define");
 
 			Definition.Definitions definitions = null;
 			

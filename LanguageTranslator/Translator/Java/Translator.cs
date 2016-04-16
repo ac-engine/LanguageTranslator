@@ -213,7 +213,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.ObjectCreationExpression)
 			{
 				var e2 = (Definition.ObjectCreationExpression)e;
-				return string.Format("new {0}({1})", e2.Type, string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
+				return string.Format("new {0}({1})", GetTypeSpecifier(e2.Type), string.Join(", ", Array.ConvertAll(e2.Args, GetExpression)));
 			}
 			else if (e is Definition.PrefixUnaryExpression)
 			{
@@ -252,7 +252,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.TypeExpression)
 			{
 				var e2 = (Definition.TypeExpression)e;
-				return string.Format("{0}", e2.Type);
+				return string.Format("{0}", GetTypeSpecifier(e2.Type));
 			}
 			else
 			{
@@ -527,7 +527,14 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(cs.Brief);
 			MakeIndent();
-			Res.AppendFormat("{1} {2}class {0} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "");
+
+			Func<string> extends = () =>
+				{
+					if (cs.BaseTypes.Count == 0) return string.Empty;
+					return "extends " + string.Join(",", cs.BaseTypes.Select(_ => GetTypeSpecifier(_)));
+				};
+
+			Res.AppendFormat("{1} {2}class {0} {3} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "", extends());
 			IndentDepth++;
 			
 
@@ -622,7 +629,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(ss.Brief);
 			MakeIndent();
-			Res.AppendFormat("{1} struct {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
+			Res.AppendFormat("{1} class {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
 			IndentDepth++;
 
 
@@ -775,6 +782,8 @@ namespace LanguageTranslator.Translator.Java
 			{
 				IndentDepth = 0;
 				if (c.IsDefinedBySWIG) { continue; }
+				if (!c.IsExported) { continue; }
+
 				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
 				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");

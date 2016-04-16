@@ -112,6 +112,7 @@ namespace LanguageTranslator.Definition
         }
 
         public bool IsDefinedBySWIG = false;
+		public bool IsExported = true;
     }
 
     class StructDef : TypeDef

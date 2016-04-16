@@ -18,7 +18,9 @@ namespace LanguageTranslator.Parser
 
         Definition.Definitions definitions = null;
         public List<string> TypesNotParsed = new List<string>();
-        public List<string> TypesWhosePrivateNotParsed = new List<string>();
+		public List<string> TypesWhoseMemberNotParsed = new List<string>();
+		public List<string> TypesWhosePrivateNotParsed = new List<string>();
+		public List<string> TypesNotExported = new List<string>();
 
         public Definition.Definitions Parse(string[] pathes)
         {
@@ -190,6 +192,7 @@ namespace LanguageTranslator.Parser
             } 
             #endregion
 
+			var isMemberNotParsed = TypesWhoseMemberNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
             var isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
 
 			// 構造体は現状、継承なしとする
@@ -202,7 +205,7 @@ namespace LanguageTranslator.Parser
             }
 
             #region Members
-			Func<AccessLevel, bool> isSkipped = level => isPrivateNotParsed;
+			Func<AccessLevel, bool> isSkipped = level => (isPrivateNotParsed && level == AccessLevel.Private) || isMemberNotParsed;
             foreach (var member in typeSyntax.Members)
             {
                 var methodSyntax = member as MethodDeclarationSyntax;
@@ -312,6 +315,11 @@ namespace LanguageTranslator.Parser
             {
                 return;
             }
+
+			if (TypesNotExported.Contains(fullName))
+			{
+				classDef.IsExported = false;
+			}
 
             var partial = definitions.Classes.FirstOrDefault(x => x.Namespace + "." + x.Name == fullName);
             if (partial != null)
