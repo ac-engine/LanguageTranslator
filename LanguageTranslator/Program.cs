@@ -74,7 +74,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			
 			editor.AddTypeConverter("System", "Void", "", "void");
-			editor.AddTypeConverter("System", "Boolean", "", "bool");
+			editor.AddTypeConverter("System", "Boolean", "", "boolean");
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
