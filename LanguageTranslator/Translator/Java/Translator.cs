@@ -218,12 +218,12 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.PrefixUnaryExpression)
 			{
 				var e2 = (Definition.PrefixUnaryExpression)e;
-				return string.Format("({0}{1})", GetPrefixUnaryExpressionOperator(e2.Type), GetExpression(e2.Expression));
+				return string.Format("{0}{1}", GetPrefixUnaryExpressionOperator(e2.Type), GetExpression(e2.Expression));
 			}
 			else if (e is Definition.PostfixUnaryExpression)
 			{
 				var e2 = (Definition.PostfixUnaryExpression)e;
-				return string.Format("({0}{1})", GetExpression(e2.Operand), GetPostfixUnaryExpressionOperator(e2.Type));
+				return string.Format("{0}{1}", GetExpression(e2.Operand), GetPostfixUnaryExpressionOperator(e2.Type));
 			}
 			else if (e is Definition.ThisExpression)
 			{
@@ -429,6 +429,13 @@ namespace LanguageTranslator.Translator.Java
 			}
 		}
 
+		private void OutputFieldInInterface(Definition.FieldDef f)
+		{
+			MakeBrief(f.Brief);
+			MakeIndent();
+			Res.AppendFormat("{0} {1};", GetTypeSpecifier(f.Type), f.Name);
+		}
+
 		private void OutputConstructor(string name, Definition.ConstructorDef c)
 		{
 			MakeBrief(c.Brief);
@@ -466,6 +473,15 @@ namespace LanguageTranslator.Translator.Java
 			MakeIndent();
 			Res.AppendLine("}");
 		}
+
+		private void OutputMethodInInterface(Definition.MethodDef m)
+		{
+			MakeBrief(m.Brief);
+			MakeIndent();
+
+			Res.AppendFormat("{0} {1}({2});\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
+		}
+
 
 		private void OutputProperty(Definition.PropertyDef p)
 		{
@@ -523,6 +539,22 @@ namespace LanguageTranslator.Translator.Java
 
 		}
 
+		private void OutputPropertyInInterface(Definition.PropertyDef p)
+		{
+			if (p.Setter != null)
+			{
+				MakeIndent();
+				Res.AppendFormat("void set{0}({1} value);\r\n", p.Name, GetTypeSpecifier(p.Type));
+			}
+
+
+			if (p.Getter != null)
+			{
+				MakeIndent();
+				Res.AppendFormat("{0} get{1}();\r\n", GetTypeSpecifier(p.Type), p.Name);
+			}
+		}
+
 		private void OutputClass(Definition.ClassDef cs)
 		{
 			MakeBrief(cs.Brief);
@@ -531,8 +563,14 @@ namespace LanguageTranslator.Translator.Java
 			Func<string> extends = () =>
 				{
 					if (cs.BaseTypes.Count == 0) return string.Empty;
-					return "extends " + string.Join(",", cs.BaseTypes.Select(_ => GetTypeSpecifier(_)));
+					return " extends " + string.Join(",", GetTypeSpecifier(cs.BaseTypes[0]));
 				};
+
+			Func<string> implements = () =>
+			{
+				if (cs.BaseTypes.Count >= 2) return string.Empty;
+				return " implements " + string.Join(",", cs.BaseTypes.Skip(1).Select(_ => GetTypeSpecifier(_)));
+			};
 
 			Func<string> generics = () =>
 			{
@@ -540,7 +578,13 @@ namespace LanguageTranslator.Translator.Java
 				return "<" + string.Join(",", cs.Parameters) + ">";
 			};
 
-			Res.AppendFormat("{1} {2}class{4} {0} {3} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "", extends(), generics());
+			Res.AppendFormat("{0} {1} class {2}{3} {4} {{\r\n",
+				GetAccessLevel(cs.AccessLevel),
+				cs.IsAbstract ? "abstract " : "",
+				cs.Name,
+				generics(),
+				extends(),
+				implements());
 			IndentDepth++;
 			
 
@@ -619,13 +663,20 @@ namespace LanguageTranslator.Translator.Java
 				Res.Append(e.Name);
 				if (e.Value != null)
 				{
+					var expression = GetExpression(e.Value);
+					var suffix = string.Empty;
+					if(expression.Contains("swig"))
+					{
+						suffix = ".swigValue()";
+					}
+
 					if(count != es.Members.Count - 1)
 					{
-						Res.AppendFormat("({0}.swigValue()),\r\n", GetExpression(e.Value));
+						Res.AppendFormat("({0}{1}),\r\n", expression, suffix);
 					}
 					else
 					{
-						Res.AppendFormat("({0}.swigValue());\r\n", GetExpression(e.Value));
+						Res.AppendFormat("({0}{1});\r\n", expression, suffix);
 					}
 				}
 				else
@@ -754,59 +805,20 @@ namespace LanguageTranslator.Translator.Java
 			{
 				foreach (var f in i.Fields)
 				{
-					OutputField(f);
+					OutputFieldInInterface(f);
 				}
 			}
 
 			foreach (var p in i.Properties)
 			{
-				OutputProperty(p);
+				OutputPropertyInInterface(p);
 			}
 
 			foreach (var m in i.Methods)
 			{
-				OutputMethod(m);
+				OutputMethodInInterface(m);
 			}
 
-			if (i.Constructors != null)
-			{
-				foreach (var c in i.Constructors)
-				{
-					OutputConstructor(i.Name, c);
-				}
-			}
-
-			if (i.Destructors != null)
-			{
-				foreach (var d in i.Destructors)
-				{
-					MakeIndent();
-					Res.AppendLine("@Override");
-					MakeIndent();
-					Res.AppendLine("protected void finalize() {");
-					IndentDepth++;
-					if (i.BaseTypes != null && i.BaseTypes.Count > 0)
-					{
-						MakeIndent();
-						Res.AppendLine("try { super.finalize(); } finally {");
-						IndentDepth++;
-					}
-					foreach (var s in d.Body)
-					{
-						OutputStatement(s);
-					}
-					if (i.BaseTypes != null)
-					{
-						IndentDepth--;
-						MakeIndent();
-						Res.AppendLine("}");
-
-					}
-					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
-				}
-			}
 			IndentDepth--;
 			MakeIndent();
 			Res.AppendFormat("}}");
