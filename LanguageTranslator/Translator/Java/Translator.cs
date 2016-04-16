@@ -560,16 +560,42 @@ namespace LanguageTranslator.Translator.Java
 			MakeBrief(cs.Brief);
 			MakeIndent();
 
+			List<Definition.TypeSpecifier> bases = new List<Definition.TypeSpecifier>();
+			List<Definition.TypeSpecifier> interfaces = new List<Definition.TypeSpecifier>();
+
+			foreach(var b in cs.BaseTypes)
+			{
+				var simple = b as Definition.SimpleType;
+				var gene = b as Definition.GenericType;
+			
+				if(simple != null)
+				{
+					if(simple.TypeKind == Definition.SimpleTypeKind.Interface)
+					{
+						interfaces.Add(b);
+					}
+					else
+					{
+						bases.Add(b);
+					}
+				}
+
+				if(gene != null)
+				{
+					bases.Add(b);
+				}
+			}
+
 			Func<string> extends = () =>
 				{
-					if (cs.BaseTypes.Count == 0) return string.Empty;
-					return " extends " + string.Join(",", GetTypeSpecifier(cs.BaseTypes[0]));
+					if (bases.Count == 0) return string.Empty;
+					return " extends " + string.Join(",", GetTypeSpecifier(bases[0]));
 				};
 
 			Func<string> implements = () =>
 			{
-				if (cs.BaseTypes.Count >= 2) return string.Empty;
-				return " implements " + string.Join(",", cs.BaseTypes.Skip(1).Select(_ => GetTypeSpecifier(_)));
+				if (interfaces.Count == 0) return string.Empty;
+				return " implements " + string.Join(",", interfaces.Select(_ => GetTypeSpecifier(_)));
 			};
 
 			Func<string> generics = () =>
@@ -701,9 +727,9 @@ namespace LanguageTranslator.Translator.Java
 		return id;
 	}
 	
-	public static InterpolationType valueOf(int id)
+	public static {0} valueOf(int id)
 	{
-		for (InterpolationType e : values() )
+		for ({0} e : values() )
 		{
 			if (e.getID() == id)
 			{
