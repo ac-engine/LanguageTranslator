@@ -30,9 +30,6 @@ namespace LanguageTranslator
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
 
-			parser.TypesNotExported.Add("asd.Particular.Lambda");
-			parser.TypesNotExported.Add("asd.Particular.Define");
-
 			Definition.Definitions definitions = null;
 			
 			try
@@ -77,6 +74,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
+			editor.AddTypeConverter("System", "Double", "", "double");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
@@ -88,6 +86,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
+			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "SortedList");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
 			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
 
@@ -98,6 +97,8 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
 			editor.AddIgnoredType("asd.Particular", "GC");
 			editor.AddIgnoredType("asd.Particular", "Helper");
+			editor.AddIgnoredType("asd.Particular", "Lambda");
+			editor.AddIgnoredType("asd.Particular", "Define");
 
 			editor.Convert();
 			
