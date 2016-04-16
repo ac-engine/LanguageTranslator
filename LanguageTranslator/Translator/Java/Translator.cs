@@ -534,7 +534,13 @@ namespace LanguageTranslator.Translator.Java
 					return "extends " + string.Join(",", cs.BaseTypes.Select(_ => GetTypeSpecifier(_)));
 				};
 
-			Res.AppendFormat("{1} {2}class {0} {3} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "", extends());
+			Func<string> generics = () =>
+			{
+				if (cs.Parameters.Count == 0) return string.Empty;
+				return "<" + string.Join(",", cs.Parameters) + ">";
+			};
+
+			Res.AppendFormat("{1} {2}class{4} {0} {3} {{\r\n", cs.Name, GetAccessLevel(cs.AccessLevel), cs.IsAbstract ? "abstract " : "", extends(), generics());
 			IndentDepth++;
 			
 

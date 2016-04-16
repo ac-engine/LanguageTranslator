@@ -332,6 +332,14 @@ namespace LanguageTranslator.Parser
                 classDef.IsAbstract = true;
             }
 
+			if(classSyntax.TypeParameterList != null)
+			{
+				foreach(var tp in classSyntax.TypeParameterList.Parameters)
+				{
+					classDef.Parameters.Add(tp.Identifier.Text);
+				}
+			}
+
             ParseTypeDeclaration(classDef, classSyntax, semanticModel);
 
             definitions.Classes.Add(classDef);

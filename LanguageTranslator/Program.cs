@@ -12,26 +12,14 @@ namespace LanguageTranslator
 	{
 		static void Main(string[] args)
 		{
-			/*
-			if(args.Length < 1)
-			{
-				Console.WriteLine("第１引数に設定ファイルを指定してください");
-				return;
-			}
-
-			Settings settings;
-			var settingFilePath = args[0];
-			var serializer = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(Settings));
-			using (var file = File.Open(settingFilePath, FileMode.Open))
-			{
-				settings = serializer.ReadObject(file) as Settings;
-			}
-
-			var settingsDirectory = Path.GetDirectoryName(args[0]);
-			*/
-
 			var csharpDir = "asd_cs/";
 			var dstDir = "asd_java/";
+
+			if(args.Length >= 2)
+			{
+				csharpDir = args[0];
+				dstDir = args[1];
+			}
 
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();

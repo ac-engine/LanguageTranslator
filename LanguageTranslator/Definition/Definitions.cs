@@ -113,6 +113,8 @@ namespace LanguageTranslator.Definition
 
         public bool IsDefinedBySWIG = false;
 		public bool IsExported = true;
+
+		public List<string> Parameters = new List<string>();
     }
 
     class StructDef : TypeDef
