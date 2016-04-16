@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -852,13 +853,14 @@ namespace LanguageTranslator.Translator.Java
 
 		public void Translate(string targetDir, Definition.Definitions definisions)
 		{
+			var sep = Path.DirectorySeparatorChar.ToString();
 			foreach (Definition.EnumDef e in definisions.Enums)
 			{
 				IndentDepth = 0;
 				if (e.IsDefinedBySWIG) { continue; }
-				var subDir = targetDir + string.Join("\\", e.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, e.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + "\\" + e.Name + ".java");
+				var of = System.IO.File.CreateText(subDir + sep + e.Name + ".java");
 				Res.AppendFormat("package {0};\r\n\r\n", e.Namespace);
 				OutputEnum(e);
 				of.Write(Res.ToString());
@@ -872,9 +874,9 @@ namespace LanguageTranslator.Translator.Java
 				if (c.IsDefinedBySWIG) { continue; }
 				if (!c.IsExported) { continue; }
 
-				var subDir = targetDir + string.Join("\\", c.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, c.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + "\\" + c.Name + ".java");
+				var of = System.IO.File.CreateText(subDir + sep + c.Name + ".java");
 				Res.AppendFormat("package {0};\r\n\r\n", c.Namespace);
 				OutputClass(c);
 				of.Write(Res.ToString());
@@ -885,9 +887,9 @@ namespace LanguageTranslator.Translator.Java
 			foreach (var s in definisions.Structs)
 			{
 				IndentDepth = 0;
-				var subDir = targetDir + string.Join("\\", s.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, s.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + "\\" + s.Name + ".java");
+				var of = System.IO.File.CreateText(subDir + sep + s.Name + ".java");
 				Res.AppendFormat("package {0};\r\n\r\n", s.Namespace);
 				OutputStruct(s);
 				of.Write(Res.ToString());
@@ -898,9 +900,9 @@ namespace LanguageTranslator.Translator.Java
 			foreach (var i in definisions.Interfaces)
 			{
 				IndentDepth = 0;
-				var subDir = targetDir + string.Join("\\", i.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, i.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + "\\" + i.Name + ".java");
+				var of = System.IO.File.CreateText(subDir + sep + i.Name + ".java");
 				Res.AppendFormat("package {0};\r\n\r\n", i.Namespace);
 				OutputInterface(i);
 				of.Write(Res.ToString());
