@@ -610,6 +610,8 @@ namespace LanguageTranslator.Translator.Java
 			MakeIndent();
 			Res.AppendFormat("public enum {0} {{\r\n", es.Name);
 			IndentDepth++;
+
+			int count = 0;
 			foreach (var e in es.Members)
 			{
 				MakeBrief(e.Brief);
@@ -617,14 +619,56 @@ namespace LanguageTranslator.Translator.Java
 				Res.Append(e.Name);
 				if (e.Value != null)
 				{
-					Res.AppendFormat(" = {0},\r\n", GetExpression(e.Value));
+					if(count != es.Members.Count - 1)
+					{
+						Res.AppendFormat("({0}.swigValue()),\r\n", GetExpression(e.Value));
+					}
+					else
+					{
+						Res.AppendFormat("({0}.swigValue());\r\n", GetExpression(e.Value));
+					}
 				}
 				else
 				{
 					Res.AppendLine(",");
 				}
 
+				count++;
 			}
+
+			// 定型文
+			var idText = @"
+	private final int id;
+	
+	private {0}(final int id)
+	{
+		this.id = id;
+	}
+	
+	public int getID()
+	{
+		return id;
+	}
+	
+	public static InterpolationType valueOf(int id)
+	{
+		for (InterpolationType e : values() )
+		{
+			if (e.getID() == id)
+			{
+				return e;
+			}
+		}
+	
+		throw new IllegalArgumentException(""Not found : "" + id);
+	}
+";
+			idText = idText.Replace("{0}", es.Name);
+
+			Res.AppendLine("");
+			Res.Append(idText);
+			Res.AppendLine("");
+
 			IndentDepth--;
 			MakeIndent();
 			Res.AppendFormat("}}\r\n");
