@@ -65,7 +65,14 @@ namespace LanguageTranslator.Definition
         }
     }
 
-    abstract class TypeDef
+	interface ITypeParameters
+	{
+		List<TypeParameterDef> TypeParameters { get; }
+	}
+
+
+	abstract class TypeDef : 
+		ITypeParameters
     {
         public AccessLevel AccessLevel { get; set; }
         public string Namespace { get; set; }
@@ -113,8 +120,6 @@ namespace LanguageTranslator.Definition
 
         public bool IsDefinedBySWIG = false;
 		public bool IsExported = true;
-
-		public List<string> Parameters = new List<string>();
     }
 
     class StructDef : TypeDef

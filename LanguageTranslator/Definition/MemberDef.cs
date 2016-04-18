@@ -56,7 +56,8 @@ namespace LanguageTranslator.Definition
         internal Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax Internal = null;
     }
 
-    class MethodDef
+    class MethodDef:
+		ITypeParameters
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
@@ -67,10 +68,17 @@ namespace LanguageTranslator.Definition
         public List<ParameterDef> Parameters = new List<ParameterDef>();
         public List<Statement> Body = new List<Statement>();
 
+		public List<TypeParameterDef> TypeParameters { get; protected set; }
+
         /// <summary>
         /// パーサー内部処理用
         /// </summary>
         internal Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax Internal = null;
+
+		public MethodDef()
+		{
+			TypeParameters = new List<TypeParameterDef>();
+		}
 
         public override string ToString()
         {

@@ -63,6 +63,45 @@ namespace LanguageTranslator.Parser
             return definitions;
         }
 
+		private void ParseTypeParameters(ITypeParameters def, TypeParameterListSyntax typeParameterListSyntax, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SemanticModel semanticModel)
+		{
+			#region Generics
+			if (typeParameterListSyntax != null)
+			{
+				foreach (var item in typeParameterListSyntax.Parameters)
+				{
+					def.TypeParameters.Add(new TypeParameterDef
+					{
+						Name = item.Identifier.ValueText,
+					});
+				}
+			}
+
+			if (constraintClauses != null)
+			{
+				foreach (var item in constraintClauses)
+				{
+					var def_ = def.TypeParameters.First(x => x.Name == item.Name.Identifier.ValueText);
+					foreach (var constraint in item.Constraints)
+					{
+						var classOrStruct = constraint as ClassOrStructConstraintSyntax;
+						var type = constraint as TypeConstraintSyntax;
+
+						if (classOrStruct != null)
+						{
+							def_.IsConstraintedAsValueType = classOrStruct.ClassOrStructKeyword.ValueText == "struct";
+							def_.IsConstraintedAsReferenceType = classOrStruct.ClassOrStructKeyword.ValueText == "class";
+						}
+						if (type != null)
+						{
+							def_.BaseTypeConstraints.Add(ParseTypeSpecifier(type.Type, semanticModel));
+						}
+					}
+				}
+			}
+			#endregion
+		}
+
         private void ParseRoot(SyntaxNode root, SemanticModel semanticModel)
         {
             var compilationUnitSyntax = root as CompilationUnitSyntax;
@@ -156,41 +195,9 @@ namespace LanguageTranslator.Parser
         {
             typeDef.AccessLevel = ParseAccessLevel(typeSyntax.Modifiers) ?? AccessLevel.Internal;
 
-            #region Generics
-            if (typeSyntax.TypeParameterList != null)
-            {
-                foreach (var item in typeSyntax.TypeParameterList.Parameters)
-                {
-                    typeDef.TypeParameters.Add(new TypeParameterDef
-                    {
-                        Name = item.Identifier.ValueText,
-                    });
-                }
-            }
-
-            if (typeSyntax.ConstraintClauses != null)
-            {
-                foreach (var item in typeSyntax.ConstraintClauses)
-                {
-                    var def = typeDef.TypeParameters.First(x => x.Name == item.Name.Identifier.ValueText);
-                    foreach (var constraint in item.Constraints)
-                    {
-                        var classOrStruct = constraint as ClassOrStructConstraintSyntax;
-                        var type = constraint as TypeConstraintSyntax;
-
-                        if (classOrStruct != null)
-                        {
-                            def.IsConstraintedAsValueType = classOrStruct.ClassOrStructKeyword.ValueText == "struct";
-                            def.IsConstraintedAsReferenceType = classOrStruct.ClassOrStructKeyword.ValueText == "class";
-                        }
-                        if (type != null)
-                        {
-                            def.BaseTypeConstraints.Add(ParseTypeSpecifier(type.Type, semanticModel));
-                        }
-                    }
-                }
-            } 
-            #endregion
+			#region Generics
+			ParseTypeParameters(typeDef, typeSyntax.TypeParameterList, typeSyntax.ConstraintClauses, semanticModel);
+			#endregion
 
 			var isMemberNotParsed = TypesWhoseMemberNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
             var isPrivateNotParsed = TypesWhosePrivateNotParsed.Contains(typeDef.Namespace + "." + typeDef.Name);
@@ -332,14 +339,6 @@ namespace LanguageTranslator.Parser
                 classDef.IsAbstract = true;
             }
 
-			if(classSyntax.TypeParameterList != null)
-			{
-				foreach(var tp in classSyntax.TypeParameterList.Parameters)
-				{
-					classDef.Parameters.Add(tp.Identifier.Text);
-				}
-			}
-
             ParseTypeDeclaration(classDef, classSyntax, semanticModel);
 
             definitions.Classes.Add(classDef);
@@ -456,6 +455,11 @@ namespace LanguageTranslator.Parser
             {
                 methodDef.Parameters.Add(ParseParameter(parameter, semanticModel));
             }
+
+
+			#region Generics
+			ParseTypeParameters(methodDef, methodSyntax.TypeParameterList, methodSyntax.ConstraintClauses, semanticModel);
+			#endregion
 
             return methodDef;
         }

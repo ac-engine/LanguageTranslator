@@ -460,10 +460,16 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputMethod(Definition.MethodDef m)
 		{
+			Func<string> generics = () =>
+			{
+				if (m.TypeParameters.Count == 0) return string.Empty;
+				return "<" + string.Join(",", m.TypeParameters.Select(_ => _.Name).ToArray()) + ">";
+			};
+
 			MakeBrief(m.Brief);
 			MakeIndent();
 
-			Res.AppendFormat("{3} {4}{0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "");
+			Res.AppendFormat("{3} {4}{0} {1}{5}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "", generics());
 			IndentDepth++;
 			foreach (var s in m.Body)
 			{
@@ -600,8 +606,8 @@ namespace LanguageTranslator.Translator.Java
 
 			Func<string> generics = () =>
 			{
-				if (cs.Parameters.Count == 0) return string.Empty;
-				return "<" + string.Join(",", cs.Parameters) + ">";
+				if (cs.TypeParameters.Count == 0) return string.Empty;
+				return "<" + string.Join(",", cs.TypeParameters.Select(_=>_.Name).ToArray()) + ">";
 			};
 
 			Res.AppendFormat("{0} {1} class {2}{3} {4} {{\r\n",
