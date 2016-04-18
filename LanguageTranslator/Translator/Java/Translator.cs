@@ -470,7 +470,7 @@ namespace LanguageTranslator.Translator.Java
 			MakeBrief(m.Brief);
 			MakeIndent();
 
-			Res.AppendFormat("{3} {4}{0} {1}{5}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "", generics());
+			Res.AppendFormat("{3} {4} {5} {0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "", generics());
 			IndentDepth++;
 			foreach (var s in m.Body)
 			{
