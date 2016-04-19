@@ -811,12 +811,16 @@ namespace LanguageTranslator.Parser
 				if (type == null) return null;
 			}
 
+			return ParseType(type);
+		}
+
+		private static TypeSpecifier ParseType(ITypeSymbol type)
+		{
 			var tType = type as ITypeParameterSymbol;
 			var namedType = type as INamedTypeSymbol;
 			var arrayType = type as IArrayTypeSymbol;
 			var pointerType = type as IPointerTypeSymbol;
 			var isGeneric = namedType != null && namedType.IsGenericType;
-
 
 			if (isGeneric)
 			{
@@ -830,12 +834,12 @@ namespace LanguageTranslator.Parser
 					TypeName = name_,
 				};
 
-				ret.InnerType =
-				namedType.TypeArguments.Select(_ => new SimpleType
+				ret.InnerType = namedType.TypeArguments.Select(_ => ParseType(_)).Where(_ => _ != null).ToList();
+
+				if (ret.InnerType.Count() != namedType.TypeArguments.Count())
 				{
-					Namespace = _.ContainingNamespace.ToString(),
-					TypeName = _.Name,
-				}).OfType<TypeSpecifier>().ToList();
+					throw new Exception();
+				}
 
 				return ret;
 			}

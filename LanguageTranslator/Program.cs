@@ -656,7 +656,7 @@ namespace LanguageTranslator
 				var dst = new Definition.GenericType();
 
 				dst.OuterType = ConvertType(src.OuterType) as Definition.SimpleType;
-				dst.InnerType = src.InnerType.Select(_ => ConvertType(_) as Definition.SimpleType).OfType<Definition.TypeSpecifier>().ToList();
+				dst.InnerType = src.InnerType.Select(_ => ConvertType(_)).OfType<Definition.TypeSpecifier>().ToList();
 
 				return dst;
 			}
