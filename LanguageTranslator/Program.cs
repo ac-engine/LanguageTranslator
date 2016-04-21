@@ -296,6 +296,16 @@ namespace LanguageTranslator
 					arr[i] = (Definition.PropertyDef)r.Item2;
 					if (!r.Item1) continue;
 				}
+
+				if (arr[i].Getter != null)
+				{
+					Edit(func, ref arr[i].Getter.Body);
+				}
+
+				if (arr[i].Setter != null)
+				{
+					Edit(func, ref arr[i].Setter.Body);
+				}
 			}
 		}
 
