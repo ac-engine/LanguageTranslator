@@ -100,6 +100,71 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Lambda");
 			editor.AddIgnoredType("asd.Particular", "Define");
 
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var ae = o as Definition.AssignmentExpression;
+
+					if(ae != null)
+					{
+						var target = ae.Target as Definition.MemberAccessExpression;
+						if(target != null && target.Property != null)
+						{
+							// setter差し替え
+							var invocation = new Definition.InvocationExpression();
+
+							// 関数設定
+							var memf = new Definition.MemberAccessExpression();
+							memf.Method = new Definition.MethodDef();
+							memf.Method.Name = "set" + target.Property.Name;
+							memf.Expression = target.Expression;
+
+							invocation.Method = memf;
+
+							// 引数設定
+							invocation.Args = new[] { ae.Expression };
+							
+							return Tuple.Create<bool, object>(false, invocation);
+						}
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var mae = o as Definition.MemberAccessExpression;
+
+					if (mae != null && mae.Property != null)
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "get" + mae.Property.Name;
+						memf.Expression = mae.Expression;
+
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new Definition.Expression[0];
+
+						return Tuple.Create<bool, object>(true, invocation);
+						
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
 			editor.Convert();
 			
 			// 変換後コードの出力
@@ -113,6 +178,8 @@ namespace LanguageTranslator
 	class Editor
 	{
 		Definition.Definitions definitions;
+
+		HashSet<Func<object, Tuple<bool, object>>> editFunc = new HashSet<Func<object, Tuple<bool, object>>>();
 
 		Dictionary<string, Tuple<string, string>> typeConverter = new Dictionary<string, Tuple<string, string>>();
 
@@ -142,8 +209,14 @@ namespace LanguageTranslator
 			methodConverter.Add(methodString, toMethod);
 		}
 
+		public void AddEditFunc(Func<object, Tuple<bool, object>> func)
+		{
+			editFunc.Add(func);
+		}
+
 		public void Convert()
 		{
+			Edit();
 			ConvertMethod();
 			ConvertTypeName();
 			RemoveType();
@@ -157,6 +230,409 @@ namespace LanguageTranslator
 				definitions.Structs.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
 				definitions.Enums.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
 				definitions.Interfaces.RemoveAll(_ => _.Namespace == it.Item1 && _.Name == it.Item2);
+			}
+		}
+
+		void Edit()
+		{
+			foreach(var func in editFunc)
+			{
+				Edit(func, definitions.Classes);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.ClassDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.ClassDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Methods);
+				Edit(func, arr[i].Fields);
+				Edit(func, arr[i].Properties);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.MethodDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.MethodDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Body);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.FieldDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.FieldDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.PropertyDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.PropertyDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, ref Definition.Statement arr)
+		{
+			var r = func(arr);
+			if (r.Item2 != null)
+			{
+				arr = (Definition.Statement)r.Item2;
+
+				if (!r.Item1) return;
+			}
+
+			var s = arr;
+
+			if (s == null)
+			{
+			}
+			else if (s is Definition.BlockStatement)
+			{
+				var s_ = s as Definition.BlockStatement;
+				Edit(func, s_.Statements);
+			}
+			else if (s is Definition.VariableDeclarationStatement)
+			{
+				var s_ = s as Definition.VariableDeclarationStatement;
+				Edit(func, ref s_.Type);
+				Edit(func, ref s_.Value);
+			}
+			else if (s is Definition.ForeachStatement)
+			{
+				var s_ = s as Definition.ForeachStatement;
+				Edit(func, ref s_.Type);
+				Edit(func, ref s_.Value);
+				Edit(func, ref s_.Statement);
+			}
+			else if (s is Definition.ForStatement)
+			{
+				var s_ = s as Definition.ForStatement;
+
+				{
+					Definition.Statement st = s_.Declaration;
+					Edit(func, ref st);
+					s_.Declaration = st as Definition.VariableDeclarationStatement;
+				}
+
+				Edit(func, ref s_.Condition);
+				Edit(func, ref s_.Incrementor);
+				Edit(func, ref s_.Statement);
+			}
+			else if (s is Definition.IfStatement)
+			{
+				var s_ = s as Definition.IfStatement;
+				Edit(func, ref s_.Condition);
+				Edit(func, ref s_.TrueStatement);
+				Edit(func, ref s_.FalseStatement);
+			}
+			else if (s is Definition.ReturnStatement)
+			{
+				var s_ = s as Definition.ReturnStatement;
+				Edit(func, ref s_.Return);
+			}
+			else if (s is Definition.ContinueStatement)
+			{
+			}
+			else if (s is Definition.ExpressionStatement)
+			{
+				var s_ = s as Definition.ExpressionStatement;
+				Edit(func, ref s_.Expression);
+			}
+			else if (s is Definition.LockStatement)
+			{
+				var s_ = s as Definition.LockStatement;
+				Edit(func, ref s_.Expression);
+				Edit(func, ref s_.Statement);
+			}
+			else
+			{
+				throw new Exception();
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, ICollection<Definition.Statement> arr)
+		{
+
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr.ElementAt(i));
+				if (r.Item2 != null)
+				{
+					if (arr is Definition.Statement[])
+					{
+						var arrr = ((Definition.Statement[])arr)[i];
+						((Definition.Statement[])arr)[i] = (Definition.Statement)r.Item2;
+					}
+
+					if (arr is List<Definition.Statement>)
+					{
+						((List<Definition.Statement>)arr)[i] = (Definition.Statement)r.Item2;
+					}
+
+					if (!r.Item1) continue;
+				}
+
+				var s = arr.ElementAt(i);
+
+				if(s == null)
+				{
+
+				}
+				else if (s is Definition.BlockStatement)
+				{
+					var s_ = s as Definition.BlockStatement;
+					Edit(func, s_.Statements);
+				}
+				else if (s is Definition.VariableDeclarationStatement)
+				{
+					var s_ = s as Definition.VariableDeclarationStatement;
+					Edit(func, ref s_.Type);
+					Edit(func, ref s_.Value);
+				}
+				else if (s is Definition.ForeachStatement)
+				{
+					var s_ = s as Definition.ForeachStatement;
+					Edit(func, ref s_.Type);
+					Edit(func, ref s_.Value);
+					Edit(func, ref s_.Statement);
+				}
+				else if (s is Definition.ForStatement)
+				{
+					var s_ = s as Definition.ForStatement;
+
+					{
+						Definition.Statement st = s_.Declaration;
+						Edit(func, ref st);
+						s_.Declaration = st as Definition.VariableDeclarationStatement;
+					}
+					
+					Edit(func, ref s_.Condition);
+					Edit(func, ref s_.Incrementor);
+					Edit(func, ref s_.Statement);
+				}
+				else if (s is Definition.IfStatement)
+				{
+					var s_ = s as Definition.IfStatement;
+					Edit(func, ref s_.Condition);
+					Edit(func, ref s_.TrueStatement);
+					Edit(func, ref s_.FalseStatement);
+				}
+				else if (s is Definition.ReturnStatement)
+				{
+					var s_ = s as Definition.ReturnStatement;
+					Edit(func, ref s_.Return);
+				}
+				else if (s is Definition.ContinueStatement)
+				{
+				}
+				else if (s is Definition.ExpressionStatement)
+				{
+					var s_ = s as Definition.ExpressionStatement;
+					Edit(func, ref s_.Expression);
+				}
+				else if (s is Definition.LockStatement)
+				{
+					var s_ = s as Definition.LockStatement;
+					Edit(func, ref s_.Expression);
+					Edit(func, ref s_.Statement);
+				}
+				else
+				{
+					throw new Exception();
+				}
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, ref Definition.Expression arr)
+		{
+			var r = func(arr);
+
+			if (r.Item2 != null)
+			{
+				arr = (Definition.Expression)r.Item2;
+
+				if (!r.Item1) return;
+			}
+
+			var e = arr;
+
+			if (e == null)
+			{
+				return;
+			}
+			else if (e is Definition.MemberAccessExpression)
+			{
+				var e_ = e as Definition.MemberAccessExpression;
+				Edit(func, ref e_.Expression);
+			}
+			else if (e is Definition.GenericMemberAccessExpression)
+			{
+				var e_ = e as Definition.GenericMemberAccessExpression;
+				for (int i = 0; i < e_.Types.Length; i++)
+				{
+					Edit(func, ref e_.Types[i]);
+				}
+			}
+			else if (e is Definition.CastExpression)
+			{
+				var e_ = e as Definition.CastExpression;
+				e_.Type = ConvertType(e_.Type);
+				Edit(func, ref e_.Expression);
+			}
+			else if (e is Definition.LiteralExpression)
+			{
+			}
+			else if (e is Definition.InvocationExpression)
+			{
+				var e_ = e as Definition.InvocationExpression;
+				Edit(func, ref e_.Method);
+				for (int i = 0; i < e_.Args.Length; i++ )
+				{
+					Edit(func, ref e_.Args[i]);
+				}
+			}
+			else if (e is Definition.ObjectCreationExpression)
+			{
+				var e_ = e as Definition.ObjectCreationExpression;
+				e_.Type = ConvertType(e_.Type);
+				for (int i = 0; i < e_.Args.Length; i++)
+				{
+					Edit(func, ref e_.Args[i]);
+				}
+			}
+			else if (e is Definition.AssignmentExpression)
+			{
+				var e_ = e as Definition.AssignmentExpression;
+				Edit(func, ref e_.Target);
+				Edit(func, ref e_.Expression);
+			}
+			else if (e is Definition.ElementAccessExpression)
+			{
+				var e_ = e as Definition.ElementAccessExpression;
+				Edit(func, ref e_.Value);
+				Edit(func, ref e_.Arg);
+			}
+			else if (e is Definition.ThisExpression)
+			{
+			}
+			else if (e is Definition.IdentifierNameExpression)
+			{
+				var e_ = e as Definition.IdentifierNameExpression;
+			}
+			else if (e is Definition.BinaryExpression)
+			{
+				var e_ = e as Definition.BinaryExpression;
+				Edit(func, ref e_.Left);
+				Edit(func, ref e_.Right);
+			}
+			else if (e is Definition.PrefixUnaryExpression)
+			{
+				var e_ = e as Definition.PrefixUnaryExpression;
+				Edit(func, ref e_.Expression);
+			}
+			else if (e is Definition.PostfixUnaryExpression)
+			{
+				var e_ = e as Definition.PostfixUnaryExpression;
+				Edit(func, ref e_.Operand);
+			}
+			else if (e is Definition.BaseExpression)
+			{
+			}
+			else if (e is Definition.ObjectArrayCreationExpression)
+			{
+				var e_ = e as Definition.ObjectArrayCreationExpression;
+				Edit(func, ref e_.Type);
+				for (int i = 0; i < e_.Args.Length; i++)
+				{
+					Edit(func, ref e_.Args[i]);
+				}
+			}
+			else if (e is Definition.TypeExpression)
+			{
+				var e_ = e as Definition.TypeExpression;
+				Edit(func, ref e_.Type);
+			}
+			else
+			{
+				throw new Exception();
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, ref Definition.TypeSpecifier arr)
+		{
+			var r = func(arr);
+
+			if (r.Item2 != null)
+			{
+				arr = (Definition.TypeSpecifier)r.Item2;
+
+				if (!r.Item1) return;
+			}
+
+			var typeSpecifier = arr;
+
+			if(typeSpecifier is Definition.SimpleType)
+			{
+				return;
+			}
+			else if(typeSpecifier is Definition.ArrayType)
+			{
+				var src = typeSpecifier as Definition.ArrayType;
+				Definition.TypeSpecifier t = src.BaseType;
+				Edit(func, ref t);
+				src.BaseType = (Definition.SimpleType)t;
+			}
+			else if(typeSpecifier is Definition.GenericType)
+			{
+				var src = typeSpecifier as Definition.GenericType;
+
+				{
+					Definition.TypeSpecifier t = src.OuterType;
+					Edit(func, ref t);
+					src.OuterType = (Definition.SimpleType)t;
+				}
+
+				for (int i = 0; i < src.InnerType.Count(); i++)
+				{
+					Definition.TypeSpecifier t = src.InnerType[i];
+					Edit(func, ref t);
+					src.InnerType[i] = t;
+				}
+			}
+			else if (typeSpecifier is Definition.GenericTypenameType)
+			{
+			}
+			else
+			{
+				throw new Exception();
 			}
 		}
 
