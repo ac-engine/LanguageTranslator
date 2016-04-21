@@ -149,7 +149,6 @@ namespace LanguageTranslator
 						memf.Method = new Definition.MethodDef();
 						memf.Method.Name = "get" + mae.Property.Name;
 						memf.Expression = mae.Expression;
-
 						invocation.Method = memf;
 
 						// 引数設定
@@ -157,6 +156,24 @@ namespace LanguageTranslator
 
 						return Tuple.Create<bool, object>(true, invocation);
 						
+					}
+
+					var ime = o as Definition.IdentifierNameExpression;
+					if (ime != null && ime.IsProperty)
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "get" + ime.Name;
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new Definition.Expression[0];
+
+						return Tuple.Create<bool, object>(true, invocation);
 					}
 
 					return Tuple.Create<bool, object>(true, null);

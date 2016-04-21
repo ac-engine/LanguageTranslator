@@ -188,22 +188,28 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.MemberAccessExpression)
 			{
 				var e2 = (Definition.MemberAccessExpression)e;
-				
+
+				var accessed = GetExpression(e2.Expression);
+				if(accessed != string.Empty)
+				{
+					accessed += ".";
+				}
+
 				if (e2.EnumMember != null)
 				{
 					return string.Format("{0}{1}.{2}", (e2.Enum.Namespace ==null || e2.Enum.Namespace == "") ? "": e2.Enum.Namespace + "." , e2.Enum.Name, e2.EnumMember.Name);
 				}
 				else if (e2.Method != null)
 				{
-					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Method.Name);
+					return string.Format("{0}{1}", accessed, e2.Method.Name);
 				}
 				else if (e2.Property != null)
 				{
-					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Property.Name);
+					return string.Format("{0}{1}", accessed, e2.Property.Name);
 				}
 				else if (e2.Expression != null)
 				{
-					return string.Format("{0}.{1}", GetExpression(e2.Expression), e2.Name);
+					return string.Format("{0}{1}", accessed, e2.Name);
 				}
 				else
 				{

@@ -494,8 +494,19 @@ namespace LanguageTranslator.Parser
 			}
 			else if (ine != null)
 			{
+				var symbol = semanticModel.GetSymbolInfo(ine);
+				var methodSymbol = symbol.Symbol as IMethodSymbol;
+				var fieldSymbol = symbol.Symbol as IFieldSymbol;
+				var propertySymbol = symbol.Symbol as IPropertySymbol;
+
 				var st = new IdentifierNameExpression();
 				st.Name = ine.Identifier.Text;
+
+				if (propertySymbol != null)
+				{
+					st.IsProperty = true;
+				}
+
 				return st;
 			}
 			else if (eae != null)
