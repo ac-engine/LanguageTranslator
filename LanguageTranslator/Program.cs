@@ -165,6 +165,35 @@ namespace LanguageTranslator
 				editor.AddEditFunc(func);
 			}
 
+			// 絶対ネームスペースに変換
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var id = o as Definition.IdentifierNameExpression;
+					if(id != null && id.Name == "Particular")
+					{
+						var mae = new Definition.MemberAccessExpression();
+						mae.Name = "Particular";
+						mae.Expression = id;
+						id.Name = "asd";
+						return Tuple.Create<bool, object>(false, mae);
+					}
+
+					if (id != null && id.Name == "swig")
+					{
+						var mae = new Definition.MemberAccessExpression();
+						mae.Name = "swig";
+						mae.Expression = id;
+						id.Name = "asd";
+						return Tuple.Create<bool, object>(false, mae);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
 			editor.Convert();
 			
 			// 変換後コードの出力
