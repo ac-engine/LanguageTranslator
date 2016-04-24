@@ -218,7 +218,7 @@ namespace LanguageTranslator
 								// 関数設定
 								var memf = new Definition.MemberAccessExpression();
 								memf.Method = new Definition.MethodDef();
-								memf.Method.Name = st.Namespace + st.TypeName + "valueOf";
+								memf.Method.Name = st.Namespace + "." + st.TypeName + ".valueOf";
 								invocation.Method = memf;
 								memf.Expression = null;
 
@@ -247,7 +247,28 @@ namespace LanguageTranslator
 							// 引数設定
 							invocation.Args = new Definition.Expression[0];
 
-							return Tuple.Create<bool, object>(true, invocation);
+							return Tuple.Create<bool, object>(false, invocation);
+						}
+					}
+
+					{
+						var ine = o as Definition.IdentifierNameExpression;
+						if (ine != null && (ine.Type is Definition.SimpleType) && (ine.Type as Definition.SimpleType).TypeKind == Definition.SimpleTypeKind.Enum)
+						{
+							// getter差し替え
+							var invocation = new Definition.InvocationExpression();
+
+							// 関数設定
+							var memf = new Definition.MemberAccessExpression();
+							memf.Method = new Definition.MethodDef();
+							memf.Method.Name = "getID";
+							invocation.Method = memf;
+							memf.Expression = ine;
+
+							// 引数設定
+							invocation.Args = new Definition.Expression[0];
+
+							return Tuple.Create<bool, object>(false, invocation);
 						}
 					}
 
@@ -635,7 +656,7 @@ namespace LanguageTranslator
 			else if (e is Definition.CastExpression)
 			{
 				var e_ = e as Definition.CastExpression;
-				e_.Type = ConvertType(e_.Type);
+				Edit(func, ref e_.Type);
 				Edit(func, ref e_.Expression);
 			}
 			else if (e is Definition.LiteralExpression)
@@ -653,7 +674,7 @@ namespace LanguageTranslator
 			else if (e is Definition.ObjectCreationExpression)
 			{
 				var e_ = e as Definition.ObjectCreationExpression;
-				e_.Type = ConvertType(e_.Type);
+				Edit(func, ref e_.Type);
 				for (int i = 0; i < e_.Args.Length; i++)
 				{
 					Edit(func, ref e_.Args[i]);
@@ -677,6 +698,7 @@ namespace LanguageTranslator
 			else if (e is Definition.IdentifierNameExpression)
 			{
 				var e_ = e as Definition.IdentifierNameExpression;
+				Edit(func, ref e_.Type);
 			}
 			else if (e is Definition.BinaryExpression)
 			{
@@ -730,7 +752,11 @@ namespace LanguageTranslator
 
 			var typeSpecifier = arr;
 
-			if(typeSpecifier is Definition.SimpleType)
+			if (typeSpecifier == null)
+			{
+				return;
+			}
+			else if(typeSpecifier is Definition.SimpleType)
 			{
 				return;
 			}
@@ -1183,6 +1209,7 @@ namespace LanguageTranslator
 			else if (e is Definition.IdentifierNameExpression)
 			{
 				var e_ = e as Definition.IdentifierNameExpression;
+				e_.Type = ConvertType(e_.Type);
 				return e_;
 			}
 			else if (e is Definition.BinaryExpression)

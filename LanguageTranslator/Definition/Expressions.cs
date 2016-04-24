@@ -116,6 +116,7 @@ namespace LanguageTranslator.Definition
 	{
 		public string Name;
 		public bool IsProperty = false;
+		public TypeSpecifier Type = null;
 	}
 
 	class TypeExpression : Expression

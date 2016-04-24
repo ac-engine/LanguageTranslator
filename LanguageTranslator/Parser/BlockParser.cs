@@ -502,6 +502,14 @@ namespace LanguageTranslator.Parser
 				var st = new IdentifierNameExpression();
 				st.Name = ine.Identifier.Text;
 
+				TypeInfo? selfType = null;
+				selfType = semanticModel.GetTypeInfo(ine);
+
+				if (selfType != null && selfType.HasValue && selfType.Value.Type != null)
+				{
+					st.Type = ParseType(selfType.Value.Type);
+				}
+
 				if (propertySymbol != null)
 				{
 					st.IsProperty = true;
@@ -900,6 +908,33 @@ namespace LanguageTranslator.Parser
 					Namespace = namespace_,
 					TypeName = name_,
 				};
+
+				switch (type.TypeKind)
+				{
+					case TypeKind.Class:
+						ret.TypeKind = SimpleTypeKind.Class;
+						break;
+					case TypeKind.Enum:
+						ret.TypeKind = SimpleTypeKind.Enum;
+						break;
+					case TypeKind.Error:
+						ret.TypeKind = SimpleTypeKind.Error;
+						break;
+					case TypeKind.Interface:
+						ret.TypeKind = SimpleTypeKind.Interface;
+						break;
+					case TypeKind.Struct:
+						ret.TypeKind = SimpleTypeKind.Struct;
+						break;
+					case TypeKind.TypeParameter:
+						ret.TypeKind = SimpleTypeKind.TypeParameter;
+						// 基本的にGenericsの型なのでNamespaceは必要ない
+						ret.Namespace = string.Empty;
+						break;
+					default:
+						ret.TypeKind = SimpleTypeKind.Other;
+						break;
+				}
 
 				return ret;
 			}
