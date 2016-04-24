@@ -57,7 +57,6 @@ namespace LanguageTranslator
 
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
-
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
@@ -69,6 +68,8 @@ namespace LanguageTranslator
 
 
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
+			editor.AddMethodConverter("System", "Math", "Sin", "sin");
+			editor.AddMethodConverter("System", "Math", "Cos", "cos");
 			
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
@@ -85,7 +86,7 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
-			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "Map");
+			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
 			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "SortedMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
 			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
@@ -141,7 +142,7 @@ namespace LanguageTranslator
 							invocation.Method = memf;
 
 							// 引数設定
-							invocation.Args = new Definition.Expression[0];
+							invocation.Args = new[] { ae.Expression };
 
 							return Tuple.Create<bool, object>(false, invocation);
 						}
@@ -213,23 +214,34 @@ namespace LanguageTranslator
 							if (st != null && st.TypeKind == Definition.SimpleTypeKind.Enum)
 							{
 								// getter差し替え
-								var invocation = new Definition.InvocationExpression();
+								var castInvocation = new Definition.InvocationExpression();
 
 								// 関数設定
-								var memf = new Definition.MemberAccessExpression();
-								memf.Method = new Definition.MethodDef();
-								memf.Method.Name = st.Namespace + "." + st.TypeName + ".valueOf";
-								invocation.Method = memf;
-								memf.Expression = null;
+								var convertF = new Definition.MemberAccessExpression();
+								convertF.Method = new Definition.MethodDef();
+								convertF.Method.Name = st.Namespace + "." + st.TypeName + ".swigToEnum";
+								convertF.Expression = null;
+
+								var getF = new Definition.MemberAccessExpression();
+								getF.Method = new Definition.MethodDef();
+								getF.Method.Name = "swigValue";
+								castInvocation.Method = getF;
+								getF.Expression = ce.Expression;
+
+								var getInvocation = new Definition.InvocationExpression();
+								getInvocation.Method = getF;
+								getInvocation.Args = new Definition.Expression[0];
 
 								// 引数設定
-								invocation.Args = new[] { ce.Expression };
+								castInvocation.Method = convertF;
+								castInvocation.Args = new[] { (Definition.Expression)getInvocation };
 
-								return Tuple.Create<bool, object>(true, invocation);
+								return Tuple.Create<bool, object>(true, castInvocation);
 							}
 						}
 					}
 
+					/*
 					{
 						var mae = o as Definition.MemberAccessExpression;
 						if (mae != null && mae.EnumMember != null)
@@ -271,6 +283,7 @@ namespace LanguageTranslator
 							return Tuple.Create<bool, object>(false, invocation);
 						}
 					}
+					*/
 
 					return Tuple.Create<bool, object>(true, null);
 				};
@@ -359,7 +372,7 @@ namespace LanguageTranslator
 		public void Convert()
 		{
 			Edit();
-			ConvertMethod();
+			ConvertMethods();
 			ConvertTypeName();
 			RemoveType();
 		}
@@ -375,11 +388,14 @@ namespace LanguageTranslator
 			}
 		}
 
+		#region Edit
 		void Edit()
 		{
 			foreach(var func in editFunc)
 			{
 				Edit(func, definitions.Classes);
+				Edit(func, definitions.Structs);
+				Edit(func, definitions.Interfaces);
 			}
 		}
 
@@ -394,9 +410,76 @@ namespace LanguageTranslator
 					if (!r.Item1) continue;
 				}
 
+				Edit(func, arr[i].Constructors);
+				Edit(func, arr[i].Destructors);
 				Edit(func, arr[i].Methods);
 				Edit(func, arr[i].Fields);
 				Edit(func, arr[i].Properties);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.StructDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.StructDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Constructors);
+				Edit(func, arr[i].Destructors);
+				Edit(func, arr[i].Methods);
+				Edit(func, arr[i].Fields);
+				Edit(func, arr[i].Properties);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.InterfaceDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.InterfaceDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Methods);
+				Edit(func, arr[i].Properties);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.ConstructorDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.ConstructorDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Body);
+			}
+		}
+
+		void Edit(Func<object, Tuple<bool, object>> func, List<Definition.DestructorDef> arr)
+		{
+			for (int i = 0; i < arr.Count; i++)
+			{
+				var r = func(arr[i]);
+				if (r.Item2 != null)
+				{
+					arr[i] = (Definition.DestructorDef)r.Item2;
+					if (!r.Item1) continue;
+				}
+
+				Edit(func, arr[i].Body);
 			}
 		}
 
@@ -793,25 +876,13 @@ namespace LanguageTranslator
 			}
 		}
 
-		void ConvertMethod()
+		#endregion
+
+		#region Method
+		void ConvertMethods()
 		{
 			foreach (var def in definitions.Structs)
 			{
-				foreach (var m in def.Constructors)
-				{
-					foreach (var paramDef in m.Parameters)
-					{
-						paramDef.Type = ConvertType(paramDef.Type);
-					}
-
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
-				}
-
-				foreach (var m in def.Destructors)
-				{
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
-				}
-
 				foreach (var m in def.Methods)
 				{
 					var methodString = GetTypeString(def.Namespace, def.Name) + "." + m.Name;
@@ -820,34 +891,35 @@ namespace LanguageTranslator
 						m.Name = methodConverter[methodString];
 					}
 				}
+
+				foreach (var p in def.Properties)
+				{
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + p.Name;
+					if (methodConverter.ContainsKey(methodString))
+					{
+						p.Name = methodConverter[methodString];
+					}
+				}
 			}
 
 			foreach (var def in definitions.Classes)
 			{
-				foreach (var m in def.Constructors)
-				{
-					foreach (var paramDef in m.Parameters)
-					{
-						paramDef.Type = ConvertType(paramDef.Type);
-					}
-
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
-				}
-
-				foreach (var m in def.Destructors)
-				{
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
-				}
-
 				foreach (var m in def.Methods)
 				{
-					foreach (var paramDef in m.Parameters)
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + m.Name;
+					if (methodConverter.ContainsKey(methodString))
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						m.Name = methodConverter[methodString];
 					}
+				}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				foreach (var p in def.Properties)
+				{
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + p.Name;
+					if (methodConverter.ContainsKey(methodString))
+					{
+						p.Name = methodConverter[methodString];
+					}
 				}
 			}
 
@@ -855,17 +927,26 @@ namespace LanguageTranslator
 			{
 				foreach (var m in def.Methods)
 				{
-					foreach (var paramDef in m.Parameters)
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + m.Name;
+					if (methodConverter.ContainsKey(methodString))
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						m.Name = methodConverter[methodString];
 					}
+				}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+				foreach (var p in def.Properties)
+				{
+					var methodString = GetTypeString(def.Namespace, def.Name) + "." + p.Name;
+					if (methodConverter.ContainsKey(methodString))
+					{
+						p.Name = methodConverter[methodString];
+					}
 				}
 			}
 		}
+		#endregion
 
+		#region TypeName
 		void ConvertTypeName()
 		{
 			foreach(var def in definitions.Structs)
@@ -881,21 +962,21 @@ namespace LanguageTranslator
 
 				foreach (var field in def.Fields)
 				{
-					field.Type = ConvertType(field.Type);
-					field.Initializer = ConvertExpression(field.Initializer);
+					field.Type = ConvertTypeName(field.Type);
+					field.Initializer = ConvertTypeName(field.Initializer);
 				}
 
 				foreach (var prop in def.Properties)
 				{
-					prop.Type = ConvertType(prop.Type);
+					prop.Type = ConvertTypeName(prop.Type);
 					if (prop.Getter != null)
 					{
-						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+						prop.Getter.Body = ConvertTypeName(prop.Getter.Body);
 					}
 
 					if (prop.Setter != null)
 					{
-						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+						prop.Setter.Body = ConvertTypeName(prop.Setter.Body);
 					}
 				}
 
@@ -903,37 +984,37 @@ namespace LanguageTranslator
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.ReturnType = ConvertTypeName(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Constructors)
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Destructors)
 				{
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Methods)
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.ReturnType = ConvertTypeName(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 			}
 
@@ -950,21 +1031,21 @@ namespace LanguageTranslator
 
 				foreach (var field in def.Fields)
 				{
-					field.Type = ConvertType(field.Type);
-					field.Initializer = ConvertExpression(field.Initializer);
+					field.Type = ConvertTypeName(field.Type);
+					field.Initializer = ConvertTypeName(field.Initializer);
 				}
 
 				foreach (var prop in def.Properties)
 				{
-					prop.Type = ConvertType(prop.Type);
+					prop.Type = ConvertTypeName(prop.Type);
 					if (prop.Getter != null)
 					{
-						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+						prop.Getter.Body = ConvertTypeName(prop.Getter.Body);
 					}
 
 					if (prop.Setter != null)
 					{
-						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+						prop.Setter.Body = ConvertTypeName(prop.Setter.Body);
 					}
 				}
 
@@ -972,37 +1053,37 @@ namespace LanguageTranslator
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.ReturnType = ConvertTypeName(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Constructors)
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Destructors)
 				{
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 
 				foreach (var m in def.Methods)
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.ReturnType = ConvertTypeName(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 			}
 
@@ -1019,15 +1100,15 @@ namespace LanguageTranslator
 
 				foreach (var prop in def.Properties)
 				{
-					prop.Type = ConvertType(prop.Type);
+					prop.Type = ConvertTypeName(prop.Type);
 					if (prop.Getter != null)
 					{
-						prop.Getter.Body = ConvertStatement(prop.Getter.Body);
+						prop.Getter.Body = ConvertTypeName(prop.Getter.Body);
 					}
 
 					if (prop.Setter != null)
 					{
-						prop.Setter.Body = ConvertStatement(prop.Setter.Body);
+						prop.Setter.Body = ConvertTypeName(prop.Setter.Body);
 					}
 				}
 
@@ -1035,11 +1116,11 @@ namespace LanguageTranslator
 				{
 					foreach (var paramDef in m.Parameters)
 					{
-						paramDef.Type = ConvertType(paramDef.Type);
+						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
-					m.ReturnType = ConvertType(m.ReturnType);
-					m.Body = m.Body.Select(_ => ConvertStatement(_)).ToList();
+					m.ReturnType = ConvertTypeName(m.ReturnType);
+					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
 			}
 
@@ -1056,72 +1137,57 @@ namespace LanguageTranslator
 
 				foreach(var m in def.Members)
 				{
-					m.Value = ConvertExpression(m.Value);
+					m.Value = ConvertTypeName(m.Value);
 				}
 			}
 		}
 
-		string GetTypeString(string namespace_, string type_)
-		{
-			string typeString = string.Empty;
-			if (string.IsNullOrEmpty(namespace_))
-			{
-				typeString = type_;
-			}
-			else
-			{
-				typeString = namespace_ + "." + type_;
-			}
-
-			return typeString;
-		}
-
-		Definition.Statement ConvertStatement(Definition.Statement s)
+		Definition.Statement ConvertTypeName(Definition.Statement s)
 		{
 			if (s == null) return s;
 
 			if (s is Definition.BlockStatement)
 			{
 				var s_ = s as Definition.BlockStatement;
-				s_.Statements = s_.Statements.Select(_ => ConvertStatement(_)).ToArray();
+				s_.Statements = s_.Statements.Select(_ => ConvertTypeName(_)).ToArray();
 				return s_;
 			}
 			else if (s is Definition.VariableDeclarationStatement)
 			{
 				var s_ = s as Definition.VariableDeclarationStatement;
-				s_.Type = ConvertType(s_.Type);
-				s_.Value = ConvertExpression(s_.Value);
+				s_.Type = ConvertTypeName(s_.Type);
+				s_.Value = ConvertTypeName(s_.Value);
 				return s_;
 			}
 			else if (s is Definition.ForeachStatement)
 			{
 				var s_ = s as Definition.ForeachStatement;
-				s_.Type = ConvertType(s_.Type);
-				s_.Value = ConvertExpression(s_.Value);
-				s_.Statement = ConvertStatement(s_.Statement);
+				s_.Type = ConvertTypeName(s_.Type);
+				s_.Value = ConvertTypeName(s_.Value);
+				s_.Statement = ConvertTypeName(s_.Statement);
 				return s_;
 			}
 			else if (s is Definition.ForStatement)
 			{
 				var s_ = s as Definition.ForStatement;
-				s_.Declaration = ConvertStatement(s_.Declaration) as Definition.VariableDeclarationStatement;
-				s_.Condition = ConvertExpression(s_.Condition);
-				s_.Incrementor = ConvertExpression(s_.Incrementor);
-				s_.Statement = ConvertStatement(s_.Statement);
+				s_.Declaration = ConvertTypeName(s_.Declaration) as Definition.VariableDeclarationStatement;
+				s_.Condition = ConvertTypeName(s_.Condition);
+				s_.Incrementor = ConvertTypeName(s_.Incrementor);
+				s_.Statement = ConvertTypeName(s_.Statement);
 				return s_;
 			}
 			else if (s is Definition.IfStatement)
 			{
 				var s_ = s as Definition.IfStatement;
-				s_.Condition = ConvertExpression(s_.Condition);
-				s_.TrueStatement = ConvertStatement(s_.TrueStatement);
-				s_.FalseStatement = ConvertStatement(s_.FalseStatement);
+				s_.Condition = ConvertTypeName(s_.Condition);
+				s_.TrueStatement = ConvertTypeName(s_.TrueStatement);
+				s_.FalseStatement = ConvertTypeName(s_.FalseStatement);
 				return s_;
 			}
 			else if (s is Definition.ReturnStatement)
 			{
 				var s_ = s as Definition.ReturnStatement;
-				s_.Return = ConvertExpression(s_.Return);
+				s_.Return = ConvertTypeName(s_.Return);
 				return s_;
 			}
 			else if (s is Definition.ContinueStatement)
@@ -1131,21 +1197,21 @@ namespace LanguageTranslator
 			else if (s is Definition.ExpressionStatement)
 			{
 				var s_ = s as Definition.ExpressionStatement;
-				s_.Expression = ConvertExpression(s_.Expression);
+				s_.Expression = ConvertTypeName(s_.Expression);
 				return s_;
 			}
 			else if (s is Definition.LockStatement)
 			{
 				var s_ = s as Definition.LockStatement;
-				s_.Expression = ConvertExpression(s_.Expression);
-				s_.Statement = ConvertStatement(s_.Statement);
+				s_.Expression = ConvertTypeName(s_.Expression);
+				s_.Statement = ConvertTypeName(s_.Statement);
 				return s_;
 			}
 
 			throw new Exception();
 		}
 
-		Definition.Expression ConvertExpression(Definition.Expression e)
+		Definition.Expression ConvertTypeName(Definition.Expression e)
 		{
 			if (e == null)
 			{
@@ -1154,20 +1220,20 @@ namespace LanguageTranslator
 			else if (e is Definition.MemberAccessExpression)
 			{
 				var e_ = e as Definition.MemberAccessExpression;
-				e_.Expression = ConvertExpression(e_.Expression);
+				e_.Expression = ConvertTypeName(e_.Expression);
 				return e_;
 			}
 			else if(e is Definition.GenericMemberAccessExpression)
 			{
 				var e_ = e as Definition.GenericMemberAccessExpression;
-				e_.Types = e_.Types.Select(_ => ConvertType(_)).ToArray();
+				e_.Types = e_.Types.Select(_ => ConvertTypeName(_)).ToArray();
 				return e_;
 			}
 			else if (e is Definition.CastExpression)
 			{
 				var e_ = e as Definition.CastExpression;
-				e_.Type = ConvertType(e_.Type);
-				e_.Expression = ConvertExpression(e_.Expression);
+				e_.Type = ConvertTypeName(e_.Type);
+				e_.Expression = ConvertTypeName(e_.Expression);
 				return e_;
 			}
 			else if (e is Definition.LiteralExpression)
@@ -1177,29 +1243,29 @@ namespace LanguageTranslator
 			else if (e is Definition.InvocationExpression)
 			{
 				var e_ = e as Definition.InvocationExpression;
-				e_.Method = ConvertExpression(e_.Method);
-				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				e_.Method = ConvertTypeName(e_.Method);
+				e_.Args = e_.Args.Select(_ => ConvertTypeName(_)).ToArray();
 				return e_;
 			}
 			else if (e is Definition.ObjectCreationExpression)
 			{
 				var e_ = e as Definition.ObjectCreationExpression;
-				e_.Type = ConvertType(e_.Type);
-				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				e_.Type = ConvertTypeName(e_.Type);
+				e_.Args = e_.Args.Select(_ => ConvertTypeName(_)).ToArray();
 				return e_;
 			}
 			else if (e is Definition.AssignmentExpression)
 			{
 				var e_ = e as Definition.AssignmentExpression;
-				e_.Target = ConvertExpression(e_.Target);
-				e_.Expression = ConvertExpression(e_.Expression);
+				e_.Target = ConvertTypeName(e_.Target);
+				e_.Expression = ConvertTypeName(e_.Expression);
 				return e_;
 			}
 			else if (e is Definition.ElementAccessExpression)
 			{
 				var e_ = e as Definition.ElementAccessExpression;
-				e_.Value = ConvertExpression(e_.Value);
-				e_.Arg = ConvertExpression(e_.Arg);
+				e_.Value = ConvertTypeName(e_.Value);
+				e_.Arg = ConvertTypeName(e_.Arg);
 				return e_;
 			}
 			else if (e is Definition.ThisExpression)
@@ -1209,26 +1275,26 @@ namespace LanguageTranslator
 			else if (e is Definition.IdentifierNameExpression)
 			{
 				var e_ = e as Definition.IdentifierNameExpression;
-				e_.Type = ConvertType(e_.Type);
+				e_.Type = ConvertTypeName(e_.Type);
 				return e_;
 			}
 			else if (e is Definition.BinaryExpression)
 			{
 				var e_ = e as Definition.BinaryExpression;
-				e_.Left = ConvertExpression(e_.Left);
-				e_.Right = ConvertExpression(e_.Right);
+				e_.Left = ConvertTypeName(e_.Left);
+				e_.Right = ConvertTypeName(e_.Right);
 				return e_;
 			}
 			else if (e is Definition.PrefixUnaryExpression)
 			{
 				var e_ = e as Definition.PrefixUnaryExpression;
-				e_.Expression = ConvertExpression(e_.Expression);
+				e_.Expression = ConvertTypeName(e_.Expression);
 				return e_;
 			}
 			else if (e is Definition.PostfixUnaryExpression)
 			{
 				var e_ = e as Definition.PostfixUnaryExpression;
-				e_.Operand = ConvertExpression(e_.Operand);
+				e_.Operand = ConvertTypeName(e_.Operand);
 				return e_;
 			}
 			else if( e is Definition.BaseExpression)
@@ -1238,21 +1304,21 @@ namespace LanguageTranslator
 			else if (e is Definition.ObjectArrayCreationExpression)
 			{
 				var e_ = e as Definition.ObjectArrayCreationExpression;
-				e_.Type = ConvertType(e_.Type);
-				e_.Args = e_.Args.Select(_ => ConvertExpression(_)).ToArray();
+				e_.Type = ConvertTypeName(e_.Type);
+				e_.Args = e_.Args.Select(_ => ConvertTypeName(_)).ToArray();
 				return e_;
 			}
 			else if (e is Definition.TypeExpression)
 			{
 				var e_ = e as Definition.TypeExpression;
-				e_.Type = ConvertType(e_.Type);
+				e_.Type = ConvertTypeName(e_.Type);
 				return e_;
 			}
 
 			throw new Exception();
 		}
 
-		Definition.TypeSpecifier ConvertType(Definition.TypeSpecifier typeSpecifier)
+		Definition.TypeSpecifier ConvertTypeName(Definition.TypeSpecifier typeSpecifier)
 		{
 			if(typeSpecifier is Definition.SimpleType)
 			{
@@ -1280,7 +1346,7 @@ namespace LanguageTranslator
 				var src = typeSpecifier as Definition.ArrayType;
 				var dst = new Definition.ArrayType();
 
-				dst.BaseType = ConvertType(src.BaseType) as Definition.SimpleType;
+				dst.BaseType = ConvertTypeName(src.BaseType) as Definition.SimpleType;
 
 				return dst;
 			}
@@ -1289,16 +1355,32 @@ namespace LanguageTranslator
 				var src = typeSpecifier as Definition.GenericType;
 				var dst = new Definition.GenericType();
 
-				dst.OuterType = ConvertType(src.OuterType) as Definition.SimpleType;
-				dst.InnerType = src.InnerType.Select(_ => ConvertType(_)).OfType<Definition.TypeSpecifier>().ToList();
+				dst.OuterType = ConvertTypeName(src.OuterType) as Definition.SimpleType;
+				dst.InnerType = src.InnerType.Select(_ => ConvertTypeName(_)).OfType<Definition.TypeSpecifier>().ToList();
 
 				return dst;
 			}
 
 			return typeSpecifier;
 		}
+		#endregion
 
-		
+
+		string GetTypeString(string namespace_, string type_)
+		{
+			string typeString = string.Empty;
+			if (string.IsNullOrEmpty(namespace_))
+			{
+				typeString = type_;
+			}
+			else
+			{
+				typeString = namespace_ + "." + type_;
+			}
+
+			return typeString;
+		}
+
 	}
 
 }

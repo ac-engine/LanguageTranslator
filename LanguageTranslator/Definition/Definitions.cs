@@ -17,6 +17,57 @@ namespace LanguageTranslator.Definition
         public List<ClassDef> Classes = new List<ClassDef>();
         public List<StructDef> Structs = new List<StructDef>();
         public List<InterfaceDef> Interfaces = new List<InterfaceDef>();
+
+		public void AddDefault()
+		{
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "List";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Add";
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Clear";
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "LinkedList";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "AddLast";
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Contains";
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Clear";
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+		}
     }
 
     class EnumDef
@@ -119,6 +170,7 @@ namespace LanguageTranslator.Definition
         }
 
         public bool IsDefinedBySWIG = false;
+		public bool IsDefinedDefault = false;
 		public bool IsExported = true;
     }
 

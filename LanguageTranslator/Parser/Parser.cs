@@ -45,6 +45,9 @@ namespace LanguageTranslator.Parser
                         options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
                                                   Microsoft.CodeAnalysis.OutputKind.ConsoleApplication));
 
+			// デフォルト追加
+			definitions.AddDefault();
+
             // 定義のみ取得
             foreach (var tree in syntaxTrees)
             {

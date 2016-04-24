@@ -77,6 +77,7 @@ namespace LanguageTranslator.Parser
 		void ParseClass(Definition.ClassDef def)
 		{
 			if (def.IsDefinedBySWIG) return;
+			if (def.IsDefinedDefault) return;
 
 			foreach(var field in def.Fields)
 			{

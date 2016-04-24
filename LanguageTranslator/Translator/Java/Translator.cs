@@ -735,16 +735,16 @@ namespace LanguageTranslator.Translator.Java
 		this.id = id;
 	}
 	
-	public int getID()
+	public int swigValue()
 	{
 		return id;
 	}
 	
-	public static {0} valueOf(int id)
+	public static {0} swigToEnum(int id)
 	{
 		for ({0} e : values() )
 		{
-			if (e.getID() == id)
+			if (e.swigValue() == id)
 			{
 				return e;
 			}
@@ -884,6 +884,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				IndentDepth = 0;
 				if (c.IsDefinedBySWIG) { continue; }
+				if (c.IsDefinedDefault) { continue; }
 				if (!c.IsExported) { continue; }
 
 				var subDir = targetDir + string.Join(sep, c.Namespace.Split('.'));
