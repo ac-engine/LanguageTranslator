@@ -107,8 +107,8 @@ namespace LanguageTranslator
 
 					if(ae != null)
 					{
-						var target = ae.Target as Definition.MemberAccessExpression;
-						if(target != null && target.Property != null)
+						var mae = ae.Target as Definition.MemberAccessExpression;
+						if(mae != null && mae.Property != null)
 						{
 							// setter差し替え
 							var invocation = new Definition.InvocationExpression();
@@ -116,14 +116,33 @@ namespace LanguageTranslator
 							// 関数設定
 							var memf = new Definition.MemberAccessExpression();
 							memf.Method = new Definition.MethodDef();
-							memf.Method.Name = "set" + target.Property.Name;
-							memf.Expression = target.Expression;
+							memf.Method.Name = "set" + mae.Property.Name;
+							memf.Expression = mae.Expression;
 
 							invocation.Method = memf;
 
 							// 引数設定
 							invocation.Args = new[] { ae.Expression };
 							
+							return Tuple.Create<bool, object>(false, invocation);
+						}
+
+						var ime = ae.Target as Definition.IdentifierNameExpression;
+						if (ime != null && ime.IsProperty)
+						{
+							// setter差し替え
+							var invocation = new Definition.InvocationExpression();
+
+							// 関数設定
+							var memf = new Definition.MemberAccessExpression();
+							memf.Method = new Definition.MethodDef();
+							memf.Method.Name = "set" + ime.Name;
+						
+							invocation.Method = memf;
+
+							// 引数設定
+							invocation.Args = new Definition.Expression[0];
+
 							return Tuple.Create<bool, object>(false, invocation);
 						}
 					}
@@ -174,6 +193,62 @@ namespace LanguageTranslator
 						invocation.Args = new Definition.Expression[0];
 
 						return Tuple.Create<bool, object>(true, invocation);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			// enumの処理
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					{
+						var ce = o as Definition.CastExpression;
+						if(ce != null)
+						{
+							var st = ce.Type as Definition.SimpleType;
+							if (st != null && st.TypeKind == Definition.SimpleTypeKind.Enum)
+							{
+								// getter差し替え
+								var invocation = new Definition.InvocationExpression();
+
+								// 関数設定
+								var memf = new Definition.MemberAccessExpression();
+								memf.Method = new Definition.MethodDef();
+								memf.Method.Name = st.Namespace + st.TypeName + "valueOf";
+								invocation.Method = memf;
+								memf.Expression = null;
+
+								// 引数設定
+								invocation.Args = new[] { ce.Expression };
+
+								return Tuple.Create<bool, object>(true, invocation);
+							}
+						}
+					}
+
+					{
+						var mae = o as Definition.MemberAccessExpression;
+						if (mae != null && mae.EnumMember != null)
+						{
+							// getter差し替え
+							var invocation = new Definition.InvocationExpression();
+
+							// 関数設定
+							var memf = new Definition.MemberAccessExpression();
+							memf.Method = new Definition.MethodDef();
+							memf.Method.Name = "getID";
+							invocation.Method = memf;
+							memf.Expression = mae;
+
+							// 引数設定
+							invocation.Args = new Definition.Expression[0];
+
+							return Tuple.Create<bool, object>(true, invocation);
+						}
 					}
 
 					return Tuple.Create<bool, object>(true, null);
