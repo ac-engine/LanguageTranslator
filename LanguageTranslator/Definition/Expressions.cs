@@ -182,6 +182,7 @@ namespace LanguageTranslator.Definition
 		public enum OperatorType
 		{
 			LogicalNot,
+			UnaryPlus,
 			UnaryMinus,
 		}
 	}

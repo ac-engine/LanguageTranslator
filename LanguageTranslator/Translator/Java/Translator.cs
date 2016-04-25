@@ -85,6 +85,8 @@ namespace LanguageTranslator.Translator.Java
 			{
 				case Definition.PrefixUnaryExpression.OperatorType.LogicalNot:
 					return "!";
+				case Definition.PrefixUnaryExpression.OperatorType.UnaryPlus:
+					return "+";
 				case Definition.PrefixUnaryExpression.OperatorType.UnaryMinus:
 					return "-";
 				default:

@@ -567,8 +567,21 @@ namespace LanguageTranslator.Parser
 
 				st.Expression = ParseExpression(preue.Operand, semanticModel);
 
-				if (preue.Kind() == SyntaxKind.LogicalNotExpression) st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
-				if (preue.Kind() == SyntaxKind.UnaryMinusExpression) st.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
+				switch(preue.Kind())
+				{
+					case SyntaxKind.LogicalNotExpression:
+						st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
+						break;
+					case SyntaxKind.UnaryPlusExpression:
+						st.Type = PrefixUnaryExpression.OperatorType.UnaryPlus;
+						break;
+					case SyntaxKind.UnaryMinusExpression:
+						st.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
+						break;
+					default:
+						throw new Exception();
+						break;
+				}
 
 				return st;
 			}
