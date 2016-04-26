@@ -908,6 +908,8 @@ namespace LanguageTranslator.Translator.Java
 
 			foreach (var s in definisions.Structs)
 			{
+				if (s.IsDefinedDefault) { continue; }
+
 				IndentDepth = 0;
 				var subDir = targetDir + string.Join(sep, s.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);

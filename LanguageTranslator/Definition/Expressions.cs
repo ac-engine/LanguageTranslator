@@ -20,6 +20,11 @@ namespace LanguageTranslator.Definition
 		public ClassDef Class = null;
 
 		/// <summary>
+		/// メンバーへのアクセスがStructの保有する何かだった場合のstruct
+		/// </summary>
+		public StructDef Struct = null;
+
+		/// <summary>
 		/// メンバーへのアクセスがenumのメンバーだった場合のenum
 		/// </summary>
 		public EnumDef Enum = null;

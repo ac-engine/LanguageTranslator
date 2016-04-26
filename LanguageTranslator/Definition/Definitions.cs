@@ -79,10 +79,32 @@ namespace LanguageTranslator.Definition
 			*/
 
 			{
+				StructDef c = new StructDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "KeyValuePair";
+
+				{
+					PropertyDef m = new PropertyDef();
+					m.Name = "Key";
+					c.Properties.Add(m);
+				}
+
+				{
+					PropertyDef m = new PropertyDef();
+					m.Name = "Value";
+					c.Properties.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+
+				Structs.Add(c);
+			}
+
+			{
 				ClassDef c = new ClassDef();
 				c.Namespace = "System";
 				c.Name = "Math";
-			
+
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Sqrt";
@@ -96,7 +118,7 @@ namespace LanguageTranslator.Definition
 					m.Parameters.Add(new ParameterDef() { Name = "a" });
 					c.Methods.Add(m);
 				}
-				
+
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Cos";
@@ -235,6 +257,8 @@ namespace LanguageTranslator.Definition
         {
             return string.Format("StructDef {0}", Name);
         }
+
+		public bool IsDefinedDefault = false;
     }
 
     class InterfaceDef : TypeDef

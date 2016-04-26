@@ -144,6 +144,8 @@ namespace LanguageTranslator.Parser
 
 		void ParseStruct(Definition.StructDef def)
 		{
+			if (def.IsDefinedDefault) return;
+
 			foreach (var field in def.Fields)
 			{
 				var semanticModel = compilation.GetSemanticModel(field.Internal.SyntaxTree);
@@ -326,9 +328,11 @@ namespace LanguageTranslator.Parser
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Struct)
 					{
-						//var enumName = selfType.Value.Type.Name;
-						//var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
-						//structDefP = definitions.Structs.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
+						var memName = mae.Name.ToString();
+						var sym = semanticModel.GetSymbolInfo(mae);
+						var name_ = parentType.Value.Type.Name;
+						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						structDefP = definitions.Structs.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 					}
 				}
 
@@ -406,6 +410,28 @@ namespace LanguageTranslator.Parser
 						{
 							exp.Name = null;
 							exp.Class = classDefP;
+							exp.Property = prop;
+						}
+					}
+				}
+				else if (structDefP != null)
+				{
+					var symbol = semanticModel.GetSymbolInfo(mae);
+					var methodSymbol = symbol.Symbol as IMethodSymbol;
+					var propertySymbol = symbol.Symbol as IPropertySymbol;
+
+					if (propertySymbol != null)
+					{
+						var prop = structDefP.Properties.Where(_ =>
+						{
+							if (_.Name != propertySymbol.Name) return false;
+							return true;
+						}).FirstOrDefault();
+
+						if (prop != null)
+						{
+							exp.Name = null;
+							exp.Struct = structDefP;
 							exp.Property = prop;
 						}
 					}
