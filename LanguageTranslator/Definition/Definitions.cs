@@ -28,6 +28,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Add";
+					m.Parameters.Add(new ParameterDef() { Name = "item" });
 					c.Methods.Add(m);
 				}
 
@@ -49,18 +50,57 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "AddLast";
+					m.Parameters.Add(new ParameterDef() { Name = "value" });
 					c.Methods.Add(m);
 				}
 
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Contains";
+					m.Parameters.Add(new ParameterDef() { Name = "value" });
 					c.Methods.Add(m);
 				}
 
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Clear";
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+
+			/*
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Add", "put");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
+			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
+			*/
+
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System";
+				c.Name = "Math";
+			
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Sqrt";
+					m.Parameters.Add(new ParameterDef() { Name = "d" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Sin";
+					m.Parameters.Add(new ParameterDef() { Name = "a" });
+					c.Methods.Add(m);
+				}
+				
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Cos";
+					m.Parameters.Add(new ParameterDef() { Name = "d" });
 					c.Methods.Add(m);
 				}
 

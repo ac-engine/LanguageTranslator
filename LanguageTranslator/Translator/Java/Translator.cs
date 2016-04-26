@@ -774,7 +774,6 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("{1} class {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
 			IndentDepth++;
 
-
 			foreach (var f in ss.Fields)
 			{
 				OutputField(f);
@@ -788,6 +787,14 @@ namespace LanguageTranslator.Translator.Java
 			foreach (var m in ss.Methods)
 			{
 				OutputMethod(m);
+			}
+
+			// デフォルトコンストラクタ
+			{
+				MakeIndent();
+				var name = ss.Name;
+				var constructor = "public " + name + "() {}";
+				Res.AppendLine(constructor);
 			}
 
 			if (ss.Constructors != null)

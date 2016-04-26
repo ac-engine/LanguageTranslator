@@ -410,8 +410,7 @@ namespace LanguageTranslator.Parser
 						}
 					}
 				}
-
-				if (enumDefP != null)
+				else if (enumDefP != null)
 				{
 					var name = mae.Name.ToString();
 					exp.EnumMember = enumDefP.Members.Where(_ => _.Name == name).FirstOrDefault();
@@ -420,7 +419,10 @@ namespace LanguageTranslator.Parser
 						exp.Enum = enumDefP;
 						exp.Name = null;
 					}
-
+				}
+				else
+				{
+					//Console.WriteLine("");
 				}
 
 				if(exp.EnumMember != null)
