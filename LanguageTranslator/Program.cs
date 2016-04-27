@@ -70,6 +70,8 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			editor.AddMethodConverter("System", "Math", "Sin", "sin");
 			editor.AddMethodConverter("System", "Math", "Cos", "cos");
+			editor.AddMethodConverter("System", "Math", "Atan2", "atan2");
+			editor.AddMethodConverter("System", "Math", "Tan", "tan");
 			
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");

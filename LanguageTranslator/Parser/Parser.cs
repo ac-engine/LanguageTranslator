@@ -404,10 +404,33 @@ namespace LanguageTranslator.Parser
                 throw new ParseException(string.Format("{0} : 変数の複数同時宣言は禁止です。", span));
             }
 
-            var type = ParseTypeSpecifier(fieldSyntax.Declaration.Type, semanticModel);
+			var declaration = fieldSyntax.Declaration;
+			var variable = fieldSyntax.Declaration.Variables[0];
+
+			// 主にfixed配列対象
+			ArgumentSyntax arguments = null;
+			if (variable.ArgumentList != null)
+			{
+				arguments = variable.ArgumentList.Arguments.FirstOrDefault();
+			}	
+
+			var type = ParseTypeSpecifier(declaration.Type, semanticModel);
+
+			// 無理やり書き換える
+			if(arguments != null)
+			{
+				if(type is SimpleType)
+				{
+					var at = new ArrayType();
+					at.BaseType = (SimpleType)type;
+					type = at;
+				}
+
+				fieldDef.Argument = arguments.ToString();
+			}
 
             fieldDef.Internal = fieldSyntax;
-            fieldDef.Name = fieldSyntax.Declaration.Variables[0].Identifier.ValueText;
+			fieldDef.Name = variable.Identifier.ValueText;
             fieldDef.Type = type;
             fieldDef.AccessLevel = ParseAccessLevel(fieldSyntax.Modifiers) ?? AccessLevel.Private;
             fieldDef.IsStatic = fieldSyntax.Modifiers.Any(x => x.ValueText == "static");

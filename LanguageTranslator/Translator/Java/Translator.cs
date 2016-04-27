@@ -427,14 +427,31 @@ namespace LanguageTranslator.Translator.Java
 		{
 			MakeBrief(f.Brief);
 			MakeIndent();
-			Res.AppendFormat("{2} {3}{0} {1}", GetTypeSpecifier(f.Type), f.Name, GetAccessLevel(f.AccessLevel), f.IsStatic ? "static " : "");
-			if (f.Initializer != null)
+
+			if(f.Argument == null)
 			{
-				Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
+				Res.AppendFormat("{2} {3}{0} {1}", GetTypeSpecifier(f.Type), f.Name, GetAccessLevel(f.AccessLevel), f.IsStatic ? "static " : "");
+
+				if (f.Initializer != null)
+				{
+					Res.AppendFormat(" = {0};\r\n", GetExpression(f.Initializer));
+				}
+				else
+				{
+					Res.AppendLine(";");
+				}
 			}
 			else
 			{
-				Res.AppendLine(";");
+				// 無理やりfixedArrayを再現
+				var atype = (Definition.ArrayType)f.Type;
+
+				Res.AppendFormat("{0} {1}{2} {3} = new {4}[{5}];\r\n",
+					GetAccessLevel(f.AccessLevel),
+					f.IsStatic ? "static " : "",
+					GetTypeSpecifier(f.Type), f.Name,
+					GetTypeSpecifier(atype.BaseType),
+					f.Argument);
 			}
 		}
 
@@ -616,7 +633,20 @@ namespace LanguageTranslator.Translator.Java
 			Func<string> generics = () =>
 			{
 				if (cs.TypeParameters.Count == 0) return string.Empty;
-				return "<" + string.Join(",", cs.TypeParameters.Select(_=>_.Name).ToArray()) + ">";
+
+				Func<Definition.TypeParameterDef, string> generic = (t) =>
+					{
+						if(t.BaseTypeConstraints.Count > 0)
+						{
+							return t.Name + " extends " + string.Join(" & ", t.BaseTypeConstraints.Select(_=> GetTypeSpecifier(_)));
+						}
+						else
+						{
+							return t.Name;
+						}
+					};
+
+				return "<" + string.Join(",", cs.TypeParameters.Select(_ => generic(_))) + ">";
 			};
 
 			Res.AppendFormat("{0} {1} class {2}{3} {4} {{\r\n",

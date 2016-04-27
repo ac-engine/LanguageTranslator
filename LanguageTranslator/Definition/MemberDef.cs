@@ -12,6 +12,11 @@ namespace LanguageTranslator.Definition
         public Expression Initializer = null;
         public string Brief = string.Empty;
 
+		/// <summary>
+		/// fixed array専用(無理やり実装)
+		/// </summary>
+		public string Argument = null;
+
         /// <summary>
         /// パーサー内部処理用
         /// </summary>

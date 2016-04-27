@@ -126,6 +126,23 @@ namespace LanguageTranslator.Definition
 					c.Methods.Add(m);
 				}
 
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Atan2";
+					m.Parameters.Add(new ParameterDef() { Name = "y" });
+					m.Parameters.Add(new ParameterDef() { Name = "x" });
+
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Tan";
+					m.Parameters.Add(new ParameterDef() { Name = "a" });
+					c.Methods.Add(m);
+				}
+
+
 				c.IsDefinedDefault = true;
 				Classes.Add(c);
 			}
