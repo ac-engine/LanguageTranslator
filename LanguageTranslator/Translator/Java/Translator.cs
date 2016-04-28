@@ -566,7 +566,7 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeBrief(p.Brief);
 				MakeIndent();
-				Res.AppendFormat("private {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name);
+				Res.AppendFormat("private {2} {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name, p.IsStatic ? "static " : "");
 			}
 
 		}
