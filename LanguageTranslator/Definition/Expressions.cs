@@ -48,10 +48,15 @@ namespace LanguageTranslator.Definition
 		/// </summary>
 		public PropertyDef Property = null;
 
+		/// <summary>
+		/// ジェネリックだった場合
+		/// </summary>
+		public TypeSpecifier[] Types = new TypeSpecifier[0];
+
 		public Expression Expression = null;
 	}
 
-	class GenericMemberAccessExpression : Expression
+	class GenericNameExpression : Expression
 	{
 		public string Name = string.Empty;
 		public TypeSpecifier[] Types = new TypeSpecifier[0];
@@ -120,6 +125,7 @@ namespace LanguageTranslator.Definition
 	class IdentifierNameExpression : Expression
 	{
 		public string Name;
+		public bool IsMethod = false;
 		public bool IsProperty = false;
 		public TypeSpecifier Type = null;
 	}

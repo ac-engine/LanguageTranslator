@@ -307,34 +307,16 @@ namespace LanguageTranslator
 
 					if(ive != null)
 					{
-						var mae = ive.Method as Definition.MemberAccessExpression;
-						if(mae != null && mae.Method != null)
+						var gne = ive.Method as Definition.GenericNameExpression;
+						if(gne != null)
 						{
-							if(mae.Method.TypeParameters.Count > 0)
-							{
-								
-								return Tuple.Create<bool, object>(false, mae);
-							}
+							var mae = new Definition.MemberAccessExpression();
+							mae.Name = gne.Name;
+							mae.Types = gne.Types;
+							mae.Expression = new Definition.ThisExpression();
+							ive.Method = mae;
+							return Tuple.Create<bool, object>(false, ive);
 						}
-					}
-
-					var id = o as Definition.IdentifierNameExpression;
-					if (id != null && id.Name == "Particular")
-					{
-						var mae = new Definition.MemberAccessExpression();
-						mae.Name = "Particular";
-						mae.Expression = id;
-						id.Name = "asd";
-						return Tuple.Create<bool, object>(false, mae);
-					}
-
-					if (id != null && id.Name == "swig")
-					{
-						var mae = new Definition.MemberAccessExpression();
-						mae.Name = "swig";
-						mae.Expression = id;
-						id.Name = "asd";
-						return Tuple.Create<bool, object>(false, mae);
 					}
 
 					return Tuple.Create<bool, object>(true, null);
@@ -780,9 +762,9 @@ namespace LanguageTranslator
 				var e_ = e as Definition.MemberAccessExpression;
 				Edit(func, ref e_.Expression);
 			}
-			else if (e is Definition.GenericMemberAccessExpression)
+			else if (e is Definition.GenericNameExpression)
 			{
-				var e_ = e as Definition.GenericMemberAccessExpression;
+				var e_ = e as Definition.GenericNameExpression;
 				for (int i = 0; i < e_.Types.Length; i++)
 				{
 					Edit(func, ref e_.Types[i]);
@@ -1281,9 +1263,9 @@ namespace LanguageTranslator
 				e_.Expression = ConvertTypeName(e_.Expression);
 				return e_;
 			}
-			else if(e is Definition.GenericMemberAccessExpression)
+			else if(e is Definition.GenericNameExpression)
 			{
-				var e_ = e as Definition.GenericMemberAccessExpression;
+				var e_ = e as Definition.GenericNameExpression;
 				e_.Types = e_.Types.Select(_ => ConvertTypeName(_)).ToArray();
 				return e_;
 			}

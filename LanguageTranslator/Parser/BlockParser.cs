@@ -251,7 +251,7 @@ namespace LanguageTranslator.Parser
 			{
 				return null;
 			}
-
+		
 			var mae = syntax as MemberAccessExpressionSyntax;
 			var gns = syntax as GenericNameSyntax;
 
@@ -289,6 +289,12 @@ namespace LanguageTranslator.Parser
 				MemberAccessExpression exp = new MemberAccessExpression();
 
 				exp.Name = mae.Name.ToString();
+
+				if(mae.Name is GenericNameSyntax)
+				{
+					var gns_ = mae.Name as GenericNameSyntax;
+					exp.Types = gns_.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
+				}
 
 				TypeInfo? selfType = null;
 				selfType = semanticModel.GetTypeInfo(mae);
@@ -463,7 +469,7 @@ namespace LanguageTranslator.Parser
 			}
 			else if(gns != null)
 			{
-				var exp = new GenericMemberAccessExpression();
+				var exp = new GenericNameExpression();
 				exp.Name = gns.Identifier.ValueText;
 				exp.Types = gns.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
 				return exp;
@@ -536,6 +542,11 @@ namespace LanguageTranslator.Parser
 				if (selfType != null && selfType.HasValue && selfType.Value.Type != null)
 				{
 					st.Type = ParseType(selfType.Value.Type);
+				}
+
+				if (methodSymbol != null)
+				{
+					st.IsMethod = true;
 				}
 
 				if (propertySymbol != null)
