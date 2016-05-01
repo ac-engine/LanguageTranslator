@@ -299,6 +299,50 @@ namespace LanguageTranslator
 				editor.AddEditFunc(func);
 			}
 
+			// ジェネリックメソッド
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var ive = o as Definition.InvocationExpression;
+
+					if(ive != null)
+					{
+						var mae = ive.Method as Definition.MemberAccessExpression;
+						if(mae != null && mae.Method != null)
+						{
+							if(mae.Method.TypeParameters.Count > 0)
+							{
+								
+								return Tuple.Create<bool, object>(false, mae);
+							}
+						}
+					}
+
+					var id = o as Definition.IdentifierNameExpression;
+					if (id != null && id.Name == "Particular")
+					{
+						var mae = new Definition.MemberAccessExpression();
+						mae.Name = "Particular";
+						mae.Expression = id;
+						id.Name = "asd";
+						return Tuple.Create<bool, object>(false, mae);
+					}
+
+					if (id != null && id.Name == "swig")
+					{
+						var mae = new Definition.MemberAccessExpression();
+						mae.Name = "swig";
+						mae.Expression = id;
+						id.Name = "asd";
+						return Tuple.Create<bool, object>(false, mae);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
 			// 絶対ネームスペースに変換
 			{
 				Func<object, Tuple<bool, object>> func = (object o) =>
