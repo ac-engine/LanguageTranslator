@@ -296,6 +296,11 @@ namespace LanguageTranslator.Parser
 				TypeInfo? parentType = null;
 				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
 
+				// 種類を取得
+				var symbol = semanticModel.GetSymbolInfo(mae);
+				var methodSymbol = symbol.Symbol as IMethodSymbol;
+				var propertySymbol = symbol.Symbol as IPropertySymbol;
+
 				// 親の種類を探索
 				ClassDef classDefP = null;
 				EnumDef enumDefP = null;
@@ -339,9 +344,6 @@ namespace LanguageTranslator.Parser
 				// 親から子を探索
 				if(interfaceDefP != null)
 				{
-					var symbol = semanticModel.GetSymbolInfo(mae);
-					var methodSymbol = symbol.Symbol as IMethodSymbol;
-
 					if (methodSymbol != null)
 					{
 						var method = interfaceDefP.Methods.Where(_ =>
@@ -369,10 +371,6 @@ namespace LanguageTranslator.Parser
 				}
 				else if(classDefP != null)
 				{
-					var symbol = semanticModel.GetSymbolInfo(mae);
-					var methodSymbol = symbol.Symbol as IMethodSymbol;
-					var propertySymbol = symbol.Symbol as IPropertySymbol;
-
 					if (methodSymbol != null)
 					{
 						var method = classDefP.Methods.Where(_ =>
@@ -416,10 +414,6 @@ namespace LanguageTranslator.Parser
 				}
 				else if (structDefP != null)
 				{
-					var symbol = semanticModel.GetSymbolInfo(mae);
-					var methodSymbol = symbol.Symbol as IMethodSymbol;
-					var propertySymbol = symbol.Symbol as IPropertySymbol;
-
 					if (propertySymbol != null)
 					{
 						var prop = structDefP.Properties.Where(_ =>
@@ -448,7 +442,12 @@ namespace LanguageTranslator.Parser
 				}
 				else
 				{
-					//Console.WriteLine("");
+					// 代替処理
+					if(propertySymbol != null)
+					{
+						exp.Property = new PropertyDef();
+						exp.Property.Name = exp.Name;
+					}
 				}
 
 				if(exp.EnumMember != null)

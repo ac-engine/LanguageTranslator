@@ -34,6 +34,13 @@ namespace LanguageTranslator.Definition
 
 				{
 					MethodDef m = new MethodDef();
+					m.Name = "Remove";
+					m.Parameters.Add(new ParameterDef() { Name = "item" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
 					m.Name = "Clear";
 					c.Methods.Add(m);
 				}

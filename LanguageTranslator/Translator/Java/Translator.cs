@@ -649,7 +649,7 @@ namespace LanguageTranslator.Translator.Java
 				return "<" + string.Join(",", cs.TypeParameters.Select(_ => generic(_))) + ">";
 			};
 
-			Res.AppendFormat("{0} {1} class {2}{3} {4} {{\r\n",
+			Res.AppendFormat("{0} {1} class {2}{3} {4} {5} {{\r\n",
 				GetAccessLevel(cs.AccessLevel),
 				cs.IsAbstract ? "abstract " : "",
 				cs.Name,

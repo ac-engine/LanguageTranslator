@@ -56,7 +56,9 @@ namespace LanguageTranslator
 	
 
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
+			editor.AddMethodConverter("System.Collections.Generic", "List", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
+
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
@@ -86,10 +88,12 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System", "String", "java.lang", "String");
 
+			editor.AddTypeConverter("System", "IDisposable", "asd.Particular.Java", "IDisposable");
+
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
-			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "SortedMap");
+			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "TreeMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
 			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
 
@@ -104,6 +108,7 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Define");
 
 			{
+				// 代入のプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
 					var ae = o as Definition.AssignmentExpression;
@@ -157,6 +162,7 @@ namespace LanguageTranslator
 			}
 
 			{
+				// メンバーアクセスのプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
 					var mae = o as Definition.MemberAccessExpression;
@@ -955,7 +961,7 @@ namespace LanguageTranslator
 			{
 				{
 					var typeString = GetTypeString(def.Namespace, def.Name);
-					if(typeConverter.ContainsKey(typeString))
+					if (typeConverter.ContainsKey(typeString))
 					{
 						def.Namespace = typeConverter[typeString].Item1;
 						def.Name = typeConverter[typeString].Item2;
@@ -1022,6 +1028,12 @@ namespace LanguageTranslator
 
 			foreach (var def in definitions.Classes)
 			{
+				{ 
+					var types = def.BaseTypes.Select(_ => ConvertTypeName(_)).ToArray();
+					def.BaseTypes.Clear();
+					def.BaseTypes.AddRange(types);
+				}
+
 				{
 					var typeString = GetTypeString(def.Namespace, def.Name);
 					if (typeConverter.ContainsKey(typeString))
@@ -1334,11 +1346,13 @@ namespace LanguageTranslator
 					var dstType = typeConverter[srcType];
 					dst.Namespace = dstType.Item1;
 					dst.TypeName = dstType.Item2;
+					dst.TypeKind = src.TypeKind;
 				}
 				else
 				{
 					dst.TypeName = src.TypeName;
 					dst.Namespace = src.Namespace;
+					dst.TypeKind = src.TypeKind;
 				}
 				
 				return dst;
