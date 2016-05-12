@@ -198,7 +198,7 @@ namespace LanguageTranslator.Translator.Java
 				}
 
 				var generic = string.Empty;
-				if(e2.Types.Count() > 0)
+				if(e2.Types.Count() > 0 && e2.Method != null)
 				{
 					generic = string.Format("<{0}>", string.Join(",", e2.Types.Select(_ => GetTypeSpecifier(_))));
 				}
@@ -262,7 +262,15 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.GenericNameExpression)
 			{
 				var e2 = (Definition.GenericNameExpression)e;
-				return string.Format("<{1}>{0}", e2.Name, string.Join(",", Array.ConvertAll(e2.Types, GetTypeSpecifier)));
+
+				if(e2.IsMethod)
+				{
+					return string.Format("<{1}>{0}", e2.Name, string.Join(",", Array.ConvertAll(e2.Types, GetTypeSpecifier)));
+				}
+				else
+				{
+					return string.Format("{0}<{1}>", e2.Name, string.Join(",", Array.ConvertAll(e2.Types, GetTypeSpecifier)));
+				}
 			}
 			else if (e is Definition.TypeExpression)
 			{

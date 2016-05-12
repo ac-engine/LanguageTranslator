@@ -469,8 +469,24 @@ namespace LanguageTranslator.Parser
 			}
 			else if(gns != null)
 			{
+				var symbol = semanticModel.GetSymbolInfo(gns);
+				var methodSymbol = symbol.Symbol as IMethodSymbol;
+				var fieldSymbol = symbol.Symbol as IFieldSymbol;
+				var propertySymbol = symbol.Symbol as IPropertySymbol;
+
 				var exp = new GenericNameExpression();
 				exp.Name = gns.Identifier.ValueText;
+
+				if (methodSymbol != null)
+				{
+					exp.IsMethod = true;
+				}
+
+				if (propertySymbol != null)
+				{
+					exp.IsProperty = true;
+				}
+
 				exp.Types = gns.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
 				return exp;
 			}
