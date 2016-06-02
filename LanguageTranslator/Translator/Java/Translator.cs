@@ -616,7 +616,7 @@ namespace LanguageTranslator.Translator.Java
 			
 				if(simple != null)
 				{
-					if(simple.TypeKind == Definition.SimpleTypeKind.Interface)
+					if(simple.TypeKind == Definition.SimpleTypeKind.Interface || simple.TypeKind == Definition.SimpleTypeKind.Other)
 					{
 						interfaces.Add(b);
 					}
@@ -625,10 +625,16 @@ namespace LanguageTranslator.Translator.Java
 						bases.Add(b);
 					}
 				}
-
-				if(gene != null)
+				else if(gene != null)
 				{
-					bases.Add(b);
+					if (gene.OuterType.TypeKind == Definition.SimpleTypeKind.Interface || gene.OuterType.TypeKind == Definition.SimpleTypeKind.Other)
+					{
+						interfaces.Add(b);
+					}
+					else
+					{
+						bases.Add(b);
+					}
 				}
 			}
 
@@ -887,26 +893,50 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("}}");
 		}
 
-		private void OutputInterface(Definition.InterfaceDef i) {
-			MakeBrief(i.Brief);
+		private void OutputInterface(Definition.InterfaceDef def)
+		{
+			Func<string> generics = () =>
+			{
+				if (def.TypeParameters.Count == 0) return string.Empty;
+
+				Func<Definition.TypeParameterDef, string> generic = (t) =>
+				{
+					if (t.BaseTypeConstraints.Count > 0)
+					{
+						return t.Name + " extends " + string.Join(" & ", t.BaseTypeConstraints.Select(_ => GetTypeSpecifier(_)));
+					}
+					else
+					{
+						return t.Name;
+					}
+				};
+
+				return "<" + string.Join(",", def.TypeParameters.Select(_ => generic(_))) + ">";
+			};
+
+			MakeBrief(def.Brief);
 			MakeIndent();
-			Res.AppendFormat("{1} interface {0} {{\r\n", i.Name, GetAccessLevel(i.AccessLevel));
+			Res.AppendFormat(
+				"{0} interface {1}{2} {{\r\n",
+				GetAccessLevel(def.AccessLevel),
+				def.Name,
+				generics());
 			IndentDepth++;
 
-			if (i.Fields != null)
+			if (def.Fields != null)
 			{
-				foreach (var f in i.Fields)
+				foreach (var f in def.Fields)
 				{
 					OutputFieldInInterface(f);
 				}
 			}
 
-			foreach (var p in i.Properties)
+			foreach (var p in def.Properties)
 			{
 				OutputPropertyInInterface(p);
 			}
 
-			foreach (var m in i.Methods)
+			foreach (var m in def.Methods)
 			{
 				OutputMethodInInterface(m);
 			}

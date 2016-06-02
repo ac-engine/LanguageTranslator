@@ -59,6 +59,9 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
 
+			// LINQ
+			editor.AddMethodConverter("System.Collections.Generic", "List", "Count", "size");
+
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
