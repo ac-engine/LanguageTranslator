@@ -78,12 +78,59 @@ namespace LanguageTranslator.Definition
 				Classes.Add(c);
 			}
 
-			/*
-			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Add", "put");
-			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
-			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
-			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
-			*/
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "Queue";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Enqueue";
+					m.Parameters.Add(new ParameterDef() { Name = "item" });
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+
+			{
+				Dictionary<int, int> v = new Dictionary<int, int>();
+				ClassDef c = new ClassDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "Dictionary";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Add";
+					m.Parameters.Add(new ParameterDef() { Name = "key" });
+					m.Parameters.Add(new ParameterDef() { Name = "value" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "ContainsKey";
+					m.Parameters.Add(new ParameterDef() { Name = "key" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Remove";
+					m.Parameters.Add(new ParameterDef() { Name = "key" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Clear";
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
 
 			{
 				StructDef c = new StructDef();

@@ -63,6 +63,8 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
 
+			editor.AddMethodConverter("System.Collections.Generic", "Queue", "Enqueue", "add");
+
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Add", "put");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
@@ -92,6 +94,8 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
+			editor.AddTypeConverter("System.Collections.Generic", "Queue", "java.util", "LinkedList");
+
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
 			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "TreeMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
