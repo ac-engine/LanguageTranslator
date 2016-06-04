@@ -278,6 +278,8 @@ namespace LanguageTranslator.Definition
         public List<FieldDef> Fields { get; protected set; }
         public List<OperatorDef> Operators { get; protected set; }
 
+		public string UserCode { get; set; }
+
         public TypeDef()
         {
             Namespace = "";
@@ -290,6 +292,8 @@ namespace LanguageTranslator.Definition
             Operators = new List<OperatorDef>();
             Constructors = new List<ConstructorDef>();
             Destructors = new List<DestructorDef>();
+
+			UserCode = "";
         }
     }
 

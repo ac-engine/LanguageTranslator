@@ -59,8 +59,8 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
 
-			// LINQ
-			editor.AddMethodConverter("System.Collections.Generic", "List", "Count", "size");
+
+			editor.AddMethodConverter("System.Collections.Generic", "List", "Count", "size");							// LINQ
 
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
@@ -85,7 +85,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Double", "", "double");
-			editor.AddTypeConverter("System", "Byte", "", "byte");
+			editor.AddTypeConverter("System", "Byte", "", "int");			// uint8_tが存在しないため
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
 
@@ -113,6 +113,71 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Helper");
 			editor.AddIgnoredType("asd.Particular", "Lambda");
 			editor.AddIgnoredType("asd.Particular", "Define");
+
+			{
+				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "Matrix33");
+
+				if (def != null)
+				{
+					def.UserCode = @"
+
+	public Matrix33(float m00, float m01, float m02,
+			float m10, float m11, float m12,
+			float m20, float m21, float m22)
+	{
+		Values[0+0*3] = m00;
+		Values[1+0*3] = m01;
+		Values[2+0*3] = m02;
+
+		Values[0+1*3] = m10;
+		Values[1+1*3] = m11;
+		Values[2+1*3] = m12;
+
+		Values[0+2*3] = m20;
+		Values[1+2*3] = m21;
+		Values[2+2*3] = m22;
+	}
+
+";
+				}
+			}
+
+			{
+				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "Matrix44");
+				
+				if(def != null)
+				{
+					def.UserCode = @"
+
+	public Matrix44(float m00, float m01, float m02, float m03,
+			float m10, float m11, float m12, float m13,
+			float m20, float m21, float m22, float m23,
+			float m30, float m31, float m32, float m33)
+	{
+		Values[0+0*4] = m00;
+		Values[1+0*4] = m01;
+		Values[2+0*4] = m02;
+		Values[3+0*4] = m03;
+
+		Values[0+1*4] = m10;
+		Values[1+1*4] = m11;
+		Values[2+1*4] = m12;
+		Values[3+1*4] = m13;
+
+		Values[0+2*4] = m20;
+		Values[1+2*4] = m21;
+		Values[2+2*4] = m22;
+		Values[3+2*4] = m23;
+
+		Values[0+3*4] = m30;
+		Values[1+3*4] = m31;
+		Values[2+3*4] = m32;
+		Values[3+3*4] = m33;
+	}
+
+";
+				}
+			}
 
 			{
 				// 代入のプロパティ差し替え

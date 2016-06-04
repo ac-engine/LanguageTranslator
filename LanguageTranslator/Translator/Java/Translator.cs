@@ -824,6 +824,8 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("{1} class {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
 			IndentDepth++;
 
+			Res.Append(ss.UserCode);
+
 			foreach (var f in ss.Fields)
 			{
 				OutputField(f);
