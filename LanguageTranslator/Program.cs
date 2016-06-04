@@ -79,6 +79,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System", "Math", "Cos", "cos");
 			editor.AddMethodConverter("System", "Math", "Atan2", "atan2");
 			editor.AddMethodConverter("System", "Math", "Tan", "tan");
+			editor.AddMethodConverter("System", "Math", "Exp", "exp");
 			
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
@@ -113,6 +114,29 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Helper");
 			editor.AddIgnoredType("asd.Particular", "Lambda");
 			editor.AddIgnoredType("asd.Particular", "Define");
+
+			{
+				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "FCurveKeyframe");
+
+				if (def != null)
+				{
+					def.UserCode = @"
+
+	public FCurveKeyframe(float KeyValue_X, float KeyValue_Y, float LeftHandle_X, float LeftHandle_Y, float RightHandle_X, float RightHandle_Y, int interpolationType)
+	{
+
+		KeyValue.X = KeyValue_X;
+		KeyValue.Y = KeyValue_Y;
+		LeftHandle.X = LeftHandle_X;
+		LeftHandle.Y = LeftHandle_Y;
+		RightHandle.X = RightHandle_X;
+		RightHandle.Y = RightHandle_Y;
+		Interpolation = Interpolation.swigToEnum(interpolationType);
+	}
+
+";
+				}
+			}
 
 			{
 				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "Matrix33");
