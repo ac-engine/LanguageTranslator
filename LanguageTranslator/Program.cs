@@ -29,6 +29,7 @@ namespace LanguageTranslator
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Dictionary");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.WeakReference");
 
 			Definition.Definitions definitions = null;
 			
@@ -110,6 +111,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
 
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
+			editor.AddIgnoredType("asd.Particular", "WeakReference");
 			editor.AddIgnoredType("asd.Particular", "GC");
 			editor.AddIgnoredType("asd.Particular", "Helper");
 			editor.AddIgnoredType("asd.Particular", "Lambda");
@@ -450,6 +452,42 @@ namespace LanguageTranslator
 				editor.AddEditFunc(func);
 			}
 
+			// Genericsの型変換
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var gt = o as Definition.GenericType;
+
+					if (gt != null)
+					{
+						foreach(var t in gt.InnerType)
+						{
+							var t_ = t as Definition.SimpleType;
+							if(t_ != null)
+							{
+								if(t_.TypeName == "Int32")
+								{
+									t_.Namespace = "java.lang";
+									t_.TypeName = "Integer";
+								}
+
+								if (t_.TypeName == "IntPtr")
+								{
+									t_.Namespace = "java.lang";
+									t_.TypeName = "Long";
+								}
+							}
+						}
+
+						return Tuple.Create<bool, object>(true, gt);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
 			editor.Convert();
 			
 			// 変換後コードの出力
@@ -638,6 +676,11 @@ namespace LanguageTranslator
 					arr[i] = (Definition.FieldDef)r.Item2;
 					if (!r.Item1) continue;
 				}
+
+				if (arr[i].Type != null)
+				{
+					Edit(func, ref arr[i].Type);
+				}
 			}
 		}
 
@@ -650,6 +693,11 @@ namespace LanguageTranslator
 				{
 					arr[i] = (Definition.PropertyDef)r.Item2;
 					if (!r.Item1) continue;
+				}
+
+				if (arr[i].Type != null)
+				{
+					Edit(func, ref arr[i].Type);
 				}
 
 				if (arr[i].Getter != null)
