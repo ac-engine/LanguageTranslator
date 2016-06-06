@@ -470,6 +470,13 @@ namespace LanguageTranslator
 									t_.Namespace = "java.lang";
 									t_.TypeName = "Integer";
 								}
+							
+								// byte対策
+								if (t_.TypeName == "Byte")
+								{
+									t_.Namespace = "java.lang";
+									t_.TypeName = "Integer";
+								}
 
 								if (t_.TypeName == "IntPtr")
 								{
