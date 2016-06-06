@@ -662,6 +662,11 @@ namespace LanguageTranslator
 					if (!r.Item1) continue;
 				}
 
+				for (int j = 0; j < arr[i].Parameters.Count; j++)
+				{
+					Edit(func, ref arr[i].Parameters[j].Type);
+				}
+
 				Edit(func, arr[i].Body);
 			}
 		}
@@ -680,6 +685,11 @@ namespace LanguageTranslator
 				if (arr[i].Type != null)
 				{
 					Edit(func, ref arr[i].Type);
+				}
+
+				if (arr[i].Initializer != null)
+				{
+					Edit(func, ref arr[i].Initializer);
 				}
 			}
 		}
