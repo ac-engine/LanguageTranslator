@@ -18,6 +18,20 @@ namespace LanguageTranslator.Definition
         public List<StructDef> Structs = new List<StructDef>();
         public List<InterfaceDef> Interfaces = new List<InterfaceDef>();
 
+		public object Find(TypeSpecifier typeSpecifier)
+		{
+			if(typeSpecifier is SimpleType)
+			{
+				var t = typeSpecifier as SimpleType;
+				if(t.TypeKind == SimpleTypeKind.Class)
+				{
+					return Classes.Where(_ => _.Name == t.TypeName && _.Namespace == _.Namespace).FirstOrDefault();
+				}
+			}
+
+			return null;
+		}
+
 		public void AddDefault()
 		{
 			{

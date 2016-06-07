@@ -308,7 +308,8 @@ namespace LanguageTranslator.Parser
 				var propertySymbol = symbol.Symbol as IPropertySymbol;
 
 				// 親の種類を探索
-				ClassDef classDefP = null;
+				List<ClassDef> classDefPs = new List<ClassDef>();
+
 				EnumDef enumDefP = null;
 				InterfaceDef interfaceDefP = null;
 				StructDef structDefP = null;
@@ -329,7 +330,38 @@ namespace LanguageTranslator.Parser
 						var sym = semanticModel.GetSymbolInfo(mae);
 						var name_ = parentType.Value.Type.Name;
 						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
-						classDefP = definitions.Classes.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
+						var def = definitions.Classes.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
+
+						Action<ClassDef> findBase = null;
+						findBase = (c) =>
+							{
+								if (c != null)
+								{
+									int count = classDefPs.Count;
+
+									foreach (var t in c.BaseTypes)
+									{
+										var t_ = definitions.Find(t);
+										if (t_ != null && t_ is ClassDef)
+										{
+											classDefPs.Add(t_ as ClassDef);
+										}
+									}
+
+									int count_ = classDefPs.Count;
+
+									foreach(var t in classDefPs.Skip(count).Take(count_ - count_).ToArray())
+									{
+										findBase(t);
+									}
+								}
+							};
+
+						if(def != null)
+						{
+							classDefPs.Add(def);
+							findBase(def);
+						}
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
@@ -375,11 +407,13 @@ namespace LanguageTranslator.Parser
 						}
 					}
 				}
-				else if(classDefP != null)
+				else if(classDefPs.Count > 0)
 				{
 					if (methodSymbol != null)
 					{
-						var method = classDefP.Methods.Where(_ =>
+						foreach(var classDefP in classDefPs)
+						{
+							var method = classDefP.Methods.Where(_ =>
 							{
 								if (_.Name != methodSymbol.Name) return false;
 								if (_.Parameters.Count() != methodSymbol.Parameters.Count()) return false;
@@ -387,7 +421,7 @@ namespace LanguageTranslator.Parser
 								for (int i = 0; i < _.Parameters.Count(); i++)
 								{
 									if (_.Parameters[i].Name != methodSymbol.Parameters[i].Name) return false;
-									
+
 									// TODO 正しい変換
 									//if(_.Parameters[i].Type != methodSymbol.Parameters[i].Type)
 								}
@@ -395,26 +429,32 @@ namespace LanguageTranslator.Parser
 								return true;
 							}).FirstOrDefault();
 
-						if(method != null)
-						{
-							exp.Name = null;
-							exp.Class = classDefP;
-							exp.Method = method;
-						}
+							if (method != null)
+							{
+								exp.Name = null;
+								exp.Class = classDefP;
+								exp.Method = method;
+								break;
+							}
+						}	
 					}
 					else if(propertySymbol != null)
 					{
-						var prop = classDefP.Properties.Where(_ =>
+						foreach (var classDefP in classDefPs)
 						{
-							if (_.Name != propertySymbol.Name) return false;
-							return true;
-						}).FirstOrDefault();
+							var prop = classDefP.Properties.Where(_ =>
+							{
+								if (_.Name != propertySymbol.Name) return false;
+								return true;
+							}).FirstOrDefault();
 
-						if (prop != null)
-						{
-							exp.Name = null;
-							exp.Class = classDefP;
-							exp.Property = prop;
+							if (prop != null)
+							{
+								exp.Name = null;
+								exp.Class = classDefP;
+								exp.Property = prop;
+								break;
+							}
 						}
 					}
 				}
