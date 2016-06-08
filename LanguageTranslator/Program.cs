@@ -15,7 +15,7 @@ namespace LanguageTranslator
 			var csharpDir = "asd_cs/";
 			var dstDir = "asd_java/";
 
-			if(args.Length >= 2)
+			if (args.Length >= 2)
 			{
 				csharpDir = args[0];
 				dstDir = args[1];
@@ -32,21 +32,21 @@ namespace LanguageTranslator
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.WeakReference");
 
 			Definition.Definitions definitions = null;
-			
+
 			try
 			{
 				definitions = parser.Parse(cs);
 			}
-			catch(Parser.ParseException e)
+			catch (Parser.ParseException e)
 			{
 				Console.WriteLine(e.Message);
 				return;
 			}
-			
+
 			// コードコメントxmlの解析
 			var xmlPath = string.Empty;
 
-			if(System.IO.File.Exists(xmlPath))
+			if (System.IO.File.Exists(xmlPath))
 			{
 				var codeCommentParser = new CodeCommentParser.Parser();
 				codeCommentParser.Parse(xmlPath, definitions);
@@ -54,14 +54,11 @@ namespace LanguageTranslator
 
 			Editor editor = new Editor(definitions);
 
-	
+
 
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
-
-
-			editor.AddMethodConverter("System.Collections.Generic", "List", "Count", "size");							// LINQ
 
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
@@ -81,7 +78,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System", "Math", "Atan2", "atan2");
 			editor.AddMethodConverter("System", "Math", "Tan", "tan");
 			editor.AddMethodConverter("System", "Math", "Exp", "exp");
-			
+
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
 			editor.AddTypeConverter("System", "Int32", "", "int");
@@ -109,6 +106,8 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Math", "java.lang", "Math");
 
 			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
+
+			editor.AddTypeConverter("System", "IComparable", "java.lang", "Comparable");
 
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
 			editor.AddIgnoredType("asd.Particular", "WeakReference");
@@ -170,8 +169,8 @@ namespace LanguageTranslator
 
 			{
 				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "Matrix44");
-				
-				if(def != null)
+
+				if (def != null)
 				{
 					def.UserCode = @"
 
@@ -206,15 +205,46 @@ namespace LanguageTranslator
 			}
 
 			{
+				// ListのCount差し替え
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var mae = o as Definition.MemberAccessExpression;
+
+					if (mae != null && mae.Property != null && mae.Property.Name == "Count" && mae.Class != null && mae.Class.Name == "List")
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "size";
+						memf.Expression = mae.Expression;
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new Definition.Expression[0];
+
+						return Tuple.Create<bool, object>(true, invocation);
+
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			{
 				// 代入のプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
 					var ae = o as Definition.AssignmentExpression;
 
-					if(ae != null)
+					if (ae != null)
 					{
 						var mae = ae.Target as Definition.MemberAccessExpression;
-						if(mae != null && mae.Property != null)
+						if (mae != null && mae.Property != null)
 						{
 							// setter差し替え
 							var invocation = new Definition.InvocationExpression();
@@ -229,7 +259,7 @@ namespace LanguageTranslator
 
 							// 引数設定
 							invocation.Args = new[] { ae.Expression };
-							
+
 							return Tuple.Create<bool, object>(false, invocation);
 						}
 
@@ -243,7 +273,7 @@ namespace LanguageTranslator
 							var memf = new Definition.MemberAccessExpression();
 							memf.Method = new Definition.MethodDef();
 							memf.Method.Name = "set" + ime.Name;
-						
+
 							invocation.Method = memf;
 
 							// 引数設定
@@ -281,7 +311,7 @@ namespace LanguageTranslator
 						invocation.Args = new Definition.Expression[0];
 
 						return Tuple.Create<bool, object>(true, invocation);
-						
+
 					}
 
 					var ime = o as Definition.IdentifierNameExpression;
@@ -314,7 +344,7 @@ namespace LanguageTranslator
 				{
 					{
 						var ce = o as Definition.CastExpression;
-						if(ce != null)
+						if (ce != null)
 						{
 							var st = ce.Type as Definition.SimpleType;
 							if (st != null && st.TypeKind == Definition.SimpleTypeKind.Enum)
@@ -403,10 +433,10 @@ namespace LanguageTranslator
 				{
 					var ive = o as Definition.InvocationExpression;
 
-					if(ive != null)
+					if (ive != null)
 					{
 						var gne = ive.Method as Definition.GenericNameExpression;
-						if(gne != null)
+						if (gne != null)
 						{
 							var mae = new Definition.MemberAccessExpression();
 							mae.Name = gne.Name;
@@ -428,7 +458,7 @@ namespace LanguageTranslator
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
 					var id = o as Definition.IdentifierNameExpression;
-					if(id != null && id.Name == "Particular")
+					if (id != null && id.Name == "Particular")
 					{
 						var mae = new Definition.MemberAccessExpression();
 						mae.Name = "Particular";
@@ -460,17 +490,17 @@ namespace LanguageTranslator
 
 					if (gt != null)
 					{
-						foreach(var t in gt.InnerType)
+						foreach (var t in gt.InnerType)
 						{
 							var t_ = t as Definition.SimpleType;
-							if(t_ != null)
+							if (t_ != null)
 							{
-								if(t_.TypeName == "Int32")
+								if (t_.TypeName == "Int32")
 								{
 									t_.Namespace = "java.lang";
 									t_.TypeName = "Integer";
 								}
-							
+
 								// byte対策
 								if (t_.TypeName == "Byte")
 								{
@@ -496,7 +526,7 @@ namespace LanguageTranslator
 			}
 
 			editor.Convert();
-			
+
 			// 変換後コードの出力
 			var translator = new Translator.Java.Translator();
 
@@ -1208,6 +1238,11 @@ namespace LanguageTranslator
 						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
+					foreach (var paramDef in m.TypeParameters)
+					{
+						paramDef.BaseTypeConstraints = paramDef.BaseTypeConstraints.Select(_ => ConvertTypeName(_)).ToList();
+					}
+
 					m.ReturnType = ConvertTypeName(m.ReturnType);
 					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
@@ -1283,6 +1318,11 @@ namespace LanguageTranslator
 						paramDef.Type = ConvertTypeName(paramDef.Type);
 					}
 
+					foreach (var paramDef in m.TypeParameters)
+					{
+						paramDef.BaseTypeConstraints = paramDef.BaseTypeConstraints.Select(_ => ConvertTypeName(_)).ToList();
+					}
+
 					m.ReturnType = ConvertTypeName(m.ReturnType);
 					m.Body = m.Body.Select(_ => ConvertTypeName(_)).ToList();
 				}
@@ -1318,6 +1358,11 @@ namespace LanguageTranslator
 					foreach (var paramDef in m.Parameters)
 					{
 						paramDef.Type = ConvertTypeName(paramDef.Type);
+					}
+
+					foreach (var paramDef in m.TypeParameters)
+					{
+						paramDef.BaseTypeConstraints = paramDef.BaseTypeConstraints.Select(_ => ConvertTypeName(_)).ToList();
 					}
 
 					m.ReturnType = ConvertTypeName(m.ReturnType);

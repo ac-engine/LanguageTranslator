@@ -59,13 +59,11 @@ namespace LanguageTranslator.Definition
 					c.Methods.Add(m);
 				}
 
-				// LINQ
 				{
-					MethodDef m = new MethodDef();
+					PropertyDef m = new PropertyDef();
 					m.Name = "Count";
-					c.Methods.Add(m);
+					c.Properties.Add(m);
 				}
-
 				c.IsDefinedDefault = true;
 				Classes.Add(c);
 			}

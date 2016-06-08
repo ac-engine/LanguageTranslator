@@ -27,6 +27,25 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendFormat("/* {0} */\r\n", brief);
 		}
 
+		private string GetGenericsTypeParameters(List<Definition.TypeParameterDef> typeParameters)
+		{
+			if (typeParameters.Count == 0) return string.Empty;
+
+			Func<Definition.TypeParameterDef, string> generic = (t) =>
+			{
+				if (t.BaseTypeConstraints.Count > 0)
+				{
+					return t.Name + " extends " + string.Join(" & ", t.BaseTypeConstraints.Select(_ => GetTypeSpecifier(_)));
+				}
+				else
+				{
+					return t.Name;
+				}
+			};
+
+			return "<" + string.Join(",", typeParameters.Select(_ => generic(_))) + ">";
+		}
+
 		private string GetAccessLevel(Definition.AccessLevel a)
 		{
 			switch (a)
@@ -509,7 +528,14 @@ namespace LanguageTranslator.Translator.Java
 			MakeBrief(m.Brief);
 			MakeIndent();
 
-			Res.AppendFormat("{3} {4} {5} {0} {1}({2}) {{\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters), GetAccessLevel(m.AccessLevel), m.IsStatic ? "static " : "", generics());
+			Res.AppendFormat("{3} {4} {5} {0} {1}({2}) {{\r\n", 
+				GetTypeSpecifier(m.ReturnType), 
+				m.Name, 
+				GetParamStr(m.Parameters), 
+				GetAccessLevel(m.AccessLevel), 
+				m.IsStatic ? "static " : "", 
+				//generics(),
+				GetGenericsTypeParameters(m.TypeParameters));
 			IndentDepth++;
 			foreach (var s in m.Body)
 			{
@@ -652,21 +678,7 @@ namespace LanguageTranslator.Translator.Java
 
 			Func<string> generics = () =>
 			{
-				if (cs.TypeParameters.Count == 0) return string.Empty;
-
-				Func<Definition.TypeParameterDef, string> generic = (t) =>
-					{
-						if(t.BaseTypeConstraints.Count > 0)
-						{
-							return t.Name + " extends " + string.Join(" & ", t.BaseTypeConstraints.Select(_=> GetTypeSpecifier(_)));
-						}
-						else
-						{
-							return t.Name;
-						}
-					};
-
-				return "<" + string.Join(",", cs.TypeParameters.Select(_ => generic(_))) + ">";
+				return GetGenericsTypeParameters(cs.TypeParameters);
 			};
 
 			Res.AppendFormat("{0} {1} class {2}{3} {4} {5} {{\r\n",
