@@ -27,6 +27,7 @@ namespace LanguageTranslator
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.GC");
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Helper");
 			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Dictionary");
+			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.SortedList");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.WeakReference");
@@ -61,6 +62,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
 
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "AddLast", "add");
+			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Contains", "contains");
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
 
@@ -71,6 +73,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
 
+			editor.AddMethodConverter("System.Collections.Generic", "SortedList", "ContainsKey", "containsKey");
 
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			editor.AddMethodConverter("System", "Math", "Sin", "sin");
@@ -110,6 +113,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "IComparable", "java.lang", "Comparable");
 
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
+			editor.AddIgnoredType("asd.Particular", "SortedList");
 			editor.AddIgnoredType("asd.Particular", "WeakReference");
 			editor.AddIgnoredType("asd.Particular", "GC");
 			editor.AddIgnoredType("asd.Particular", "Helper");

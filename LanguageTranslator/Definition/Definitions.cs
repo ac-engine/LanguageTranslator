@@ -69,13 +69,22 @@ namespace LanguageTranslator.Definition
 			}
 
 			{
+				LinkedList<int> v = new LinkedList<int>();
+
 				ClassDef c = new ClassDef();
 				c.Namespace = "System.Collections.Generic";
 				c.Name = "LinkedList";
-
+				
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "AddLast";
+					m.Parameters.Add(new ParameterDef() { Name = "value" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Remove";
 					m.Parameters.Add(new ParameterDef() { Name = "value" });
 					c.Methods.Add(m);
 				}
@@ -144,6 +153,23 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Clear";
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+
+			{
+				SortedList<int, int> v = new SortedList<int, int>();
+				ClassDef c = new ClassDef();
+				c.Namespace = "System.Collections.Generic";
+				c.Name = "SortedList";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "ContainsKey";
+					m.Parameters.Add(new ParameterDef() { Name = "key" });
 					c.Methods.Add(m);
 				}
 
