@@ -529,6 +529,8 @@ namespace LanguageTranslator.Parser
                 {
                     ThisOrBase = constructorSyntax.Initializer.ThisOrBaseKeyword.ValueText,
                 };
+
+				constructorDef.Initializer.Internal = constructorSyntax.Initializer;
             }
 
             foreach (var parameter in constructorSyntax.ParameterList.Parameters)

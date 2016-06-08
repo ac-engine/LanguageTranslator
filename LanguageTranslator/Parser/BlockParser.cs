@@ -125,7 +125,13 @@ namespace LanguageTranslator.Parser
 
 				if (cst.Internal.Body == null) continue;
 
-				
+				if(cst.Initializer != null)
+				{
+					foreach(var arg in cst.Initializer.Internal.ArgumentList.Arguments)
+					{
+						cst.Initializer.Arguments.Add(ParseExpression(arg.Expression, semanticModel));
+					}
+				}
 
 				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
 			}

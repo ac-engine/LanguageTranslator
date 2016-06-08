@@ -217,7 +217,7 @@ namespace LanguageTranslator.Translator.Java
 				}
 
 				var generic = string.Empty;
-				if(e2.Types.Count() > 0 && e2.Method != null)
+				if(e2.Types.Count() > 0)
 				{
 					generic = string.Format("<{0}>", string.Join(",", e2.Types.Select(_ => GetTypeSpecifier(_))));
 				}
@@ -505,7 +505,13 @@ namespace LanguageTranslator.Translator.Java
 			if (c.Initializer != null)
 			{
 				MakeIndent();
-				Res.AppendFormat("{0}({1});\r\n", c.Initializer.ThisOrBase, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
+
+				var tob = c.Initializer.ThisOrBase;
+				if(c.Initializer.ThisOrBase == "base")
+				{
+					tob = "super";
+				}
+				Res.AppendFormat("{0}({1});\r\n", tob, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
 			}
 
 			foreach (var s in c.Body)
