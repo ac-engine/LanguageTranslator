@@ -386,7 +386,7 @@ namespace LanguageTranslator.Parser
 				}
 
 				// 親から子を探索
-				if(interfaceDefP != null)
+				if (interfaceDefP != null)
 				{
 					if (methodSymbol != null)
 					{
@@ -412,12 +412,26 @@ namespace LanguageTranslator.Parser
 							exp.Method = method;
 						}
 					}
+					else if (propertySymbol != null)
+					{
+						var prop = interfaceDefP.Properties.Where(_ =>
+						{
+							if (_.Name != propertySymbol.Name) return false;
+							return true;
+						}).FirstOrDefault();
+
+						if (prop != null)
+						{
+							exp.Name = null;
+							exp.Property = prop;
+						}
+					}
 				}
-				else if(classDefPs.Count > 0)
+				else if (classDefPs.Count > 0)
 				{
 					if (methodSymbol != null)
 					{
-						foreach(var classDefP in classDefPs)
+						foreach (var classDefP in classDefPs)
 						{
 							var method = classDefP.Methods.Where(_ =>
 							{
@@ -442,9 +456,9 @@ namespace LanguageTranslator.Parser
 								exp.Method = method;
 								break;
 							}
-						}	
+						}
 					}
-					else if(propertySymbol != null)
+					else if (propertySymbol != null)
 					{
 						foreach (var classDefP in classDefPs)
 						{
@@ -495,7 +509,7 @@ namespace LanguageTranslator.Parser
 				else
 				{
 					// 代替処理
-					if(propertySymbol != null)
+					if (propertySymbol != null)
 					{
 						exp.Property = new PropertyDef();
 						exp.Property.Name = exp.Name;

@@ -156,6 +156,12 @@ namespace LanguageTranslator.Definition
 					c.Methods.Add(m);
 				}
 
+				{
+					PropertyDef m = new PropertyDef();
+					m.Name = "Values";
+					c.Properties.Add(m);
+				}
+
 				c.IsDefinedDefault = true;
 				Classes.Add(c);
 			}

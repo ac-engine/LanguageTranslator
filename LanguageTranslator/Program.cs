@@ -240,6 +240,37 @@ namespace LanguageTranslator
 			}
 
 			{
+				// ListのCount差し替え
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var mae = o as Definition.MemberAccessExpression;
+
+					if (mae != null && mae.Property != null && mae.Property.Name == "Values" && mae.Class != null && mae.Class.Name == "Dictionary")
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "values";
+						memf.Expression = mae.Expression;
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new Definition.Expression[0];
+
+						return Tuple.Create<bool, object>(true, invocation);
+
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			{
 				// 代入のプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
