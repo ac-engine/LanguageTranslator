@@ -87,7 +87,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Double", "", "double");
-			editor.AddTypeConverter("System", "Byte", "", "int");			// uint8_tが存在しないため
+			editor.AddTypeConverter("System", "Byte", "", "short");			// uint8_tが存在しないため
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
 
