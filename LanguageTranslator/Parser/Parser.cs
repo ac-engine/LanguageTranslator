@@ -476,6 +476,7 @@ namespace LanguageTranslator.Parser
             methodDef.ReturnType = ParseTypeSpecifier(methodSyntax.ReturnType, semanticModel);
             methodDef.AccessLevel = ParseAccessLevel(methodSyntax.Modifiers) ?? AccessLevel.Private;
             methodDef.IsStatic = methodSyntax.Modifiers.Any(x => x.ValueText == "static");
+			methodDef.IsAbstract = methodSyntax.Modifiers.Any(x => x.ValueText == "abstract");
 
             foreach (var parameter in methodSyntax.ParameterList.Parameters)
             {

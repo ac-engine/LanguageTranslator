@@ -534,22 +534,34 @@ namespace LanguageTranslator.Translator.Java
 			MakeBrief(m.Brief);
 			MakeIndent();
 
-			Res.AppendFormat("{3} {4} {5} {0} {1}({2}) {{\r\n", 
+			Res.AppendFormat("{3} {4} {5} {6} {0} {1}({2})", 
 				GetTypeSpecifier(m.ReturnType), 
 				m.Name, 
 				GetParamStr(m.Parameters), 
 				GetAccessLevel(m.AccessLevel), 
 				m.IsStatic ? "static " : "", 
 				//generics(),
-				GetGenericsTypeParameters(m.TypeParameters));
-			IndentDepth++;
-			foreach (var s in m.Body)
+				GetGenericsTypeParameters(m.TypeParameters),
+				m.IsAbstract ? "abstract " : "");
+
+			if(m.IsAbstract)
 			{
-				OutputStatement(s);
+				Res.AppendLine(";");
 			}
-			IndentDepth--;
-			MakeIndent();
-			Res.AppendLine("}");
+			else
+			{
+				Res.AppendLine("{");
+				IndentDepth++;
+				foreach (var s in m.Body)
+				{
+					OutputStatement(s);
+				}
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
+			}
+
+			
 		}
 
 		private void OutputMethodInInterface(Definition.MethodDef m)
@@ -727,7 +739,7 @@ namespace LanguageTranslator.Translator.Java
 					MakeIndent();
 					Res.AppendLine("@Override");
 					MakeIndent();
-					Res.AppendLine("protected void finalize() {");
+					Res.AppendLine("protected void finalize() throws Throwable {");
 					IndentDepth++;
 					if (cs.BaseTypes != null && cs.BaseTypes.Count > 0)
 					{
@@ -882,7 +894,7 @@ namespace LanguageTranslator.Translator.Java
 					MakeIndent();
 					Res.AppendLine("@Override");
 					MakeIndent();
-					Res.AppendLine("protected void finalize() {");
+					Res.AppendLine("protected void finalize() throws Throwable {");
 					IndentDepth++;
 					if (ss.BaseTypes != null && ss.BaseTypes.Count > 0)
 					{

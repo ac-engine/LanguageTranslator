@@ -119,6 +119,9 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "Helper");
 			editor.AddIgnoredType("asd.Particular", "Lambda");
 			editor.AddIgnoredType("asd.Particular", "Define");
+			editor.AddIgnoredType("asd.Particular", "ChildDrawingMode");
+			editor.AddIgnoredType("asd.Particular", "ChildManagementMode");
+
 
 			{
 				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "FCurveKeyframe");

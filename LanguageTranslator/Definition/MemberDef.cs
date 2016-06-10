@@ -66,6 +66,7 @@ namespace LanguageTranslator.Definition
     {
         public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
+		public bool IsAbstract = false;
 
         public TypeSpecifier ReturnType = null;
         public string Name = string.Empty;
