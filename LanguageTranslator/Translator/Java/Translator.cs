@@ -385,7 +385,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					Res.AppendLine("} else {");
 					IndentDepth++;
-					OutputStatement(s2.TrueStatement);
+					OutputStatement(s2.FalseStatement);
 					IndentDepth--;
 					MakeIndent();
 					Res.AppendLine("}");
