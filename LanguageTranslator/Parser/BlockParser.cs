@@ -592,6 +592,12 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new AssignmentExpression();
 
+				if (ae.Kind() == SyntaxKind.AddAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Add;
+				if (ae.Kind() == SyntaxKind.SubtractAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Substract;
+				if (ae.Kind() == SyntaxKind.SimpleAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Simple;
+				if (ae.Kind() == SyntaxKind.DivideAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Divide;
+
+				st.Temp = ae.Kind();
 				st.Target = ParseExpression(ae.Left, semanticModel);
 				st.Expression = ParseExpression(ae.Right, semanticModel);
 
@@ -667,6 +673,8 @@ namespace LanguageTranslator.Parser
 				if (be.Kind() == SyntaxKind.LogicalOrExpression) st.Operator = BinaryExpression.OperatorType.LogicalOr;
 
 				if (be.Kind() == SyntaxKind.GreaterThanExpression) st.Operator = BinaryExpression.OperatorType.GreaterThan;
+				if (be.Kind() == SyntaxKind.GreaterThanOrEqualExpression) st.Operator = BinaryExpression.OperatorType.GreaterThanOrEqual;
+
 				if (be.Kind() == SyntaxKind.LessThanExpression) st.Operator = BinaryExpression.OperatorType.LessThan;
 				if (be.Kind() == SyntaxKind.LessThanOrEqualExpression) st.Operator = BinaryExpression.OperatorType.LessThanOrEqual;
 
@@ -763,6 +771,7 @@ namespace LanguageTranslator.Parser
 			var ifs = syntax as IfStatementSyntax;
 			var fors = syntax as ForStatementSyntax;
 			var foreachs = syntax as ForEachStatementSyntax;
+			var whiles = syntax as WhileStatementSyntax;
 			var continues = syntax as ContinueStatementSyntax;
 			var returns = syntax as ReturnStatementSyntax;
 			var locals = syntax as LocalDeclarationStatementSyntax;
@@ -828,6 +837,15 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
+			else if (whiles != null)
+			{
+				var st = new WhileStatement();
+
+				st.Condition = ParseExpression(whiles.Condition, semanticModel);
+				st.Statement = ParseStatement(whiles.Statement, semanticModel);
+
+				return st;
+			}
 			else if (continues != null)
 			{
 				var st = new ContinueStatement();
@@ -864,7 +882,7 @@ namespace LanguageTranslator.Parser
 
 				return blocks;
 			}
-			else if(locks != null)
+			else if (locks != null)
 			{
 				var st = new LockStatement();
 				st.Expression = ParseExpression(locks.Expression, semanticModel);

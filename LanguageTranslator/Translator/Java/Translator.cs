@@ -83,6 +83,8 @@ namespace LanguageTranslator.Translator.Java
 					return "||";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.GreaterThan:
 					return ">";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.GreaterThanOrEqual:
+					return ">=";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThan:
 					return "<";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThanOrEqual:
@@ -177,8 +179,27 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.AssignmentExpression)
 			{
 				var e2 = (Definition.AssignmentExpression)e;
-				return string.Format("{0} = {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
 
+				if (e2.Type == Definition.AssignmentExpression.OperatorType.Simple)
+				{
+					return string.Format("{0} = {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
+				}
+				else if (e2.Type == Definition.AssignmentExpression.OperatorType.Add)
+				{
+					return string.Format("{0} += {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
+				}
+				else if (e2.Type == Definition.AssignmentExpression.OperatorType.Substract)
+				{
+					return string.Format("{0} -= {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
+				}
+				else if (e2.Type == Definition.AssignmentExpression.OperatorType.Divide)
+				{
+					return string.Format("{0} /= {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
+				}
+				else
+				{
+					throw new Exception();
+				}
 			}
 			else if (e is Definition.CastExpression)
 			{
@@ -365,6 +386,17 @@ namespace LanguageTranslator.Translator.Java
 				MakeIndent();
 				var s2 = (Definition.ForStatement)s;
 				Res.AppendFormat("for({0} {1} = {2}; {3}; {4}) {{\r\n", GetTypeSpecifier(s2.Declaration.Type), s2.Declaration.Name, GetExpression(s2.Declaration.Value), GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				IndentDepth++;
+				OutputStatement(s2.Statement);
+				IndentDepth--;
+				MakeIndent();
+				Res.AppendLine("}");
+			}
+			else if (s is Definition.WhileStatement)
+			{
+				MakeIndent();
+				var s2 = (Definition.WhileStatement)s;
+				Res.AppendFormat("while({0}) {{\r\n", GetExpression(s2.Condition));
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;

@@ -113,6 +113,17 @@ namespace LanguageTranslator.Definition
 	{
 		public Expression Target;
 		public Expression Expression;
+		public object Temp;
+		public OperatorType Type = OperatorType.None;
+
+		public enum OperatorType
+		{
+			None,
+			Simple,
+			Add,
+			Substract,
+			Divide,
+		}
 	}
 
 	class ElementAccessExpression : Expression
@@ -146,10 +157,12 @@ namespace LanguageTranslator.Definition
 	{
 		public Expression Left;
 		public Expression Right;
-		public OperatorType Operator;
+		public OperatorType Operator = OperatorType.None;
 
 		public enum OperatorType
 		{
+			None,
+
 			Add,
 			Subtract,
 			As,
@@ -163,11 +176,11 @@ namespace LanguageTranslator.Definition
 			GreaterThan,
 			LessThan,
 
+			GreaterThanOrEqual,
 			LessThanOrEqual,
 
 			Multiply,
 			Divide,
-
 		}
 	}
 
@@ -177,10 +190,11 @@ namespace LanguageTranslator.Definition
 	class PostfixUnaryExpression : Expression
 	{
 		public Expression Operand;
-		public OperatorType Type;
+		public OperatorType Type = OperatorType.None;
 
 		public enum OperatorType
 		{
+			None,
 			PostIncrement,
 			PostDecrement,
 		}
@@ -192,10 +206,11 @@ namespace LanguageTranslator.Definition
 	class PrefixUnaryExpression : Expression
 	{
 		public Expression Expression;
-		public OperatorType Type;
+		public OperatorType Type = OperatorType.None;
 
 		public enum OperatorType
 		{
+			None,
 			LogicalNot,
 			UnaryPlus,
 			UnaryMinus,

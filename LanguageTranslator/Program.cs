@@ -67,6 +67,7 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "LinkedList", "Clear", "clear");
 
 			editor.AddMethodConverter("System.Collections.Generic", "Queue", "Enqueue", "add");
+			editor.AddMethodConverter("System.Collections.Generic", "Queue", "Dequeue", "pop");
 
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Add", "put");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "ContainsKey", "containsKey");
@@ -217,7 +218,8 @@ namespace LanguageTranslator
 				{
 					var mae = o as Definition.MemberAccessExpression;
 
-					if (mae != null && mae.Property != null && mae.Property.Name == "Count" && mae.Class != null && mae.Class.Name == "List")
+					if (mae != null && mae.Property != null && mae.Property.Name == "Count" && mae.Class != null &&
+						(mae.Class.Name == "List" || mae.Class.Name == "Queue"))
 					{
 						// getter差し替え
 						var invocation = new Definition.InvocationExpression();
@@ -844,6 +846,13 @@ namespace LanguageTranslator
 				Edit(func, ref s_.Incrementor);
 				Edit(func, ref s_.Statement);
 			}
+			else if (s is Definition.WhileStatement)
+			{
+				var s_ = s as Definition.WhileStatement;
+
+				Edit(func, ref s_.Condition);
+				Edit(func, ref s_.Statement);
+			}
 			else if (s is Definition.IfStatement)
 			{
 				var s_ = s as Definition.IfStatement;
@@ -934,6 +943,13 @@ namespace LanguageTranslator
 					
 					Edit(func, ref s_.Condition);
 					Edit(func, ref s_.Incrementor);
+					Edit(func, ref s_.Statement);
+				}
+				else if (s is Definition.WhileStatement)
+				{
+					var s_ = s as Definition.WhileStatement;
+
+					Edit(func, ref s_.Condition);
 					Edit(func, ref s_.Statement);
 				}
 				else if (s is Definition.IfStatement)
@@ -1457,6 +1473,13 @@ namespace LanguageTranslator
 				s_.Declaration = ConvertTypeName(s_.Declaration) as Definition.VariableDeclarationStatement;
 				s_.Condition = ConvertTypeName(s_.Condition);
 				s_.Incrementor = ConvertTypeName(s_.Incrementor);
+				s_.Statement = ConvertTypeName(s_.Statement);
+				return s_;
+			}
+			else if (s is Definition.WhileStatement)
+			{
+				var s_ = s as Definition.WhileStatement;
+				s_.Condition = ConvertTypeName(s_.Condition);
 				s_.Statement = ConvertTypeName(s_.Statement);
 				return s_;
 			}

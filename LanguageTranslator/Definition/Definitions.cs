@@ -107,6 +107,8 @@ namespace LanguageTranslator.Definition
 			}
 
 			{
+				Queue<int> v = new Queue<int>();
+				
 				ClassDef c = new ClassDef();
 				c.Namespace = "System.Collections.Generic";
 				c.Name = "Queue";
@@ -116,6 +118,18 @@ namespace LanguageTranslator.Definition
 					m.Name = "Enqueue";
 					m.Parameters.Add(new ParameterDef() { Name = "item" });
 					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Dequeue";
+					c.Methods.Add(m);
+				}
+
+				{
+					PropertyDef m = new PropertyDef();
+					m.Name = "Count";
+					c.Properties.Add(m);
 				}
 
 				c.IsDefinedDefault = true;

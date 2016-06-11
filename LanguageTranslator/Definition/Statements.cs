@@ -83,6 +83,19 @@ namespace LanguageTranslator.Definition
 		public Statement Statement = null;
 	}
 
+	class WhileStatement : Statement
+	{
+		/// <summary>
+		/// 条件
+		/// </summary>
+		public Expression Condition = null;
+
+		/// <summary>
+		/// 実行される内容
+		/// </summary>
+		public Statement Statement = null;
+	}
+
 	class IfStatement : Statement
 	{
 
