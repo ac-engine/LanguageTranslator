@@ -779,6 +779,10 @@ namespace LanguageTranslator.Parser
 			var fxs = syntax as FixedStatementSyntax;
 			var locks = syntax as LockStatementSyntax;
 
+			var switchs = syntax as SwitchStatementSyntax;
+			var trys = syntax as TryStatementSyntax;
+			var throws = syntax as ThrowStatementSyntax;
+
 			if (bs != null)
 			{
 				return ParseBlockStatement(bs, semanticModel);
@@ -800,7 +804,7 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new ForStatement();
 
-				
+
 				st.Condition = ParseExpression(fors.Condition, semanticModel);
 
 				if (fors.Declaration.Variables.Count != 1)
@@ -890,7 +894,16 @@ namespace LanguageTranslator.Parser
 
 				return st;
 			}
+			else if (syntax == null)
+			{
+				return null;
+			}
 
+			{
+				var span = syntax.SyntaxTree.GetLineSpan(syntax.Span);
+				Console.WriteLine(string.Format("{0} : {1} には未対応です。", span, syntax.GetType()));
+			}
+			
 			return null;
 		}
 

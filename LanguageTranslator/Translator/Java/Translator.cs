@@ -978,13 +978,62 @@ namespace LanguageTranslator.Translator.Java
 				return "<" + string.Join(",", def.TypeParameters.Select(_ => generic(_))) + ">";
 			};
 
+
+			List<Definition.TypeSpecifier> bases = new List<Definition.TypeSpecifier>();
+			List<Definition.TypeSpecifier> interfaces = new List<Definition.TypeSpecifier>();
+
+			foreach (var b in def.BaseTypes)
+			{
+				var simple = b as Definition.SimpleType;
+				var gene = b as Definition.GenericType;
+
+				if (simple != null)
+				{
+					if (simple.TypeKind == Definition.SimpleTypeKind.Interface || simple.TypeKind == Definition.SimpleTypeKind.Other)
+					{
+						interfaces.Add(b);
+					}
+					else
+					{
+						bases.Add(b);
+					}
+				}
+				else if (gene != null)
+				{
+					if (gene.OuterType.TypeKind == Definition.SimpleTypeKind.Interface || gene.OuterType.TypeKind == Definition.SimpleTypeKind.Other)
+					{
+						interfaces.Add(b);
+					}
+					else
+					{
+						bases.Add(b);
+					}
+				}
+			}
+
+			Func<string> extends = () =>
+			{
+				if (bases.Count == 0) return string.Empty;
+				return " extends " + string.Join(",", GetTypeSpecifier(bases[0]));
+			};
+
+			// 表記変化注意
+			Func<string> implements = () =>
+			{
+				if (interfaces.Count == 0) return string.Empty;
+				return " extends " + string.Join(",", interfaces.Select(_ => GetTypeSpecifier(_)));
+			};
+
+
 			MakeBrief(def.Brief);
 			MakeIndent();
 			Res.AppendFormat(
-				"{0} interface {1}{2} {{\r\n",
+				"{0} interface {1}{2} {3} {4} {{\r\n",
 				GetAccessLevel(def.AccessLevel),
 				def.Name,
-				generics());
+				generics(),
+				extends(),
+				implements());
 			IndentDepth++;
 
 			if (def.Fields != null)

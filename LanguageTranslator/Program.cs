@@ -24,10 +24,10 @@ namespace LanguageTranslator
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
 
-			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.GC");
-			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Helper");
-			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.Dictionary");
-			parser.TypesWhosePrivateNotParsed.Add("asd.Particular.SortedList");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.GC");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Helper");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Dictionary");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.SortedList");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.WeakReference");
