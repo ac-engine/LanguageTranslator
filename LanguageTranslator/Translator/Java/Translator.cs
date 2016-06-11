@@ -739,7 +739,8 @@ namespace LanguageTranslator.Translator.Java
 				extends(),
 				implements());
 			IndentDepth++;
-			
+
+			Res.Append(cs.UserCode);
 
 			foreach (var f in cs.Fields)
 			{

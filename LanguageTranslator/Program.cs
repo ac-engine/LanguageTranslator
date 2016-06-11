@@ -123,6 +123,46 @@ namespace LanguageTranslator
 			editor.AddIgnoredType("asd.Particular", "ChildDrawingMode");
 			editor.AddIgnoredType("asd.Particular", "ChildManagementMode");
 
+			{
+				var def = definitions.Classes.FirstOrDefault(_ => _.Name == "Engine");
+
+				if (def != null)
+				{
+					def.UserCode = @"
+	public static void ChangeScene(asd.Scene scene)
+	{
+		ChangeScene(scene, true);
+	}
+
+	public static void ChangeSceneWithTransition(asd.Scene scene, asd.Transition transition)
+	{
+		ChangeSceneWithTransition(scene, transition, true);
+	}
+";
+				}
+			}
+
+			{
+				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "Color");
+
+				if (def != null)
+				{
+					def.UserCode = @"
+	public Color(int r, int g, int b, int a) {
+		R = (short)r;
+		G = (short)g;
+		B = (short)b;
+		A = (short)a;
+	}
+	public Color(int r, int g, int b) {
+		R = (short)r;
+		G = (short)g;
+		B = (short)b;
+		A = 255;
+	}
+";
+				}
+			}
 
 			{
 				var def = definitions.Structs.FirstOrDefault(_ => _.Name == "FCurveKeyframe");
