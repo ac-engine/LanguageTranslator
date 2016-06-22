@@ -14,11 +14,19 @@ namespace LanguageTranslator
 		{
 			var csharpDir = "asd_cs/";
 			var dstDir = "asd_java/";
+			var langType = "java";
+			var dlls = new List<string>();
 
-			if (args.Length >= 2)
+			if (args.Length >= 3)
 			{
 				csharpDir = args[0];
 				dstDir = args[1];
+				langType = args[2];
+				
+				foreach(var a in args.Skip(3))
+				{
+					dlls.Add(a);
+				}
 			}
 
 			var parser = new Parser.Parser();
@@ -36,7 +44,7 @@ namespace LanguageTranslator
 
 			try
 			{
-				definitions = parser.Parse(cs);
+				definitions = parser.Parse(cs, dlls.ToArray());
 			}
 			catch (Parser.ParseException e)
 			{

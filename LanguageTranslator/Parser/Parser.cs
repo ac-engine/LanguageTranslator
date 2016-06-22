@@ -22,7 +22,7 @@ namespace LanguageTranslator.Parser
 		public List<string> TypesWhosePrivateNotParsed = new List<string>();
 		public List<string> TypesNotExported = new List<string>();
 
-        public Definition.Definitions Parse(string[] pathes)
+        public Definition.Definitions Parse(string[] pathes, string[] dlls)
         {
             definitions = new Definition.Definitions();
 
@@ -37,11 +37,28 @@ namespace LanguageTranslator.Parser
 
             var mscorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "mscorlib.dll"));
 			var systemlib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "System.dll"));
-				
+
+			var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+			List<MetadataReference> references = new List<MetadataReference>();
+			references.Add(mscorelib);
+			references.Add(systemlib);
+
+			// DLL読み込み
+			foreach(var dll in dlls)
+			{
+				if (System.IO.File.Exists(dll))
+				{
+					var lib = MetadataReference.CreateFromFile(dll);
+					references.Add(lib);
+				}
+			}
+			
+			
             var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
                         "Compilation",
                         syntaxTrees: syntaxTrees.ToArray(),
-                        references: new[] { mscorelib, systemlib },
+                        references: references.ToArray(),
                         options: new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(
                                                   Microsoft.CodeAnalysis.OutputKind.ConsoleApplication));
 
@@ -112,12 +129,41 @@ namespace LanguageTranslator.Parser
             var usings = compilationUnitSyntax.Usings;
             var members = compilationUnitSyntax.Members;
 
-            foreach (var member in members)
-            {
-                var namespaceSyntax = member as NamespaceDeclarationSyntax;
-                ParseNamespace(namespaceSyntax, semanticModel);
-            }
+			ParseMembers("", members, semanticModel);
         }
+
+		private void ParseMembers(string namespace_, SyntaxList<MemberDeclarationSyntax> members, SemanticModel semanticModel)
+		{
+			foreach (var member in members)
+			{
+				var namespaceSyntax = member as NamespaceDeclarationSyntax;
+				var classSyntax = member as ClassDeclarationSyntax;
+				var enumSyntax = member as EnumDeclarationSyntax;
+				var structSyntax = member as StructDeclarationSyntax;
+				var interfaceSyntax = member as InterfaceDeclarationSyntax;
+
+				if (namespaceSyntax != null)
+				{
+					ParseNamespace(namespaceSyntax, semanticModel);
+				}
+				if (enumSyntax != null)
+				{
+					ParseEnum(namespace_, enumSyntax, semanticModel);
+				}
+				if (classSyntax != null)
+				{
+					ParseClass(namespace_, classSyntax, semanticModel);
+				}
+				if (structSyntax != null)
+				{
+					ParseStrcut(namespace_, structSyntax, semanticModel);
+				}
+				if (interfaceSyntax != null)
+				{
+					ParseInterface(namespace_, interfaceSyntax, semanticModel);
+				}
+			}
+		}
 
         private void ParseNamespace(NamespaceDeclarationSyntax namespaceSyntax, SemanticModel semanticModel)
         {
@@ -134,30 +180,7 @@ namespace LanguageTranslator.Parser
                 namespace_ = nameSyntax_Q.ToFullString().Trim();
             }
 
-            foreach (var member in members)
-            {
-                var classSyntax = member as ClassDeclarationSyntax;
-                var enumSyntax = member as EnumDeclarationSyntax;
-                var structSyntax = member as StructDeclarationSyntax;
-                var interfaceSyntax = member as InterfaceDeclarationSyntax;
-
-                if (enumSyntax != null)
-                {
-                    ParseEnum(namespace_, enumSyntax, semanticModel);
-                }
-                if (classSyntax != null)
-                {
-                    ParseClass(namespace_, classSyntax, semanticModel);
-                }
-                if (structSyntax != null)
-                {
-                    ParseStrcut(namespace_, structSyntax, semanticModel);
-                }
-                if (interfaceSyntax != null)
-                {
-                    ParseInterface(namespace_, interfaceSyntax, semanticModel);
-                }
-            }
+			ParseMembers(namespace_, members, semanticModel);
         }
 
         private void ParseEnum(string namespace_, EnumDeclarationSyntax enumSyntax, SemanticModel semanticModel)

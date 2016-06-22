@@ -571,8 +571,16 @@ namespace LanguageTranslator.Parser
 			{
 				var st = new ObjectCreationExpression();
 				st.Type = ParseType(oce.Type, semanticModel);
-				st.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
 
+				if(oce.ArgumentList != null)
+				{
+					st.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
+				}
+				else
+				{
+					st.Args = new Expression[0];
+				}
+				
 				return st;
 			}
 			else if (ce != null)
