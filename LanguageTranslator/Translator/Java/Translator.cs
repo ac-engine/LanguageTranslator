@@ -22,7 +22,6 @@ namespace LanguageTranslator.Translator.Java
 		private void WriteLine(string format, params string[] args)
 		{
 			var str = string.Format(format, args);
-			MakeIndent();
 			Res.Append('\t', IndentDepth);
 			Res.Append(str);
 			Res.Append("\r\n");
@@ -107,6 +106,7 @@ namespace LanguageTranslator.Translator.Java
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
 					return "instanceof";
 				default:
+					//return "";
 					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
 			}
 		}
@@ -405,21 +405,21 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.WhileStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.WhileStatement)s;
-				Res.AppendFormat("while({0}) {{\r\n", GetExpression(s2.Condition));
+				WriteLine("while({0})", GetExpression(s2.Condition));
+				WriteLine("{{");
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+
+				WriteLine("}}");
+				WriteLine("");
 			}
 			else if (s is Definition.IfStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.IfStatement)s;
 				WriteLine("if({0})", GetExpression(s2.Condition));
-				WriteLine("{");
+				WriteLine("{{");
 
 				IndentDepth++;
 				OutputStatement(s2.TrueStatement);
@@ -439,6 +439,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					Res.AppendLine("}");
 				}
+				WriteLine("");
 			}
 			else if (s is Definition.ReturnStatement)
 			{
