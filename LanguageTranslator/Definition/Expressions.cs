@@ -181,6 +181,8 @@ namespace LanguageTranslator.Definition
 
 			Multiply,
 			Divide,
+
+			Modulo,
 		}
 	}
 

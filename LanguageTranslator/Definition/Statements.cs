@@ -130,6 +130,10 @@ namespace LanguageTranslator.Definition
 	{
 	}
 
+	class BreakStatement : Statement
+	{
+	}
+
 	/// <summary>
 	/// 変数を返す関数を呼ぶ時等に使用される・・・はず
 	/// </summary>

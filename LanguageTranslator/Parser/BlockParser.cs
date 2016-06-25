@@ -689,6 +689,14 @@ namespace LanguageTranslator.Parser
 				if (be.Kind() == SyntaxKind.MultiplyExpression) st.Operator = BinaryExpression.OperatorType.Multiply;
 				if (be.Kind() == SyntaxKind.DivideExpression) st.Operator = BinaryExpression.OperatorType.Divide;
 
+				if (be.Kind() == SyntaxKind.ModuloExpression) st.Operator = BinaryExpression.OperatorType.Modulo;
+
+				if(st.Operator == BinaryExpression.OperatorType.None)
+				{
+					var span_ = syntax.SyntaxTree.GetLineSpan(syntax.Span);
+					Console.WriteLine(string.Format("{0} : {1} には未対応です。", span_, be.Kind()));
+				}
+
 				return st;
 			}
 			else if (preue != null)
@@ -781,6 +789,7 @@ namespace LanguageTranslator.Parser
 			var foreachs = syntax as ForEachStatementSyntax;
 			var whiles = syntax as WhileStatementSyntax;
 			var continues = syntax as ContinueStatementSyntax;
+			var breaks = syntax as BreakStatementSyntax;
 			var returns = syntax as ReturnStatementSyntax;
 			var locals = syntax as LocalDeclarationStatementSyntax;
 			var exs = syntax as ExpressionStatementSyntax;
@@ -861,6 +870,11 @@ namespace LanguageTranslator.Parser
 			else if (continues != null)
 			{
 				var st = new ContinueStatement();
+				return st;
+			}
+			else if (breaks != null)
+			{
+				var st = new BreakStatement();
 				return st;
 			}
 			else if (returns != null)

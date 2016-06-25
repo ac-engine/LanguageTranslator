@@ -300,6 +300,9 @@ namespace LanguageTranslator.Translator
 			else if (s is Definition.ContinueStatement)
 			{
 			}
+			else if (s is Definition.BreakStatement)
+			{
+			}
 			else if (s is Definition.ExpressionStatement)
 			{
 				var s_ = s as Definition.ExpressionStatement;
@@ -397,6 +400,9 @@ namespace LanguageTranslator.Translator
 					Edit(func, ref s_.Return);
 				}
 				else if (s is Definition.ContinueStatement)
+				{
+				}
+				else if (s is Definition.BreakStatement)
 				{
 				}
 				else if (s is Definition.ExpressionStatement)
@@ -930,6 +936,10 @@ namespace LanguageTranslator.Translator
 				return s_;
 			}
 			else if (s is Definition.ContinueStatement)
+			{
+				return s;
+			}
+			else if (s is Definition.BreakStatement)
 			{
 				return s;
 			}

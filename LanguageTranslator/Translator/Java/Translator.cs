@@ -106,8 +106,7 @@ namespace LanguageTranslator.Translator.Java
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
 					return "instanceof";
 				default:
-					//return "";
-					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
+					return "unknown";
 			}
 		}
 
@@ -374,6 +373,11 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				Res.AppendLine("continue;");
+			}
+			else if (s is Definition.BreakStatement)
+			{
+				MakeIndent();
+				Res.AppendLine("break;");
 			}
 			else if (s is Definition.ExpressionStatement)
 			{
