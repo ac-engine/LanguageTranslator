@@ -10,11 +10,22 @@ namespace LanguageTranslator.Translator.Java
 	class Translator : ITranslator
 	{
 		private const string PackageName = "asd";
+		
 		private StringBuilder Res = new StringBuilder();
+		
 		private int IndentDepth = 0;
 		private void MakeIndent()
 		{
 			Res.Append('\t', IndentDepth);
+		}
+
+		private void WriteLine(string format, params string[] args)
+		{
+			var str = string.Format(format, args);
+			MakeIndent();
+			Res.Append('\t', IndentDepth);
+			Res.Append(str);
+			Res.Append("\r\n");
 		}
 
 		private void MakeBrief(string brief)
@@ -407,7 +418,9 @@ namespace LanguageTranslator.Translator.Java
 			{
 				MakeIndent();
 				var s2 = (Definition.IfStatement)s;
-				Res.AppendFormat("if({0}) {{\r\n", GetExpression(s2.Condition));
+				WriteLine("if({0})", GetExpression(s2.Condition));
+				WriteLine("{");
+
 				IndentDepth++;
 				OutputStatement(s2.TrueStatement);
 				IndentDepth--;

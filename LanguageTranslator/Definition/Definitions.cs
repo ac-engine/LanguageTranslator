@@ -74,7 +74,7 @@ namespace LanguageTranslator.Definition
 				ClassDef c = new ClassDef();
 				c.Namespace = "System.Collections.Generic";
 				c.Name = "LinkedList";
-				
+
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "AddLast";
@@ -108,7 +108,7 @@ namespace LanguageTranslator.Definition
 
 			{
 				Queue<int> v = new Queue<int>();
-				
+
 				ClassDef c = new ClassDef();
 				c.Namespace = "System.Collections.Generic";
 				c.Name = "Queue";
@@ -217,6 +217,19 @@ namespace LanguageTranslator.Definition
 				c.IsDefinedDefault = true;
 
 				Structs.Add(c);
+			}
+
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System";
+				c.Name = "Console";
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "WriteLine";
+					m.Parameters.Add(new ParameterDef() { Name = "value" });
+					c.Methods.Add(m);
+				}
 			}
 
 			{

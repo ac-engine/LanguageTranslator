@@ -29,6 +29,12 @@ namespace LanguageTranslator
 				}
 			}
 
+			// dst編集
+			if (dstDir.Last() != '/' || dstDir.Last() != '\\')
+			{
+				dstDir += "/";
+			}
+
 			var parser = new Parser.Parser();
 			var cs = Directory.EnumerateFiles(csharpDir, "*.cs", SearchOption.AllDirectories).ToArray();
 
@@ -82,6 +88,8 @@ namespace LanguageTranslator
 
 			editor.AddMethodConverter("System.Collections.Generic", "SortedList", "ContainsKey", "containsKey");
 
+			editor.AddMethodConverter("System", "Console", "WriteLine", "println");
+
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			editor.AddMethodConverter("System", "Math", "Sin", "sin");
 			editor.AddMethodConverter("System", "Math", "Cos", "cos");
@@ -118,6 +126,8 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "WeakReference", "java.lang.ref", "WeakReference");
 
 			editor.AddTypeConverter("System", "IComparable", "java.lang", "Comparable");
+
+			editor.AddTypeConverter("System", "Console", "System", "out");
 
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
 			editor.AddIgnoredType("asd.Particular", "SortedList");
