@@ -94,6 +94,8 @@ namespace LanguageTranslator.Translator.Java
 					return "*";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Divide:
 					return "/";
+				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Modulo:
+					return "%";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalAnd:
 					return "&&";
 				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalOr:
