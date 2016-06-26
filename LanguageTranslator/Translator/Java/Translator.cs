@@ -19,6 +19,13 @@ namespace LanguageTranslator.Translator.Java
 			Res.Append('\t', IndentDepth);
 		}
 
+		private void Write(string format, params string[] args)
+		{
+			var str = string.Format(format, args);
+			Res.Append('\t', IndentDepth);
+			Res.Append(str);
+		}
+
 		private void WriteLine(string format, params string[] args)
 		{
 			var str = string.Format(format, args);
@@ -107,6 +114,7 @@ namespace LanguageTranslator.Translator.Java
 					return "instanceof";
 				default:
 					return "unknown";
+					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
 			}
 		}
 
@@ -356,8 +364,7 @@ namespace LanguageTranslator.Translator.Java
 		{
 			if (s == null)
 			{
-				MakeIndent();
-				Res.AppendLine("/* debug: null statement */");
+				WriteLine("/* debug: null statement */");
 			}
 			else if (s is Definition.BlockStatement)
 			{
@@ -371,19 +378,16 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.ContinueStatement)
 			{
-				MakeIndent();
-				Res.AppendLine("continue;");
+				WriteLine("continue;");
 			}
 			else if (s is Definition.BreakStatement)
 			{
-				MakeIndent();
-				Res.AppendLine("break;");
+				WriteLine("break;");
 			}
 			else if (s is Definition.ExpressionStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.ExpressionStatement)s;
-				Res.AppendFormat("{0};\r\n", GetExpression(s2.Expression));
+				WriteLine("{0};", GetExpression(s2.Expression));
 			}
 			else if (s is Definition.ForeachStatement)
 			{
@@ -393,8 +397,7 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				WriteLine("}}");
 			}
 			else if (s is Definition.ForStatement)
 			{
@@ -404,18 +407,19 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				WriteLine("}}");
+				WriteLine("");
 			}
 			else if (s is Definition.WhileStatement)
 			{
 				var s2 = (Definition.WhileStatement)s;
 				WriteLine("while({0})", GetExpression(s2.Condition));
 				WriteLine("{{");
+
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-
+				
 				WriteLine("}}");
 				WriteLine("");
 			}
@@ -428,28 +432,30 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.TrueStatement);
 				IndentDepth--;
-				MakeIndent();
-
+				
 				if (s2.FalseStatement != null)
 				{
-					Res.AppendLine("} else {");
+					WriteLine("}}");
+					WriteLine("else");
+					WriteLine("{{");
+
 					IndentDepth++;
 					OutputStatement(s2.FalseStatement);
 					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+
+					WriteLine("}}");
 				}
 				else
 				{
-					Res.AppendLine("}");
+					WriteLine("}}");
 				}
+
 				WriteLine("");
 			}
 			else if (s is Definition.ReturnStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.ReturnStatement)s;
-				Res.AppendFormat("return {0};\r\n", GetExpression(s2.Return));
+				WriteLine("return {0};", GetExpression(s2.Return));
 			}
 			else if (s is Definition.VariableDeclarationStatement)
 			{
@@ -474,8 +480,7 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				WriteLine("}}");
 			}
 			else
 			{
@@ -569,8 +574,7 @@ namespace LanguageTranslator.Translator.Java
 				OutputStatement(s);
 			}
 			IndentDepth--;
-			MakeIndent();
-			Res.AppendLine("}");
+			WriteLine("}}");
 		}
 
 		private void OutputMethod(Definition.MethodDef m)
@@ -607,8 +611,7 @@ namespace LanguageTranslator.Translator.Java
 					OutputStatement(s);
 				}
 				IndentDepth--;
-				MakeIndent();
-				Res.AppendLine("}");
+				WriteLine("}}");
 			}
 
 			
@@ -637,8 +640,7 @@ namespace LanguageTranslator.Translator.Java
 					IndentDepth++;
 					OutputStatement(p.Setter.Body);
 					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+					WriteLine("}}");
 					needVariable = false;
 				}
 				else
@@ -658,8 +660,7 @@ namespace LanguageTranslator.Translator.Java
 					IndentDepth++;
 					OutputStatement(p.Getter.Body);
 					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+					WriteLine("}}");
 					needVariable = false;
 				}
 				else
@@ -802,29 +803,26 @@ namespace LanguageTranslator.Translator.Java
 					{
 						OutputStatement(s);
 					}
+
 					if (cs.BaseTypes != null)
 					{
 						IndentDepth--;
-						MakeIndent();
-						Res.AppendLine("}");
-
+						WriteLine("}}");
 					}
+
 					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+					WriteLine("}}");
 				}
 			}
 
 			IndentDepth--;
-			MakeIndent();
-			Res.AppendFormat("}}\r\n");
+			WriteLine("}}");
 		}
 
 		private void OutputEnum(Definition.EnumDef es)
 		{
 			MakeBrief(es.Brief);
-			MakeIndent();
-			Res.AppendFormat("public enum {0} {{\r\n", es.Name);
+			WriteLine("public enum {0} {{", es.Name);
 			IndentDepth++;
 
 			int count = 0;
@@ -893,16 +891,16 @@ namespace LanguageTranslator.Translator.Java
 			Res.AppendLine("");
 
 			IndentDepth--;
-			MakeIndent();
-			Res.AppendFormat("}}\r\n");
+			WriteLine("}}");
 		}
 
 
 		private void OutputStruct(Definition.StructDef ss)
 		{
 			MakeBrief(ss.Brief);
-			MakeIndent();
-			Res.AppendFormat("{1} class {0} {{\r\n", ss.Name, GetAccessLevel(ss.AccessLevel));
+			WriteLine("{1} class {0}", ss.Name, GetAccessLevel(ss.AccessLevel));
+			WriteLine("{{");
+
 			IndentDepth++;
 
 			Res.Append(ss.UserCode);
@@ -960,20 +958,16 @@ namespace LanguageTranslator.Translator.Java
 					if (ss.BaseTypes != null)
 					{
 						IndentDepth--;
-						MakeIndent();
-						Res.AppendLine("}");
+						WriteLine("}}");
 
 					}
 					IndentDepth--;
-					MakeIndent();
-					Res.AppendLine("}");
+					WriteLine("}}");
 				}
 			}
 
-
 			IndentDepth--;
-			MakeIndent();
-			Res.AppendFormat("}}");
+			WriteLine("}}");
 		}
 
 		private void OutputInterface(Definition.InterfaceDef def)
@@ -1045,14 +1039,16 @@ namespace LanguageTranslator.Translator.Java
 
 
 			MakeBrief(def.Brief);
-			MakeIndent();
-			Res.AppendFormat(
-				"{0} interface {1}{2} {3} {4} {{\r\n",
+			WriteLine(
+				"{0} interface {1}{2} {3} {4}",
 				GetAccessLevel(def.AccessLevel),
 				def.Name,
 				generics(),
 				extends(),
 				implements());
+
+			WriteLine("{{");
+
 			IndentDepth++;
 
 			if (def.Fields != null)
@@ -1074,67 +1070,88 @@ namespace LanguageTranslator.Translator.Java
 			}
 
 			IndentDepth--;
-			MakeIndent();
-			Res.AppendFormat("}}");
+
+			WriteLine("}}");
 		}
 
 		public void Translate(string targetDir, Definition.Definitions definisions)
 		{
 			var sep = Path.DirectorySeparatorChar.ToString();
-			foreach (Definition.EnumDef e in definisions.Enums)
+
+			foreach (Definition.EnumDef o in definisions.Enums)
 			{
 				IndentDepth = 0;
-				if (e.IsDefinedBySWIG) { continue; }
-				var subDir = targetDir + string.Join(sep, e.Namespace.Split('.'));
+				if (o.IsDefinedBySWIG) { continue; }
+				var subDir = targetDir + string.Join(sep, o.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + sep + e.Name + ".java");
-				Res.AppendFormat("package {0};\r\n\r\n", e.Namespace);
-				OutputEnum(e);
+				var of = System.IO.File.CreateText(subDir + sep + o.Name + ".java");
+
+				if (o.Namespace != string.Empty)
+				{
+					Res.AppendFormat("package {0};\r\n\r\n", o.Namespace);
+				}
+
+				OutputEnum(o);
 				of.Write(Res.ToString());
 				of.Close();
 				Res.Clear();
 			}
 
-			foreach (var c in definisions.Classes)
+			foreach (var o in definisions.Classes)
 			{
 				IndentDepth = 0;
-				if (c.IsDefinedBySWIG) { continue; }
-				if (c.IsDefinedDefault) { continue; }
-				if (!c.IsExported) { continue; }
+				if (o.IsDefinedBySWIG) { continue; }
+				if (o.IsDefinedDefault) { continue; }
+				if (!o.IsExported) { continue; }
 
-				var subDir = targetDir + string.Join(sep, c.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, o.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + sep + c.Name + ".java");
-				Res.AppendFormat("package {0};\r\n\r\n", c.Namespace);
-				OutputClass(c);
+				var of = System.IO.File.CreateText(subDir + sep + o.Name + ".java");
+
+				if (o.Namespace != string.Empty)
+				{
+					Res.AppendFormat("package {0};\r\n\r\n", o.Namespace);
+				}
+
+				OutputClass(o);
 				of.Write(Res.ToString());
 				of.Close();
 				Res.Clear();
 			}
 
-			foreach (var s in definisions.Structs)
+			foreach (var o in definisions.Structs)
 			{
-				if (s.IsDefinedDefault) { continue; }
+				if (o.IsDefinedDefault) { continue; }
 
 				IndentDepth = 0;
-				var subDir = targetDir + string.Join(sep, s.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, o.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + sep + s.Name + ".java");
-				Res.AppendFormat("package {0};\r\n\r\n", s.Namespace);
-				OutputStruct(s);
+				var of = System.IO.File.CreateText(subDir + sep + o.Name + ".java");
+
+				if (o.Namespace != string.Empty)
+				{
+					Res.AppendFormat("package {0};\r\n\r\n", o.Namespace);
+				}
+
+				OutputStruct(o);
 				of.Write(Res.ToString());
 				of.Close();
 				Res.Clear();
 			}
 
-			foreach (var i in definisions.Interfaces)
+			foreach (var o in definisions.Interfaces)
 			{
 				IndentDepth = 0;
-				var subDir = targetDir + string.Join(sep, i.Namespace.Split('.'));
+				var subDir = targetDir + string.Join(sep, o.Namespace.Split('.'));
 				System.IO.Directory.CreateDirectory(subDir);
-				var of = System.IO.File.CreateText(subDir + sep + i.Name + ".java");
-				Res.AppendFormat("package {0};\r\n\r\n", i.Namespace);
-				OutputInterface(i);
+				var of = System.IO.File.CreateText(subDir + sep + o.Name + ".java");
+
+				if(o.Namespace != string.Empty)
+				{
+					Res.AppendFormat("package {0};\r\n\r\n", o.Namespace);
+				}
+				
+				OutputInterface(o);
 				of.Write(Res.ToString());
 				of.Close();
 				Res.Clear();
