@@ -17,15 +17,19 @@ namespace LanguageTranslator
 			var langType = "java";
 			var dlls = new List<string>();
 
-			if (args.Length >= 3)
+			if (args.Length >= 2)
 			{
 				csharpDir = args[0];
 				dstDir = args[1];
-				langType = args[2];
-				
-				foreach(var a in args.Skip(3))
+
+				if (args.Length >= 3)
 				{
-					dlls.Add(a);
+					langType = args[2];
+
+					foreach (var a in args.Skip(3))
+					{
+						dlls.Add(a);
+					}
 				}
 			}
 
