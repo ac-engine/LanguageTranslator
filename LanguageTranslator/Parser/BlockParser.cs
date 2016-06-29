@@ -327,7 +327,7 @@ namespace LanguageTranslator.Parser
 						var memName = mae.Name.ToString();
 						var sym = semanticModel.GetSymbolInfo(mae);
 						var name_ = parentType.Value.Type.Name;
-						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						var namespace_ = parentType.Value.Type.ContainingNamespace.Name;
 						interfaceDefP = definitions.Interfaces.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 					}
 					else if(parentType.Value.Type.TypeKind == TypeKind.Class)
@@ -335,7 +335,7 @@ namespace LanguageTranslator.Parser
 						var memName = mae.Name.ToString();
 						var sym = semanticModel.GetSymbolInfo(mae);
 						var name_ = parentType.Value.Type.Name;
-						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						var namespace_ = parentType.Value.Type.ContainingNamespace.Name;
 						var def = definitions.Classes.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 
 						Action<ClassDef> findBase = null;
@@ -372,7 +372,7 @@ namespace LanguageTranslator.Parser
 					else if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
 						var enumName = selfType.Value.Type.Name;
-						var namespace_ = selfType.Value.Type.ContainingNamespace.ToString();
+						var namespace_ = selfType.Value.Type.ContainingNamespace.Name;
 						enumDefP = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Struct)
@@ -380,7 +380,7 @@ namespace LanguageTranslator.Parser
 						var memName = mae.Name.ToString();
 						var sym = semanticModel.GetSymbolInfo(mae);
 						var name_ = parentType.Value.Type.Name;
-						var namespace_ = parentType.Value.Type.ContainingNamespace.ToString();
+						var namespace_ = parentType.Value.Type.ContainingNamespace.Name;
 						structDefP = definitions.Structs.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 					}
 				}
@@ -1027,7 +1027,7 @@ namespace LanguageTranslator.Parser
 				var ret = new GenericType();
 
 				var name_ = type.Name;
-				var namespace_ = type.ContainingNamespace.ToString();
+				var namespace_ = type.ContainingNamespace.Name;
 				ret.OuterType = new SimpleType
 				{
 					Namespace = namespace_,
@@ -1047,7 +1047,7 @@ namespace LanguageTranslator.Parser
 			{
 				var ret = new ArrayType();
 				var name_ = arrayType.ElementType.Name;
-				var namespace_ = arrayType.ElementType.ContainingNamespace.ToString();
+				var namespace_ = arrayType.ElementType.ContainingNamespace.Name;
 				ret.BaseType = new SimpleType
 				{
 					Namespace = namespace_,
@@ -1061,7 +1061,7 @@ namespace LanguageTranslator.Parser
 				// ポインタは配列にする。
 				var ret = new ArrayType();
 				var name_ = pointerType.PointedAtType.Name;
-				var namespace_ = pointerType.PointedAtType.ContainingNamespace.ToString();
+				var namespace_ = pointerType.PointedAtType.ContainingNamespace.Name;
 				ret.BaseType = new SimpleType
 				{
 					Namespace = namespace_,
@@ -1083,7 +1083,7 @@ namespace LanguageTranslator.Parser
 			else
 			{
 				var name_ = type.Name;
-				var namespace_ = type.ContainingNamespace.ToString();
+				var namespace_ = type.ContainingNamespace.Name;
 				var ret = new SimpleType
 				{
 					Namespace = namespace_,

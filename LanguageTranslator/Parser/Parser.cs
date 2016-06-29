@@ -615,7 +615,7 @@ namespace LanguageTranslator.Parser
                     {
                         OuterType = new SimpleType
                         {
-							Namespace = typeInfo.Type.ContainingNamespace.ToString(),
+							Namespace = typeInfo.Type.ContainingNamespace.Name,
                             TypeName = g.Identifier.ValueText,
                         },
                         InnerType = g.TypeArgumentList.Arguments.Select(x => ParseTypeSpecifier(x, semanticModel)).ToList(),
