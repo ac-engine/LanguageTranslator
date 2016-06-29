@@ -628,7 +628,7 @@ namespace LanguageTranslator.Parser
 
                 var specifier = new SimpleType
                 {
-                    Namespace = type.Type.ContainingNamespace.ToString(),
+                    Namespace = type.Type.ContainingNamespace.Name,
                     TypeName = type.Type.Name,
                 };
 
