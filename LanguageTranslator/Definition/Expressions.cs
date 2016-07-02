@@ -216,6 +216,7 @@ namespace LanguageTranslator.Definition
 			LogicalNot,
 			UnaryPlus,
 			UnaryMinus,
+			PreIncrement,
 		}
 	}
 

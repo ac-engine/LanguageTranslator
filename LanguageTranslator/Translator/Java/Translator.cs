@@ -130,6 +130,8 @@ namespace LanguageTranslator.Translator.Java
 					return "+";
 				case Definition.PrefixUnaryExpression.OperatorType.UnaryMinus:
 					return "-";
+				case Definition.PrefixUnaryExpression.OperatorType.PreIncrement:
+					return "++";
 				default:
 					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
 			}
@@ -269,7 +271,24 @@ namespace LanguageTranslator.Translator.Java
 				}
 				else if (e2.Method != null)
 				{
-					return string.Format("{0}{2}{1}", accessed, e2.Method.Name, generic);
+					if(e2.Method.IsStatic && e2.Class != null)
+					{
+						var fullname = string.Empty;
+						if(e2.Class.Namespace != "")
+						{
+							fullname = e2.Class.Namespace + "." + e2.Class.Name;
+						}
+						else
+						{
+							fullname = e2.Class.Name;
+						}
+
+						return string.Format("{0}{2}{1}", accessed, fullname + "." + e2.Method.Name, generic);
+					}
+					else
+					{
+						return string.Format("{0}{2}{1}", accessed, e2.Method.Name, generic);
+					}
 				}
 				else if (e2.Property != null)
 				{

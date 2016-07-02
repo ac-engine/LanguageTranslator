@@ -336,38 +336,8 @@ namespace LanguageTranslator.Parser
 						var sym = semanticModel.GetSymbolInfo(mae);
 						var name_ = parentType.Value.Type.Name;
 						var namespace_ = Utils.ToStr(parentType.Value.Type.ContainingNamespace);
-						var def = definitions.Classes.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 
-						Action<ClassDef> findBase = null;
-						findBase = (c) =>
-							{
-								if (c != null)
-								{
-									int count = classDefPs.Count;
-
-									foreach (var t in c.BaseTypes)
-									{
-										var t_ = definitions.Find(t);
-										if (t_ != null && t_ is ClassDef)
-										{
-											classDefPs.Add(t_ as ClassDef);
-										}
-									}
-
-									int count_ = classDefPs.Count;
-
-									foreach(var t in classDefPs.Skip(count).Take(count_ - count_).ToArray())
-									{
-										findBase(t);
-									}
-								}
-							};
-
-						if(def != null)
-						{
-							classDefPs.Add(def);
-							findBase(def);
-						}
+						classDefPs = definitions.FindTypeWithBases(namespace_, name_).OfType<ClassDef>().ToList();
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
@@ -454,6 +424,9 @@ namespace LanguageTranslator.Parser
 								exp.Name = null;
 								exp.Class = classDefP;
 								exp.Method = method;
+
+								// staticの場合走査停止
+								if (method.IsStatic) return exp;
 								break;
 							}
 						}
@@ -715,6 +688,9 @@ namespace LanguageTranslator.Parser
 						break;
 					case SyntaxKind.UnaryMinusExpression:
 						st.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
+						break;
+					case SyntaxKind.PreIncrementExpression:
+						st.Type = PrefixUnaryExpression.OperatorType.PreIncrement;
 						break;
 					default:
 						throw new Exception();

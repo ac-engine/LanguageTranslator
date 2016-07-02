@@ -32,6 +32,49 @@ namespace LanguageTranslator.Definition
 			return null;
 		}
 
+		public List<TypeDef> FindTypeWithBases(string namespace_, string name_)
+		{
+			var targets = Classes.OfType<TypeDef>().ToList();
+			targets.AddRange(Structs.OfType<TypeDef>());
+			targets.AddRange(Interfaces.OfType<TypeDef>());
+
+			List<TypeDef> ret = new List<TypeDef>();
+			var def = targets.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
+
+			Action<TypeDef> findBase = null;
+			findBase = (c) =>
+			{
+				if (c != null)
+				{
+					int count = ret.Count;
+
+					foreach (var t in c.BaseTypes)
+					{
+						var t_ = Find(t);
+						if (t_ != null && t_ is ClassDef)
+						{
+							ret.Add(t_ as ClassDef);
+						}
+					}
+
+					int count_ = ret.Count;
+
+					foreach (var t in ret.Skip(count).Take(count_ - count_).ToArray())
+					{
+						findBase(t);
+					}
+				}
+			};
+
+			if (def != null)
+			{
+				ret.Add(def);
+				findBase(def);
+			}
+
+			return ret;
+		}
+
 		public void AddDefault()
 		{
 			{
@@ -228,8 +271,12 @@ namespace LanguageTranslator.Definition
 					MethodDef m = new MethodDef();
 					m.Name = "WriteLine";
 					m.Parameters.Add(new ParameterDef() { Name = "value" });
+					m.IsStatic = true;
 					c.Methods.Add(m);
 				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
 			}
 
 			{
