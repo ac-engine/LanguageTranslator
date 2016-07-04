@@ -48,6 +48,8 @@ namespace LanguageTranslator.Definition
 		/// </summary>
 		public PropertyDef Property = null;
 
+		public bool IsProperty = false;
+
 		/// <summary>
 		/// ジェネリックだった場合
 		/// </summary>

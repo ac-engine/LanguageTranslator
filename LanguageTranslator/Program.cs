@@ -344,7 +344,7 @@ namespace LanguageTranslator
 					if (ae != null)
 					{
 						var mae = ae.Target as Definition.MemberAccessExpression;
-						if (mae != null && mae.Property != null)
+						if (mae != null && mae.IsProperty)
 						{
 							// setter差し替え
 							var invocation = new Definition.InvocationExpression();
@@ -352,7 +352,7 @@ namespace LanguageTranslator
 							// 関数設定
 							var memf = new Definition.MemberAccessExpression();
 							memf.Method = new Definition.MethodDef();
-							memf.Method.Name = "set" + mae.Property.Name;
+							memf.Method.Name = "set" + (mae.Property != null ? mae.Property.Name : mae.Name);
 							memf.Expression = mae.Expression;
 
 							invocation.Method = memf;
@@ -411,7 +411,6 @@ namespace LanguageTranslator
 						invocation.Args = new Definition.Expression[0];
 
 						return Tuple.Create<bool, object>(true, invocation);
-
 					}
 
 					var ime = o as Definition.IdentifierNameExpression;

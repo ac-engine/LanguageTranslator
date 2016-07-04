@@ -320,6 +320,12 @@ namespace LanguageTranslator.Parser
 				InterfaceDef interfaceDefP = null;
 				StructDef structDefP = null;
 
+				// プロパティである
+				if(propertySymbol != null)
+				{
+					exp.IsProperty = true;
+				}
+
 				if (parentType.HasValue && parentType.Value.Type != null)
 				{
 					if (parentType.Value.Type.TypeKind == TypeKind.Interface)
