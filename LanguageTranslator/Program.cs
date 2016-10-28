@@ -94,12 +94,16 @@ namespace LanguageTranslator
 
 			editor.AddMethodConverter("System", "Console", "WriteLine", "println");
 
+			editor.AddMethodConverter("System", "String", "Substring", "substring");
+
 			editor.AddMethodConverter("System", "Math", "Sqrt", "sqrt");
 			editor.AddMethodConverter("System", "Math", "Sin", "sin");
 			editor.AddMethodConverter("System", "Math", "Cos", "cos");
 			editor.AddMethodConverter("System", "Math", "Atan2", "atan2");
 			editor.AddMethodConverter("System", "Math", "Tan", "tan");
 			editor.AddMethodConverter("System", "Math", "Exp", "exp");
+			editor.AddMethodConverter("System", "Math", "Max", "max");
+			editor.AddMethodConverter("System", "Math", "Min", "min");
 
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
@@ -273,6 +277,10 @@ namespace LanguageTranslator
 			}
 
 			{
+				editor.AddEditFuncPropToMethodConverter("System", "String", "Length", "length");
+			}
+
+			{
 				// ListのCount差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
@@ -334,7 +342,7 @@ namespace LanguageTranslator
 
 				editor.AddEditFunc(func);
 			}
-
+			
 			{
 				// 代入のプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
@@ -395,7 +403,7 @@ namespace LanguageTranslator
 				{
 					var mae = o as Definition.MemberAccessExpression;
 
-					if (mae != null && mae.Property != null)
+					if (mae?.Property != null)
 					{
 						// getter差し替え
 						var invocation = new Definition.InvocationExpression();

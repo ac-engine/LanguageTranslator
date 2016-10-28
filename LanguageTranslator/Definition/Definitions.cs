@@ -282,6 +282,29 @@ namespace LanguageTranslator.Definition
 			{
 				ClassDef c = new ClassDef();
 				c.Namespace = "System";
+				c.Name = "String";
+
+				{
+					PropertyDef m = new PropertyDef();
+					m.Name = "Length";
+					c.Properties.Add(m);
+				}
+	
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Substring";
+					m.Parameters.Add(new ParameterDef() { Name = "startIndex" });
+					m.Parameters.Add(new ParameterDef() { Name = "length" });
+					c.Methods.Add(m);
+				}
+
+				c.IsDefinedDefault = true;
+				Classes.Add(c);
+			}
+
+			{
+				ClassDef c = new ClassDef();
+				c.Namespace = "System";
 				c.Name = "Math";
 
 				{
@@ -325,6 +348,24 @@ namespace LanguageTranslator.Definition
 					MethodDef m = new MethodDef();
 					m.Name = "Exp";
 					m.Parameters.Add(new ParameterDef() { Name = "d" });
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Max";
+					m.Parameters.Add(new ParameterDef() { Name = "val1" });
+					m.Parameters.Add(new ParameterDef() { Name = "val2" });
+
+					c.Methods.Add(m);
+				}
+
+				{
+					MethodDef m = new MethodDef();
+					m.Name = "Min";
+					m.Parameters.Add(new ParameterDef() { Name = "val1" });
+					m.Parameters.Add(new ParameterDef() { Name = "val2" });
+
 					c.Methods.Add(m);
 				}
 

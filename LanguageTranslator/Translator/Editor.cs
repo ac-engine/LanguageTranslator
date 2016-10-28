@@ -1132,5 +1132,48 @@ namespace LanguageTranslator.Translator
 			return typeString;
 		}
 
+		/// <summary>
+		/// プロパティを関数に変換する編集コマンドを追加する。
+		/// </summary>
+		/// <param name="namespace_"></param>
+		/// <param name="type_"></param>
+		/// <param name="prop_"></param>
+		/// <param name="method"></param>
+		/// <returns></returns>
+		public void AddEditFuncPropToMethodConverter(string namespace_, string type_, string prop_, string method)
+		{
+			Func<object, Tuple<bool, object>> func = (object o) =>
+			{
+				var mae = o as Definition.MemberAccessExpression;
+
+				// プロパティが条件を満たさない
+				if(mae?.Property?.Name != prop_)
+				{
+					return Tuple.Create<bool, object>(true, null);
+				}
+
+				if (mae?.Class?.Namespace == namespace_ && mae?.Class?.Name == type_)
+				{
+					// getter差し替え
+					var invocation = new Definition.InvocationExpression();
+
+					// 関数設定
+					var memf = new Definition.MemberAccessExpression();
+					memf.Method = new Definition.MethodDef();
+					memf.Method.Name = method;
+					memf.Expression = mae.Expression;
+					invocation.Method = memf;
+
+					// 引数設定
+					invocation.Args = new Definition.Expression[0];
+
+					return Tuple.Create<bool, object>(true, invocation);
+				}
+
+				return Tuple.Create<bool, object>(true, null);
+			};
+
+			AddEditFunc(func);
+		}
 	}
 }
