@@ -71,6 +71,17 @@ namespace LanguageTranslator
 				codeCommentParser.Parse(xmlPath, definitions);
 			}
 
+			// 色のみ強制変換
+			var color_ = definitions.Structs.FirstOrDefault(_ => _.Name == "Color");
+			if(color_ != null)
+			{
+				color_.Fields[0].Type = new Definition.SimpleType() { Namespace = "System", TypeName = "Int16" };
+				color_.Fields[1].Type = new Definition.SimpleType() { Namespace = "System", TypeName = "Int16" };
+				color_.Fields[2].Type = new Definition.SimpleType() { Namespace = "System", TypeName = "Int16" };
+				color_.Fields[3].Type = new Definition.SimpleType() { Namespace = "System", TypeName = "Int16" };
+			}
+	
+
 			Translator.Editor editor = new Translator.Editor(definitions);
 
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
@@ -110,7 +121,8 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Int32", "", "int");
 			editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Double", "", "double");
-			editor.AddTypeConverter("System", "Byte", "", "short");			// uint8_tが存在しないため
+			editor.AddTypeConverter("System", "Int16", "", "short");
+			editor.AddTypeConverter("System", "Byte", "", "byte");
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
 
@@ -364,7 +376,7 @@ namespace LanguageTranslator
 
 					if (leftType == null || rightType == null) return Tuple.Create<bool, object>(true, null);
 
-					if (leftType.TypeName == "Vector2DF" && rightType.TypeName == "float" && be.Operator == Definition.BinaryExpression.OperatorType.Divide)
+					if (leftType.TypeName == "Vector2DF" && rightType.TypeName == "Single" && be.Operator == Definition.BinaryExpression.OperatorType.Divide)
 					{
 						// getter差し替え
 						var invocation = new Definition.InvocationExpression();
@@ -395,6 +407,37 @@ namespace LanguageTranslator
 
 			{
 				editor.AddEditFuncPropToMethodConverter("System", "String", "Length", "length");
+			}
+
+			{
+				// Listの[]差し替え
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var eae = o as Definition.ElementAccessExpression;
+					var gt = eae?.Value?.SelfType as Definition.GenericType;
+					if (gt?.OuterType.TypeName == "List")
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "get";
+						memf.Expression = eae.Value;
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new[] { eae.Arg };
+
+						return Tuple.Create<bool, object>(true, invocation);
+
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
 			}
 
 			{
