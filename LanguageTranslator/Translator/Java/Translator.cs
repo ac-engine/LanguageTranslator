@@ -285,6 +285,20 @@ namespace LanguageTranslator.Translator.Java
 
 						return string.Format("{0}{2}{1}", accessed, fullname + "." + e2.Method.Name, generic);
 					}
+					else if (e2.Method.IsStatic && e2.Struct != null)
+					{
+						var fullname = string.Empty;
+						if (e2.Struct.Namespace != "")
+						{
+							fullname = e2.Struct.Namespace + "." + e2.Struct.Name;
+						}
+						else
+						{
+							fullname = e2.Struct.Name;
+						}
+
+						return string.Format("{0}{2}{1}", accessed, fullname + "." + e2.Method.Name, generic);
+					}
 					else
 					{
 						return string.Format("{0}{2}{1}", accessed, e2.Method.Name, generic);
@@ -354,7 +368,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.TypeExpression)
 			{
 				var e2 = (Definition.TypeExpression)e;
-				return string.Format("{0}", GetTypeSpecifier(e2.Type));
+				return string.Format("{0}", GetTypeSpecifier(e2.SelfType));
 			}
 			else
 			{

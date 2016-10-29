@@ -277,6 +277,84 @@ namespace LanguageTranslator
 			}
 
 			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var be = o as Definition.BinaryExpression;
+
+					var leftType = be?.Left?.SelfType as Definition.SimpleType;
+					var rightType = be?.Right?.SelfType as Definition.SimpleType;
+
+					if (leftType == null || rightType == null) return Tuple.Create<bool, object>(true, null);
+
+					if (leftType.TypeName == "Vector2DF" && rightType.TypeName == "Vector2DF" && be.Operator == Definition.BinaryExpression.OperatorType.Add)
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "Add";
+						memf.Method.IsStatic = true;
+
+						memf.Struct = new Definition.StructDef();
+						memf.Struct.Name = "Vector2DF";
+						memf.Struct.Namespace = "asd";
+
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new[] { be.Left, be.Right };
+
+						return Tuple.Create<bool, object>(true, invocation);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			{
+				Func<object, Tuple<bool, object>> func = (object o) =>
+				{
+					var be = o as Definition.BinaryExpression;
+	
+					var leftType = be?.Left?.SelfType as Definition.SimpleType;
+					var rightType = be?.Right?.SelfType as Definition.SimpleType;
+
+					if (leftType == null || rightType == null) return Tuple.Create<bool, object>(true, null);
+
+					if(leftType.TypeName == "Vector2DF" && rightType.TypeName == "Vector2DF" && be.Operator == Definition.BinaryExpression.OperatorType.Divide)
+					{
+						// getter差し替え
+						var invocation = new Definition.InvocationExpression();
+
+						// 関数設定
+						var memf = new Definition.MemberAccessExpression();
+						memf.Method = new Definition.MethodDef();
+						memf.Method.Name = "Divide";
+						memf.Method.IsStatic = true;
+
+						memf.Struct = new Definition.StructDef();
+						memf.Struct.Name = "Vector2DF";
+						memf.Struct.Namespace = "asd";
+
+						invocation.Method = memf;
+
+						// 引数設定
+						invocation.Args = new[] { be.Left, be.Right };
+
+						return Tuple.Create<bool, object>(true, invocation);
+					}
+
+					return Tuple.Create<bool, object>(true, null);
+				};
+
+				editor.AddEditFunc(func);
+			}
+
+			{
 				editor.AddEditFuncPropToMethodConverter("System", "String", "Length", "length");
 			}
 

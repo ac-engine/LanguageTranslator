@@ -440,7 +440,10 @@ namespace LanguageTranslator.Translator
 			{
 				return;
 			}
-			else if (e is Definition.MemberAccessExpression)
+
+			Edit(func, ref e.SelfType);
+
+			if (e is Definition.MemberAccessExpression)
 			{
 				var e_ = e as Definition.MemberAccessExpression;
 				Edit(func, ref e_.Expression);
@@ -530,8 +533,6 @@ namespace LanguageTranslator.Translator
 			}
 			else if (e is Definition.TypeExpression)
 			{
-				var e_ = e as Definition.TypeExpression;
-				Edit(func, ref e_.Type);
 			}
 			else
 			{
@@ -966,7 +967,10 @@ namespace LanguageTranslator.Translator
 			{
 				return e;
 			}
-			else if (e is Definition.MemberAccessExpression)
+
+			e.SelfType = ConvertTypeName(e.SelfType);
+
+			if (e is Definition.MemberAccessExpression)
 			{
 				var e_ = e as Definition.MemberAccessExpression;
 				e_.Expression = ConvertTypeName(e_.Expression);
@@ -1059,9 +1063,7 @@ namespace LanguageTranslator.Translator
 			}
 			else if (e is Definition.TypeExpression)
 			{
-				var e_ = e as Definition.TypeExpression;
-				e_.Type = ConvertTypeName(e_.Type);
-				return e_;
+				return e;
 			}
 
 			throw new Exception();

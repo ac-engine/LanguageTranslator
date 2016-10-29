@@ -290,9 +290,16 @@ namespace LanguageTranslator.Parser
 			var predf = syntax as PredefinedTypeSyntax;
 			*/
 
+			// 自己の型を解析
+			TypeInfo? selfTypeInfo = null;
+			selfTypeInfo = semanticModel.GetTypeInfo(syntax);
+			var selfType = ParseType(syntax, selfTypeInfo, semanticModel);
+
 			if (mae != null)
 			{
 				MemberAccessExpression exp = new MemberAccessExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
 				exp.Name = mae.Name.ToString();
 
@@ -301,9 +308,6 @@ namespace LanguageTranslator.Parser
 					var gns_ = mae.Name as GenericNameSyntax;
 					exp.Types = gns_.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
 				}
-
-				TypeInfo? selfType = null;
-				selfType = semanticModel.GetTypeInfo(mae);
 
 				TypeInfo? parentType = null;
 				if (mae.Expression != null) parentType = semanticModel.GetTypeInfo(mae.Expression);
@@ -347,8 +351,8 @@ namespace LanguageTranslator.Parser
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Enum)
 					{
-						var enumName = selfType.Value.Type.Name;
-						var namespace_ = Utils.ToStr(selfType.Value.Type.ContainingNamespace);
+						var enumName = selfTypeInfo.Value.Type.Name;
+						var namespace_ = Utils.ToStr(selfTypeInfo.Value.Type.ContainingNamespace);
 						enumDefP = definitions.Enums.Where(_ => _.Namespace == namespace_ && _.Name == enumName).FirstOrDefault();
 					}
 					else if (parentType.Value.Type.TypeKind == TypeKind.Struct)
@@ -514,6 +518,10 @@ namespace LanguageTranslator.Parser
 				var propertySymbol = symbol.Symbol as IPropertySymbol;
 
 				var exp = new GenericNameExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+
 				exp.Name = gns.Identifier.ValueText;
 
 				if (methodSymbol != null)
@@ -533,62 +541,79 @@ namespace LanguageTranslator.Parser
 			{
 				var text = le.GetText().ToString();
 				var exp = new LiteralExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+
 				exp.Text = text;
 
 				return exp;
 			}
 			else if (ie != null)
 			{
-				var st = new InvocationExpression();
+				var exp = new InvocationExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Method = ParseExpression(ie.Expression, semanticModel);
-				st.Args = ie.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
 
-				return st;
+				exp.Method = ParseExpression(ie.Expression, semanticModel);
+				exp.Args = ie.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
+
+				return exp;
 			}
 			else if (oce != null)
 			{
-				var st = new ObjectCreationExpression();
-				st.Type = ParseType(oce.Type, semanticModel);
+				var exp = new ObjectCreationExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+				exp.Type = ParseType(oce.Type, semanticModel);
 
 				if(oce.ArgumentList != null)
 				{
-					st.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
+					exp.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
 				}
 				else
 				{
-					st.Args = new Expression[0];
+					exp.Args = new Expression[0];
 				}
 				
-				return st;
+				return exp;
 			}
 			else if (ce != null)
 			{
-				var st = new CastExpression();
+				var exp = new CastExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Type = ParseType(ce.Type, semanticModel);
-				st.Expression = ParseExpression(ce.Expression, semanticModel);
-				return st;
+				exp.Type = ParseType(ce.Type, semanticModel);
+				exp.Expression = ParseExpression(ce.Expression, semanticModel);
+				return exp;
 			}
 			else if (thise != null)
 			{
-				var st = new ThisExpression();
-				return st;
+				var exp = new ThisExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+				return exp;
 			}
 			else if (ae != null)
 			{
-				var st = new AssignmentExpression();
+				var exp = new AssignmentExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				if (ae.Kind() == SyntaxKind.AddAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Add;
-				if (ae.Kind() == SyntaxKind.SubtractAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Substract;
-				if (ae.Kind() == SyntaxKind.SimpleAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Simple;
-				if (ae.Kind() == SyntaxKind.DivideAssignmentExpression) st.Type = AssignmentExpression.OperatorType.Divide;
+				if (ae.Kind() == SyntaxKind.AddAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Add;
+				if (ae.Kind() == SyntaxKind.SubtractAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Substract;
+				if (ae.Kind() == SyntaxKind.SimpleAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Simple;
+				if (ae.Kind() == SyntaxKind.DivideAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Divide;
 
-				st.Temp = ae.Kind();
-				st.Target = ParseExpression(ae.Left, semanticModel);
-				st.Expression = ParseExpression(ae.Right, semanticModel);
+				exp.Temp = ae.Kind();
+				exp.Target = ParseExpression(ae.Left, semanticModel);
+				exp.Expression = ParseExpression(ae.Right, semanticModel);
 
-				return st;
+				return exp;
 			}
 			else if (pe != null)
 			{
@@ -602,28 +627,28 @@ namespace LanguageTranslator.Parser
 				var fieldSymbol = symbol.Symbol as IFieldSymbol;
 				var propertySymbol = symbol.Symbol as IPropertySymbol;
 
-				var st = new IdentifierNameExpression();
-				st.Name = ine.Identifier.Text;
+				var exp = new IdentifierNameExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				TypeInfo? selfType = null;
-				selfType = semanticModel.GetTypeInfo(ine);
+				exp.Name = ine.Identifier.Text;
 
-				if (selfType != null && selfType.HasValue && selfType.Value.Type != null)
+				if (selfTypeInfo?.Type != null)
 				{
-					st.Type = ParseType(selfType.Value.Type);
+					exp.Type = ParseType(selfTypeInfo.Value.Type);
 				}
 
 				if (methodSymbol != null)
 				{
-					st.IsMethod = true;
+					exp.IsMethod = true;
 				}
 
 				if (propertySymbol != null)
 				{
-					st.IsProperty = true;
+					exp.IsProperty = true;
 				}
 
-				return st;
+				return exp;
 			}
 			else if (eae != null)
 			{
@@ -632,94 +657,106 @@ namespace LanguageTranslator.Parser
 					throw new ParseException("多次元配列は使用禁止です。");
 				}
 
-				var exp = eae.Expression;
+				var value_ = eae.Expression;
+
 				var arg = eae.ArgumentList.Arguments[0].Expression;
 
-				var st = new ElementAccessExpression();
+				var exp = new ElementAccessExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Value = ParseExpression(exp, semanticModel);
-				st.Arg = ParseExpression(arg, semanticModel);
+				exp.Value = ParseExpression(value_, semanticModel);
+				exp.Arg = ParseExpression(arg, semanticModel);
 
-				return st;
+				return exp;
 			}
 			else if (be != null)
 			{
-				var st = new BinaryExpression();
+				var exp = new BinaryExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Left = ParseExpression(be.Left, semanticModel);
-				st.Right = ParseExpression(be.Right, semanticModel);
+				exp.Left = ParseExpression(be.Left, semanticModel);
+				exp.Right = ParseExpression(be.Right, semanticModel);
 
-				if (be.Kind() == SyntaxKind.AddExpression) st.Operator = BinaryExpression.OperatorType.Add;
-				if (be.Kind() == SyntaxKind.SubtractExpression) st.Operator = BinaryExpression.OperatorType.Subtract;
-				if (be.Kind() == SyntaxKind.IsExpression) st.Operator = BinaryExpression.OperatorType.Is;
-				if (be.Kind() == SyntaxKind.AsExpression) st.Operator = BinaryExpression.OperatorType.As;
-				if (be.Kind() == SyntaxKind.EqualsExpression) st.Operator = BinaryExpression.OperatorType.Equals;
-				if (be.Kind() == SyntaxKind.NotEqualsExpression) st.Operator = BinaryExpression.OperatorType.NotEquals;
+				if (be.Kind() == SyntaxKind.AddExpression) exp.Operator = BinaryExpression.OperatorType.Add;
+				if (be.Kind() == SyntaxKind.SubtractExpression) exp.Operator = BinaryExpression.OperatorType.Subtract;
+				if (be.Kind() == SyntaxKind.IsExpression) exp.Operator = BinaryExpression.OperatorType.Is;
+				if (be.Kind() == SyntaxKind.AsExpression) exp.Operator = BinaryExpression.OperatorType.As;
+				if (be.Kind() == SyntaxKind.EqualsExpression) exp.Operator = BinaryExpression.OperatorType.Equals;
+				if (be.Kind() == SyntaxKind.NotEqualsExpression) exp.Operator = BinaryExpression.OperatorType.NotEquals;
 
-				if (be.Kind() == SyntaxKind.LogicalAndExpression) st.Operator = BinaryExpression.OperatorType.LogicalAnd;
-				if (be.Kind() == SyntaxKind.LogicalOrExpression) st.Operator = BinaryExpression.OperatorType.LogicalOr;
+				if (be.Kind() == SyntaxKind.LogicalAndExpression) exp.Operator = BinaryExpression.OperatorType.LogicalAnd;
+				if (be.Kind() == SyntaxKind.LogicalOrExpression) exp.Operator = BinaryExpression.OperatorType.LogicalOr;
 
-				if (be.Kind() == SyntaxKind.GreaterThanExpression) st.Operator = BinaryExpression.OperatorType.GreaterThan;
-				if (be.Kind() == SyntaxKind.GreaterThanOrEqualExpression) st.Operator = BinaryExpression.OperatorType.GreaterThanOrEqual;
+				if (be.Kind() == SyntaxKind.GreaterThanExpression) exp.Operator = BinaryExpression.OperatorType.GreaterThan;
+				if (be.Kind() == SyntaxKind.GreaterThanOrEqualExpression) exp.Operator = BinaryExpression.OperatorType.GreaterThanOrEqual;
 
-				if (be.Kind() == SyntaxKind.LessThanExpression) st.Operator = BinaryExpression.OperatorType.LessThan;
-				if (be.Kind() == SyntaxKind.LessThanOrEqualExpression) st.Operator = BinaryExpression.OperatorType.LessThanOrEqual;
+				if (be.Kind() == SyntaxKind.LessThanExpression) exp.Operator = BinaryExpression.OperatorType.LessThan;
+				if (be.Kind() == SyntaxKind.LessThanOrEqualExpression) exp.Operator = BinaryExpression.OperatorType.LessThanOrEqual;
 
-				if (be.Kind() == SyntaxKind.MultiplyExpression) st.Operator = BinaryExpression.OperatorType.Multiply;
-				if (be.Kind() == SyntaxKind.DivideExpression) st.Operator = BinaryExpression.OperatorType.Divide;
+				if (be.Kind() == SyntaxKind.MultiplyExpression) exp.Operator = BinaryExpression.OperatorType.Multiply;
+				if (be.Kind() == SyntaxKind.DivideExpression) exp.Operator = BinaryExpression.OperatorType.Divide;
 
-				if (be.Kind() == SyntaxKind.ModuloExpression) st.Operator = BinaryExpression.OperatorType.Modulo;
+				if (be.Kind() == SyntaxKind.ModuloExpression) exp.Operator = BinaryExpression.OperatorType.Modulo;
 
-				if(st.Operator == BinaryExpression.OperatorType.None)
+				if(exp.Operator == BinaryExpression.OperatorType.None)
 				{
 					var span_ = syntax.SyntaxTree.GetLineSpan(syntax.Span);
 					Console.WriteLine(string.Format("{0} : {1} には未対応です。", span_, be.Kind()));
 				}
 
-				return st;
+				return exp;
 			}
 			else if (preue != null)
 			{
-				var st = new PrefixUnaryExpression();
+				var exp = new PrefixUnaryExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Expression = ParseExpression(preue.Operand, semanticModel);
+				exp.Expression = ParseExpression(preue.Operand, semanticModel);
 
 				switch(preue.Kind())
 				{
 					case SyntaxKind.LogicalNotExpression:
-						st.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
+						exp.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
 						break;
 					case SyntaxKind.UnaryPlusExpression:
-						st.Type = PrefixUnaryExpression.OperatorType.UnaryPlus;
+						exp.Type = PrefixUnaryExpression.OperatorType.UnaryPlus;
 						break;
 					case SyntaxKind.UnaryMinusExpression:
-						st.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
+						exp.Type = PrefixUnaryExpression.OperatorType.UnaryMinus;
 						break;
 					case SyntaxKind.PreIncrementExpression:
-						st.Type = PrefixUnaryExpression.OperatorType.PreIncrement;
+						exp.Type = PrefixUnaryExpression.OperatorType.PreIncrement;
 						break;
 					default:
 						throw new Exception();
 						break;
 				}
 
-				return st;
+				return exp;
 			}
 			else if (poue != null)
 			{
-				var st = new PostfixUnaryExpression();
+				var exp = new PostfixUnaryExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				st.Operand = ParseExpression(poue.Operand, semanticModel);
+				exp.Operand = ParseExpression(poue.Operand, semanticModel);
 
-				if (poue.Kind() == SyntaxKind.PostIncrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostIncrement;
-				if (poue.Kind() == SyntaxKind.PostDecrementExpression) st.Type = PostfixUnaryExpression.OperatorType.PostDecrement;
+				if (poue.Kind() == SyntaxKind.PostIncrementExpression) exp.Type = PostfixUnaryExpression.OperatorType.PostIncrement;
+				if (poue.Kind() == SyntaxKind.PostDecrementExpression) exp.Type = PostfixUnaryExpression.OperatorType.PostDecrement;
 
-				return st;
+				return exp;
 			}
 			else if(basee != null)
 			{
-				var st = new BaseExpression();
-				return st;
+				var exp = new BaseExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+				return exp;
 			}
 			else if (ace != null || sace != null)
 			{
@@ -729,33 +766,31 @@ namespace LanguageTranslator.Parser
 				if (ace != null) ats = ace.Type;
 				if (sace != null) ats = sace.Type as ArrayTypeSyntax;
 
-				var st = new ObjectArrayCreationExpression();
-				st.Type = ParseType(ats.ElementType, semanticModel);
-				st.Args = ats.RankSpecifiers.Select(_ => ParseExpression(_.Sizes.FirstOrDefault(), semanticModel)).ToArray();
+				var exp = new ObjectArrayCreationExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
 
-				return st;
+				exp.Type = ParseType(ats.ElementType, semanticModel);
+				exp.Args = ats.RankSpecifiers.Select(_ => ParseExpression(_.Sizes.FirstOrDefault(), semanticModel)).ToArray();
+
+				return exp;
 			}
 			else if (syntax is PredefinedTypeSyntax)
 			{
 				var s = syntax as PredefinedTypeSyntax;
-				TypeInfo? selfType = null;
-				selfType = semanticModel.GetTypeInfo(syntax);
-				var type = ParseType(syntax, selfType, semanticModel);
-
-				var te = new TypeExpression();
-				te.Type = type;
-				return te;
+				var exp = new TypeExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+				return exp;
 			}
 			else if (syntax is QualifiedNameSyntax)
 			{
 				var s = syntax as QualifiedNameSyntax;
-				TypeInfo? selfType = null;
-				selfType = semanticModel.GetTypeInfo(syntax);
-				var type = ParseType(syntax, selfType, semanticModel);
 
-				var te = new TypeExpression();
-				te.Type = type;
-				return te;
+				var exp = new TypeExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+				return exp;
 			}
 
 			var span = syntax.SyntaxTree.GetLineSpan(syntax.Span);

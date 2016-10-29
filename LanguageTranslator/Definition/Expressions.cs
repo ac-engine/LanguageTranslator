@@ -149,7 +149,6 @@ namespace LanguageTranslator.Definition
 
 	class TypeExpression : Expression
 	{
-		public TypeSpecifier Type;
 	}
 
 	/// <summary>
@@ -234,6 +233,10 @@ namespace LanguageTranslator.Definition
 
 	class Expression
 	{
-
+		/// <summary>
+		/// 自己の型
+		/// </summary>
+		public TypeSpecifier SelfType;
+		internal ExpressionSyntax Internal = null;
 	}
 }
