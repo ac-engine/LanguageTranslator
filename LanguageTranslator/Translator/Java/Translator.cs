@@ -370,6 +370,11 @@ namespace LanguageTranslator.Translator.Java
 				var e2 = (Definition.TypeExpression)e;
 				return string.Format("{0}", GetTypeSpecifier(e2.SelfType));
 			}
+			else if (e is Definition.InitializerExpression)
+			{
+				var e2 = (Definition.InitializerExpression)e;
+				return "{\n" + string.Format("{0}", string.Join(",\n", Array.ConvertAll(e2.Expressions, GetExpression))) + "}";
+			}
 			else
 			{
 				throw new NotImplementedException("unknown expression " + e.GetType().ToString());

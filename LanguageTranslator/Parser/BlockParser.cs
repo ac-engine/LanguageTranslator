@@ -279,6 +279,8 @@ namespace LanguageTranslator.Parser
 
 			var ace = syntax as ArrayCreationExpressionSyntax;
 			var sace = syntax as StackAllocArrayCreationExpressionSyntax;
+
+			var iee = syntax as InitializerExpressionSyntax;
 			/*
 			var coe = syntax as ConditionalExpressionSyntax;
 			var sle = syntax as SimpleLambdaExpressionSyntax;
@@ -755,6 +757,17 @@ namespace LanguageTranslator.Parser
 				var exp = new BaseExpression();
 				exp.SelfType = selfType;
 				exp.Internal = syntax;
+
+				return exp;
+			}
+			else if(iee != null)
+			{
+				var exp = new InitializerExpression();
+				exp.SelfType = selfType;
+				exp.Internal = syntax;
+
+				var expressions = iee.Expressions.Select(_ => _).ToArray();
+				exp.Expressions = expressions.Select(_ => ParseExpression(_, semanticModel)).ToArray();
 
 				return exp;
 			}

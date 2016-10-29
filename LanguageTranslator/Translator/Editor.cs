@@ -534,6 +534,14 @@ namespace LanguageTranslator.Translator
 			else if (e is Definition.TypeExpression)
 			{
 			}
+			else if (e is Definition.InitializerExpression)
+			{
+				var e_ = e as Definition.InitializerExpression;
+				for (int i = 0; i < e_.Expressions.Length; i++)
+				{
+					Edit(func, ref e_.Expressions[i]);
+				}
+			}
 			else
 			{
 				throw new Exception();
@@ -1064,6 +1072,12 @@ namespace LanguageTranslator.Translator
 			else if (e is Definition.TypeExpression)
 			{
 				return e;
+			}
+			else if (e is Definition.InitializerExpression)
+			{
+				var e_ = e as Definition.InitializerExpression;
+				e_.Expressions = e_.Expressions.Select(_ => ConvertTypeName(_)).ToArray();
+				return e_;
 			}
 
 			throw new Exception();

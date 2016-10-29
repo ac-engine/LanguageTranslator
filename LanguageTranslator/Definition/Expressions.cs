@@ -231,6 +231,11 @@ namespace LanguageTranslator.Definition
 
 	}
 
+	class InitializerExpression : Expression
+	{
+		public Expression[] Expressions = new Expression[0];
+	}
+
 	class Expression
 	{
 		/// <summary>
