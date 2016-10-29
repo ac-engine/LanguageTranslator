@@ -772,7 +772,7 @@ namespace LanguageTranslator
 								if (t_.TypeName == "Byte")
 								{
 									t_.Namespace = "java.lang";
-									t_.TypeName = "Integer";
+									t_.TypeName = "Byte";
 								}
 
 								if (t_.TypeName == "IntPtr")
