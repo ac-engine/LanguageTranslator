@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace LanguageTranslator.Translator
 {
+	enum Language
+	{
+		Java,
+		Cpp,
+	}
 
 	class Editor
 	{
