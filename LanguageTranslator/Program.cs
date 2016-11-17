@@ -84,6 +84,22 @@ namespace LanguageTranslator
 
 			Translator.Editor editor = new Translator.Editor(definitions);
 
+			// サンプル向け
+			if(definitions.Classes.Any(_=>_.Name == "Program"))
+			{
+				var c = definitions.Classes.FirstOrDefault(_ => _.Name == "Program");
+				var m = c.Methods.FirstOrDefault(_ => _.Name == "Main");
+				m.Name = "main";
+				m.AccessLevel = Definition.AccessLevel.Public;
+				c.UserCode =
+					@"
+	static
+	{
+		System.loadLibrary(""Altseed_core"");
+	}
+			";
+			}
+
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Add", "add");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "List", "Clear", "clear");
