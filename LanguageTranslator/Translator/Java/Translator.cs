@@ -218,6 +218,10 @@ namespace LanguageTranslator.Translator.Java
 				{
 					return string.Format("{0} /= {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
 				}
+				else if (e2.Type == Definition.AssignmentExpression.OperatorType.Modulo)
+				{
+					return string.Format("{0} %= {1}", GetExpression(e2.Target), GetExpression(e2.Expression));
+				}
 				else
 				{
 					throw new Exception();

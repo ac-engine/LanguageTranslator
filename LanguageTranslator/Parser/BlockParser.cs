@@ -305,7 +305,7 @@ namespace LanguageTranslator.Parser
 
 				exp.Name = mae.Name.ToString();
 
-				if(mae.Name is GenericNameSyntax)
+				if (mae.Name is GenericNameSyntax)
 				{
 					var gns_ = mae.Name as GenericNameSyntax;
 					exp.Types = gns_.TypeArgumentList.Arguments.Select(_ => ParseType(_, semanticModel)).ToArray();
@@ -327,7 +327,7 @@ namespace LanguageTranslator.Parser
 				StructDef structDefP = null;
 
 				// プロパティである
-				if(propertySymbol != null)
+				if (propertySymbol != null)
 				{
 					exp.IsProperty = true;
 				}
@@ -342,7 +342,7 @@ namespace LanguageTranslator.Parser
 						var namespace_ = Utils.ToStr(parentType.Value.Type.ContainingNamespace);
 						interfaceDefP = definitions.Interfaces.Where(_ => _.Namespace == namespace_ && _.Name == name_).FirstOrDefault();
 					}
-					else if(parentType.Value.Type.TypeKind == TypeKind.Class)
+					else if (parentType.Value.Type.TypeKind == TypeKind.Class)
 					{
 						var memName = mae.Name.ToString();
 						var sym = semanticModel.GetSymbolInfo(mae);
@@ -501,7 +501,7 @@ namespace LanguageTranslator.Parser
 					}
 				}
 
-				if(exp.EnumMember != null)
+				if (exp.EnumMember != null)
 				{
 					// enumのメンバーだった場合、親は必ずenumなのでこれ以上走査しない
 				}
@@ -512,7 +512,7 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
-			else if(gns != null)
+			else if (gns != null)
 			{
 				var symbol = semanticModel.GetSymbolInfo(gns);
 				var methodSymbol = symbol.Symbol as IMethodSymbol;
@@ -571,7 +571,7 @@ namespace LanguageTranslator.Parser
 
 				exp.Type = ParseType(oce.Type, semanticModel);
 
-				if(oce.ArgumentList != null)
+				if (oce.ArgumentList != null)
 				{
 					exp.Args = oce.ArgumentList.Arguments.Select(_ => ParseExpression(_.Expression, semanticModel)).ToArray();
 				}
@@ -579,7 +579,7 @@ namespace LanguageTranslator.Parser
 				{
 					exp.Args = new Expression[0];
 				}
-				
+
 				return exp;
 			}
 			else if (ce != null)
@@ -610,6 +610,7 @@ namespace LanguageTranslator.Parser
 				if (ae.Kind() == SyntaxKind.SubtractAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Substract;
 				if (ae.Kind() == SyntaxKind.SimpleAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Simple;
 				if (ae.Kind() == SyntaxKind.DivideAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Divide;
+				if (ae.Kind() == SyntaxKind.ModuloAssignmentExpression) exp.Type = AssignmentExpression.OperatorType.Modulo;
 
 				exp.Temp = ae.Kind();
 				exp.Target = ParseExpression(ae.Left, semanticModel);
@@ -702,7 +703,7 @@ namespace LanguageTranslator.Parser
 
 				if (be.Kind() == SyntaxKind.ModuloExpression) exp.Operator = BinaryExpression.OperatorType.Modulo;
 
-				if(exp.Operator == BinaryExpression.OperatorType.None)
+				if (exp.Operator == BinaryExpression.OperatorType.None)
 				{
 					var span_ = syntax.SyntaxTree.GetLineSpan(syntax.Span);
 					Console.WriteLine(string.Format("{0} : {1} には未対応です。", span_, be.Kind()));
@@ -718,7 +719,7 @@ namespace LanguageTranslator.Parser
 
 				exp.Expression = ParseExpression(preue.Operand, semanticModel);
 
-				switch(preue.Kind())
+				switch (preue.Kind())
 				{
 					case SyntaxKind.LogicalNotExpression:
 						exp.Type = PrefixUnaryExpression.OperatorType.LogicalNot;
@@ -752,7 +753,7 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
-			else if(basee != null)
+			else if (basee != null)
 			{
 				var exp = new BaseExpression();
 				exp.SelfType = selfType;
@@ -760,7 +761,7 @@ namespace LanguageTranslator.Parser
 
 				return exp;
 			}
-			else if(iee != null)
+			else if (iee != null)
 			{
 				var exp = new InitializerExpression();
 				exp.SelfType = selfType;

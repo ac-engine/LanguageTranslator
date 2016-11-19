@@ -125,6 +125,7 @@ namespace LanguageTranslator.Definition
 			Add,
 			Substract,
 			Divide,
+			Modulo,
 		}
 	}
 
