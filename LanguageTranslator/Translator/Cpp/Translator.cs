@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace LanguageTranslator.Translator.Cpp
 {
-	class Translator
+	class Translator : LanguageTranslator.Translator.Translator
 	{
+		public override void Translate(string targetDir, Definition.Definitions definisions)
+		{
+		}
 	}
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LanguageTranslator.Translator.Java
 {
-	class Translator : ITranslator
+	class Translator : LanguageTranslator.Translator.Translator
 	{
 		private const string PackageName = "asd";
 		
@@ -251,7 +251,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.LiteralExpression)
 			{
 				var e2 = (Definition.LiteralExpression)e;
-				return e2.Text;
+				return ParseLiteralExpression(e2);				
 			}
 			else if (e is Definition.MemberAccessExpression)
 			{
@@ -1118,7 +1118,7 @@ namespace LanguageTranslator.Translator.Java
 			WriteLine("}}");
 		}
 
-		public void Translate(string targetDir, Definition.Definitions definisions)
+		public override void Translate(string targetDir, Definition.Definitions definisions)
 		{
 			var sep = Path.DirectorySeparatorChar.ToString();
 
@@ -1201,6 +1201,15 @@ namespace LanguageTranslator.Translator.Java
 				Res.Clear();
 			}
 
+		}
+
+		public override string GetRawLiteral(string text)
+		{
+			text = text.Replace("\r", "");
+			var strs = text.Split('\n');
+			strs = strs.Select(_=>  "\"" + _ + "\"").ToArray();
+
+			return string.Join("+\r\n", strs);
 		}
 	}
 }

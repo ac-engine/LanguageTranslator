@@ -310,6 +310,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Sqrt";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "d" });
 					c.Methods.Add(m);
 				}
@@ -317,6 +318,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Sin";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "a" });
 					c.Methods.Add(m);
 				}
@@ -324,6 +326,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Cos";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "d" });
 					c.Methods.Add(m);
 				}
@@ -331,6 +334,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Atan2";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "y" });
 					m.Parameters.Add(new ParameterDef() { Name = "x" });
 
@@ -340,6 +344,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Tan";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "a" });
 					c.Methods.Add(m);
 				}
@@ -347,6 +352,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Exp";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "d" });
 					c.Methods.Add(m);
 				}
@@ -354,6 +360,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Max";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "val1" });
 					m.Parameters.Add(new ParameterDef() { Name = "val2" });
 
@@ -363,6 +370,7 @@ namespace LanguageTranslator.Definition
 				{
 					MethodDef m = new MethodDef();
 					m.Name = "Min";
+					m.IsStatic = true;
 					m.Parameters.Add(new ParameterDef() { Name = "val1" });
 					m.Parameters.Add(new ParameterDef() { Name = "val2" });
 

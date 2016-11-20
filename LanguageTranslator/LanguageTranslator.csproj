@@ -109,7 +109,7 @@
     <Compile Include="Translator\Cpp\Translator.cs" />
     <Compile Include="Translator\Editor.cs" />
     <Compile Include="Translator\Java\Translator.cs" />
-    <Compile Include="Translator\ITranslator.cs" />
+    <Compile Include="Translator\Translator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
