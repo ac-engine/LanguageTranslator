@@ -85,7 +85,7 @@ namespace LanguageTranslator.Definition
 	class InvocationExpression : Expression
 	{
 		public Expression Method;
-		public Expression[] Args;
+		public Expression[] Args = new Expression[0];
 	}
 
 	class ObjectCreationExpression : Expression

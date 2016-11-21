@@ -518,7 +518,7 @@ namespace LanguageTranslator
 
 				editor.AddEditFunc(func);
 			}
-			
+
 			{
 				// 代入のプロパティ差し替え
 				Func<object, Tuple<bool, object>> func = (object o) =>
@@ -542,7 +542,26 @@ namespace LanguageTranslator
 							invocation.Method = memf;
 
 							// 引数設定
-							invocation.Args = new[] { ae.Expression };
+							if (ae.Type == Definition.AssignmentExpression.OperatorType.Simple)
+							{
+								invocation.Args = new[] { ae.Expression };
+							}
+							else if(ae.Type == Definition.AssignmentExpression.OperatorType.Add)
+							{
+								var ginvocation = new Definition.InvocationExpression();
+
+								var gmemf = new Definition.MemberAccessExpression();
+								gmemf.Method = new Definition.MethodDef();
+								gmemf.Method.Name = "get" + mae.Property.Name;
+								gmemf.Expression = mae.Expression;
+								ginvocation.Method = gmemf;
+	
+								var be = new Definition.BinaryExpression();
+								be.Left = ginvocation;
+								be.Right = ae.Expression;
+								be.Operator = Definition.BinaryExpression.OperatorType.Add;
+								invocation.Args = new Definition.Expression[] { be };
+							}
 
 							return Tuple.Create<bool, object>(false, invocation);
 						}
@@ -561,7 +580,26 @@ namespace LanguageTranslator
 							invocation.Method = memf;
 
 							// 引数設定
-							invocation.Args = new[] { ae.Expression };
+							if (ae.Type == Definition.AssignmentExpression.OperatorType.Simple)
+							{
+								invocation.Args = new[] { ae.Expression };
+							}
+							else if (ae.Type == Definition.AssignmentExpression.OperatorType.Add)
+							{
+								var ginvocation = new Definition.InvocationExpression();
+
+								var gmemf = new Definition.MemberAccessExpression();
+								gmemf.Method = new Definition.MethodDef();
+								gmemf.Method.Name = "get" + mae.Property.Name;
+								gmemf.Expression = mae.Expression;
+								ginvocation.Method = gmemf;
+
+								var be = new Definition.BinaryExpression();
+								be.Left = ginvocation;
+								be.Right = ae.Expression;
+								be.Operator = Definition.BinaryExpression.OperatorType.Add;
+								invocation.Args = new Definition.Expression[] { be };
+							}
 
 							return Tuple.Create<bool, object>(false, invocation);
 						}
