@@ -194,8 +194,18 @@ namespace LanguageTranslator.Translator.Java
 				if (e2.Operator == Definition.BinaryExpression.OperatorType.As)
 				{
 					return string.Format("({0} instanceof {1}? ({1}){0}: null)", GetExpression(e2.Left), GetExpression(e2.Right));
-
 				}
+
+				// 文字列の比較対応
+				if(
+					(e2.Left.SelfType as Definition.SimpleType)?.TypeName == "String" &&
+					(e2.Right.SelfType as Definition.SimpleType)?.TypeName == "String" &&
+					e2.Operator == Definition.BinaryExpression.OperatorType.Equals)
+				{
+					return string.Format("({0}.equals({1}))", GetExpression(e2.Left), GetExpression(e2.Right));
+				}
+
+
 				return string.Format("({0} {1} {2})", GetExpression(e2.Left), GetBinaryExpressionOperator(e2.Operator), GetExpression(e2.Right));
 			}
 			else if (e is Definition.AssignmentExpression)
