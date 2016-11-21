@@ -473,7 +473,7 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
-				
+
 				WriteLine("}}");
 				WriteLine("");
 			}
@@ -486,7 +486,7 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth++;
 				OutputStatement(s2.TrueStatement);
 				IndentDepth--;
-				
+
 				if (s2.FalseStatement != null)
 				{
 					WriteLine("}}");
@@ -535,6 +535,12 @@ namespace LanguageTranslator.Translator.Java
 				OutputStatement(s2.Statement);
 				IndentDepth--;
 				WriteLine("}}");
+			}
+			else if (s is Definition.CommentStatement)
+			{
+				var s2 = (Definition.CommentStatement)s;
+				MakeIndent();
+				Res.AppendFormat("// {0}\r\n", s2.Text);
 			}
 			else
 			{

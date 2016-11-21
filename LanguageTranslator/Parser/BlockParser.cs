@@ -1001,12 +1001,49 @@ namespace LanguageTranslator.Parser
 
 		public BlockStatement ParseBlockStatement(BlockSyntax syntax, SemanticModel semanticModel)
 		{
+			// ライン取得
+			var blockLineSpan = syntax.SyntaxTree.GetLineSpan(syntax.Span);
+
 			List<Statement> statements = new List<Statement>();
 
+			List<FileLinePositionSpan> statementSpans = new List<FileLinePositionSpan>();
+
+			// 中身
 			foreach (var statement in syntax.Statements)
 			{
-				statements.Add(ParseStatement(statement, semanticModel));
+				var statementLineSpan = statement.SyntaxTree.GetLineSpan(statement.Span);
+
+				var result = ParseStatement(statement, semanticModel);
+				result.Line = statementLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+
+				statementSpans.Add(statementLineSpan);
+				statements.Add(result);
 			}
+
+			// コメント
+			foreach (var t in syntax.DescendantTrivia())
+			{
+				if (t.IsKind(SyntaxKind.SingleLineCommentTrivia))
+				{
+					var commentLineSpan = t.SyntaxTree.GetLineSpan(t.Span);
+
+					// ステートメント内は含まない
+					if(statementSpans.Any(_=>_.StartLinePosition.Line <= commentLineSpan.StartLinePosition.Line && commentLineSpan.EndLinePosition.Line <= _.EndLinePosition.Line))
+					{
+						continue;
+					}
+
+					var result = new CommentStatement();
+					result.Text = t.ToString();
+					result.Text = result.Text.Substring(2).Trim();
+					result.Line = commentLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+
+					statements.Add(result);
+				}
+			}
+
+
+			statements = statements.OrderBy(_ => _.Line).ToList();
 
 			var bs = new BlockStatement();
 			bs.Statements = statements.ToArray();

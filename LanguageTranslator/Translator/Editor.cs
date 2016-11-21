@@ -421,6 +421,9 @@ namespace LanguageTranslator.Translator
 					Edit(func, ref s_.Expression);
 					Edit(func, ref s_.Statement);
 				}
+				else if (s is Definition.CommentStatement)
+				{
+				}
 				else
 				{
 					throw new Exception();
@@ -969,6 +972,10 @@ namespace LanguageTranslator.Translator
 				s_.Expression = ConvertTypeName(s_.Expression);
 				s_.Statement = ConvertTypeName(s_.Statement);
 				return s_;
+			}
+			else if (s is Definition.CommentStatement)
+			{
+				return s;
 			}
 
 			throw new Exception();

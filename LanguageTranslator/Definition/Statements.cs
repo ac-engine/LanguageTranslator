@@ -155,8 +155,13 @@ namespace LanguageTranslator.Definition
 		public Statement Statement = null;
 	}
 
+	class CommentStatement : Statement
+	{
+		public string Text = string.Empty;
+	}
 
 	class Statement
 	{
+		public int Line = 0;
 	}
 }
