@@ -8,6 +8,35 @@ namespace LanguageTranslator.Translator
 {
 	abstract class Translator
 	{
+		protected StringBuilder Res = new StringBuilder();
+
+		protected int IndentDepth = 0;
+
+		protected void MakeIndent()
+		{
+			Res.Append('\t', IndentDepth);
+		}
+
+		protected void Write(string format, params string[] args)
+		{
+			var str = string.Format(format, args);
+			Res.Append('\t', IndentDepth);
+			Res.Append(str);
+		}
+
+		protected void WriteLine()
+		{
+			Res.Append("\r\n");
+		}
+
+		protected void WriteLine(string format, params string[] args)
+		{
+			var str = string.Format(format, args);
+			Res.Append('\t', IndentDepth);
+			Res.Append(str);
+			Res.Append("\r\n");
+		}
+
 		public abstract void Translate(string targetDir, Definition.Definitions definisions);
 
 		public virtual string GetLiteral(string text) { return text; }

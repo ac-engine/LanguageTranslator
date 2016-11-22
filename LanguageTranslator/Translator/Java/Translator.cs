@@ -11,29 +11,6 @@ namespace LanguageTranslator.Translator.Java
 	{
 		private const string PackageName = "asd";
 		
-		private StringBuilder Res = new StringBuilder();
-		
-		private int IndentDepth = 0;
-		private void MakeIndent()
-		{
-			Res.Append('\t', IndentDepth);
-		}
-
-		private void Write(string format, params string[] args)
-		{
-			var str = string.Format(format, args);
-			Res.Append('\t', IndentDepth);
-			Res.Append(str);
-		}
-
-		private void WriteLine(string format, params string[] args)
-		{
-			var str = string.Format(format, args);
-			Res.Append('\t', IndentDepth);
-			Res.Append(str);
-			Res.Append("\r\n");
-		}
-
 		private void MakeBrief(string brief)
 		{
 			if (String.IsNullOrEmpty(brief))
@@ -429,7 +406,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					for (int i = 0; i < e.StartingLine - preLine - 1; i++)
 					{
-						Res.AppendFormat("\r\n");
+						WriteLine();
 					}
 
 					OutputStatement(e);
@@ -452,9 +429,9 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.ForeachStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.ForeachStatement)s;
-				Res.AppendFormat("for({0} {1}: {2}) {{\r\n", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
+				WriteLine("for({0} {1}: {2})", GetTypeSpecifier(s2.Type), s2.Name, GetExpression(s2.Value));
+				WriteLine("{{");
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
@@ -462,14 +439,13 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else if (s is Definition.ForStatement)
 			{
-				MakeIndent();
 				var s2 = (Definition.ForStatement)s;
-				Res.AppendFormat("for({0} {1} = {2}; {3}; {4}) {{\r\n", GetTypeSpecifier(s2.Declaration.Type), s2.Declaration.Name, GetExpression(s2.Declaration.Value), GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				WriteLine("for({0} {1} = {2}; {3}; {4})", GetTypeSpecifier(s2.Declaration.Type), s2.Declaration.Name, GetExpression(s2.Declaration.Value), GetExpression(s2.Condition), GetExpression(s2.Incrementor));
+				WriteLine("{{");
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
 				WriteLine("}}");
-				WriteLine("");
 			}
 			else if (s is Definition.WhileStatement)
 			{
@@ -510,8 +486,6 @@ namespace LanguageTranslator.Translator.Java
 				{
 					WriteLine("}}");
 				}
-
-				WriteLine("");
 			}
 			else if (s is Definition.ReturnStatement)
 			{
@@ -536,18 +510,20 @@ namespace LanguageTranslator.Translator.Java
 			{
 
 				var s2 = (Definition.LockStatement)s;
-				MakeIndent();
-				Res.AppendFormat("synchronized({0}) {{\r\n", GetExpression(s2.Expression));
+				
+				WriteLine("synchronized({0})", GetExpression(s2.Expression));
+				WriteLine("{{");
+
 				IndentDepth++;
 				OutputStatement(s2.Statement);
 				IndentDepth--;
+
 				WriteLine("}}");
 			}
 			else if (s is Definition.CommentStatement)
 			{
 				var s2 = (Definition.CommentStatement)s;
-				MakeIndent();
-				Res.AppendFormat("// {0}\r\n", s2.Text);
+				WriteLine("// {0}", s2.Text);
 			}
 			else
 			{
@@ -620,9 +596,10 @@ namespace LanguageTranslator.Translator.Java
 		private void OutputConstructor(string name, Definition.ConstructorDef c)
 		{
 			MakeBrief(c.Brief);
-			MakeIndent();
+			
+			WriteLine("{0} {1}({2})", GetAccessLevel(c.AccessLevel), name, GetParamStr(c.Parameters));
+			WriteLine("{{");
 
-			Res.AppendFormat("{0} {1}({2}) {{\r\n", GetAccessLevel(c.AccessLevel), name, GetParamStr(c.Parameters));
 			IndentDepth++;
 			if (c.Initializer != null)
 			{
@@ -687,9 +664,7 @@ namespace LanguageTranslator.Translator.Java
 		private void OutputMethodInInterface(Definition.MethodDef m)
 		{
 			MakeBrief(m.Brief);
-			MakeIndent();
-
-			Res.AppendFormat("{0} {1}({2});\r\n", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
+			WriteLine("{0} {1}({2});", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
 		}
 
 
@@ -712,8 +687,7 @@ namespace LanguageTranslator.Translator.Java
 				}
 				else
 				{
-					MakeIndent();
-					Res.AppendFormat("{2} {3}void set{0}({1} value) {{ {0} = value; }}\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					WriteLine("{2} {3}void set{0}({1} value) {{ {0} = value; }}", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 				}
 			}
 
@@ -732,8 +706,7 @@ namespace LanguageTranslator.Translator.Java
 				}
 				else
 				{
-					MakeIndent();
-					Res.AppendFormat("{2} {3}{0} get{1}() {{ return {1}; }}\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					WriteLine("{2} {3}{0} get{1}() {{ return {1}; }}", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 				}
 
 			}
