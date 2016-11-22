@@ -1014,7 +1014,8 @@ namespace LanguageTranslator.Parser
 				var statementLineSpan = statement.SyntaxTree.GetLineSpan(statement.Span);
 
 				var result = ParseStatement(statement, semanticModel);
-				result.Line = statementLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+				result.StartingLine = statementLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+				result.EndingLine = statementLineSpan.EndLinePosition.Line - blockLineSpan.StartLinePosition.Line;
 
 				statementSpans.Add(statementLineSpan);
 				statements.Add(result);
@@ -1036,14 +1037,15 @@ namespace LanguageTranslator.Parser
 					var result = new CommentStatement();
 					result.Text = t.ToString();
 					result.Text = result.Text.Substring(2).Trim();
-					result.Line = commentLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+					result.StartingLine = commentLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+					result.EndingLine = commentLineSpan.EndLinePosition.Line - blockLineSpan.StartLinePosition.Line;
 
 					statements.Add(result);
 				}
 			}
 
 
-			statements = statements.OrderBy(_ => _.Line).ToList();
+			statements = statements.OrderBy(_ => _.StartingLine).ToList();
 
 			var bs = new BlockStatement();
 			bs.Statements = statements.ToArray();

@@ -423,11 +423,18 @@ namespace LanguageTranslator.Translator.Java
 			else if (s is Definition.BlockStatement)
 			{
 				var s2 = (Definition.BlockStatement)s;
+
+				int preLine = 0;
 				foreach (var e in s2.Statements)
 				{
-					OutputStatement(e);
-					// Res.AppendLine();
+					for (int i = 0; i < e.StartingLine - preLine - 1; i++)
+					{
+						Res.AppendFormat("\r\n");
+					}
 
+					OutputStatement(e);
+
+					preLine = e.EndingLine;
 				}
 			}
 			else if (s is Definition.ContinueStatement)

@@ -162,6 +162,7 @@ namespace LanguageTranslator.Definition
 
 	class Statement
 	{
-		public int Line = 0;
+		public int StartingLine = 0;
+		public int EndingLine = 0;
 	}
 }
