@@ -391,6 +391,22 @@ namespace LanguageTranslator.Translator.Java
 			return ret;
 		}
 
+		private void OutputStatements(ICollection<Definition.Statement> statements)
+		{
+			int preLine = 0;
+			foreach (var e in statements)
+			{
+				for (int i = 0; i < e.StartingLine - preLine - 1; i++)
+				{
+					WriteLine();
+				}
+
+				OutputStatement(e);
+
+				preLine = e.EndingLine;
+			}
+		}
+
 		private void OutputStatement(Definition.Statement s)
 		{
 			if (s == null)
@@ -400,19 +416,7 @@ namespace LanguageTranslator.Translator.Java
 			else if (s is Definition.BlockStatement)
 			{
 				var s2 = (Definition.BlockStatement)s;
-
-				int preLine = 0;
-				foreach (var e in s2.Statements)
-				{
-					for (int i = 0; i < e.StartingLine - preLine - 1; i++)
-					{
-						WriteLine();
-					}
-
-					OutputStatement(e);
-
-					preLine = e.EndingLine;
-				}
+				OutputStatements(s2.Statements);
 			}
 			else if (s is Definition.ContinueStatement)
 			{
@@ -613,10 +617,8 @@ namespace LanguageTranslator.Translator.Java
 				Res.AppendFormat("{0}({1});\r\n", tob, string.Join(", ", c.Initializer.Arguments.ConvertAll(GetExpression)));
 			}
 
-			foreach (var s in c.Body)
-			{
-				OutputStatement(s);
-			}
+			OutputStatements(c.Body);
+
 			IndentDepth--;
 			WriteLine("}}");
 		}
@@ -650,10 +652,9 @@ namespace LanguageTranslator.Translator.Java
 			{
 				Res.AppendLine("{");
 				IndentDepth++;
-				foreach (var s in m.Body)
-				{
-					OutputStatement(s);
-				}
+
+				OutputStatements(m.Body);
+
 				IndentDepth--;
 				WriteLine("}}");
 			}

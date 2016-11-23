@@ -114,7 +114,8 @@ namespace LanguageTranslator.Parser
 					continue;
 				}
 
-				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(method.Internal.Body, semanticModel) as BlockStatement;
+				method.Body = statement.Statements.ToList();
 			}
 
 			foreach(var cst in def.Constructors)
@@ -133,7 +134,8 @@ namespace LanguageTranslator.Parser
 					}
 				}
 
-				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(cst.Internal.Body, semanticModel) as BlockStatement;
+				cst.Body = statement.Statements.ToList();
 			}
 
 			foreach(var dst in def.Destructors)
@@ -144,7 +146,8 @@ namespace LanguageTranslator.Parser
 
 				if (dst.Internal.Body == null) continue;
 
-				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(dst.Internal.Body, semanticModel) as BlockStatement;
+				dst.Body = statement.Statements.ToList();
 			}
 		}
 
@@ -187,7 +190,8 @@ namespace LanguageTranslator.Parser
 					continue;
 				}
 
-				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(method.Internal.Body, semanticModel) as BlockStatement;
+				method.Body = statement.Statements.ToList();
 			}
 
 			foreach (var cst in def.Constructors)
@@ -198,9 +202,8 @@ namespace LanguageTranslator.Parser
 
 				if (cst.Internal.Body == null) continue;
 
-
-
-				cst.Body = cst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(cst.Internal.Body, semanticModel) as BlockStatement;
+				cst.Body = statement.Statements.ToList();
 			}
 
 			foreach (var dst in def.Destructors)
@@ -211,7 +214,8 @@ namespace LanguageTranslator.Parser
 
 				if (dst.Internal.Body == null) continue;
 
-				dst.Body = dst.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(dst.Internal.Body, semanticModel) as BlockStatement;
+				dst.Body = statement.Statements.ToList();
 			}
 		}
 
@@ -241,9 +245,11 @@ namespace LanguageTranslator.Parser
 					continue;
 				}
 
-				method.Body = method.Internal.Body.Statements.Select(_ => ParseStatement(_, semanticModel)).ToList();
+				var statement = ParseStatement(method.Internal.Body, semanticModel) as BlockStatement;
+				method.Body = statement.Statements.ToList();
 			}
 		}
+
 
 		/// <summary>
 		/// 式中のメンバアクセス、定数等を解析する。
