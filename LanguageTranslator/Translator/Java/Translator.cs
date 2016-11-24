@@ -632,17 +632,18 @@ namespace LanguageTranslator.Translator.Java
 			};
 
 			MakeBrief(m.Brief);
-			MakeIndent();
 
-			Res.AppendFormat("{3} {4} {5} {6} {0} {1}({2})", 
-				GetTypeSpecifier(m.ReturnType), 
-				m.Name, 
-				GetParamStr(m.Parameters), 
-				GetAccessLevel(m.AccessLevel), 
-				m.IsStatic ? "static " : "", 
-				//generics(),
-				GetGenericsTypeParameters(m.TypeParameters),
-				m.IsAbstract ? "abstract " : "");
+			List<string> strs = new List<string>();
+			strs.Add(GetAccessLevel(m.AccessLevel));
+			strs.Add(m.IsStatic ? "static " : "");
+			strs.Add(GetGenericsTypeParameters(m.TypeParameters));
+			strs.Add(m.IsAbstract ? "abstract " : "");
+			strs.Add(GetTypeSpecifier(m.ReturnType));
+			strs.Add(m.Name);
+
+			var strs_ = string.Join(" ", strs.Where(_ => !string.IsNullOrEmpty(_)).ToArray());
+
+			WriteLine("{0}({1})", strs_, GetParamStr(m.Parameters));
 
 			if(m.IsAbstract)
 			{
@@ -650,7 +651,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 			else
 			{
-				Res.AppendLine("{");
+				WriteLine("{{");
 				IndentDepth++;
 
 				OutputStatements(m.Body);
@@ -658,8 +659,6 @@ namespace LanguageTranslator.Translator.Java
 				IndentDepth--;
 				WriteLine("}}");
 			}
-
-			
 		}
 
 		private void OutputMethodInInterface(Definition.MethodDef m)
@@ -777,13 +776,13 @@ namespace LanguageTranslator.Translator.Java
 			Func<string> extends = () =>
 				{
 					if (bases.Count == 0) return string.Empty;
-					return " extends " + string.Join(",", GetTypeSpecifier(bases[0]));
+					return "extends " + string.Join(",", GetTypeSpecifier(bases[0]));
 				};
 
 			Func<string> implements = () =>
 			{
 				if (interfaces.Count == 0) return string.Empty;
-				return " implements " + string.Join(",", interfaces.Select(_ => GetTypeSpecifier(_)));
+				return "implements " + string.Join(",", interfaces.Select(_ => GetTypeSpecifier(_)));
 			};
 
 			Func<string> generics = () =>
@@ -791,13 +790,22 @@ namespace LanguageTranslator.Translator.Java
 				return GetGenericsTypeParameters(cs.TypeParameters);
 			};
 
-			Res.AppendFormat("{0} {1} class {2}{3} {4} {5} {{\r\n",
-				GetAccessLevel(cs.AccessLevel),
-				cs.IsAbstract ? "abstract " : "",
-				cs.Name,
-				generics(),
-				extends(),
-				implements());
+			List<string> strs_1 = new List<string>();
+			strs_1.Add(GetAccessLevel(cs.AccessLevel));
+			strs_1.Add(cs.IsAbstract ? "abstract" : "");
+			strs_1.Add("class");
+			strs_1.Add(cs.Name);
+
+			List<string> strs_2 = new List<string>();
+			strs_2.Add(string.Join(" ", strs_1.Where(_ => !string.IsNullOrEmpty(_)).ToArray()) + generics());
+			strs_2.Add(extends());
+			strs_2.Add(implements());
+
+			var strs_2_ = string.Join(" ", strs_2.Where(_ => !string.IsNullOrEmpty(_)).ToArray());
+
+			WriteLine(strs_2_);
+			WriteLine("{{");
+
 			IndentDepth++;
 
 			Res.Append(cs.UserCode);
