@@ -1020,11 +1020,15 @@ namespace LanguageTranslator.Parser
 				var statementLineSpan = statement.SyntaxTree.GetLineSpan(statement.Span);
 
 				var result = ParseStatement(statement, semanticModel);
-				result.StartingLine = statementLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
-				result.EndingLine = statementLineSpan.EndLinePosition.Line - blockLineSpan.StartLinePosition.Line;
 
-				statementSpans.Add(statementLineSpan);
-				statements.Add(result);
+				if(result != null)
+				{
+					result.StartingLine = statementLineSpan.StartLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+					result.EndingLine = statementLineSpan.EndLinePosition.Line - blockLineSpan.StartLinePosition.Line;
+
+					statementSpans.Add(statementLineSpan);
+					statements.Add(result);
+				}
 			}
 
 			// コメント
