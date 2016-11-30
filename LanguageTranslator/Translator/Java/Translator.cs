@@ -274,7 +274,7 @@ namespace LanguageTranslator.Translator.Java
 							fullname = e2.Class.Name;
 						}
 
-						return string.Format("{0}{2}{1}", accessed, fullname + "." + e2.Method.Name, generic);
+						return string.Format("{0}{1}{2}{3}", accessed, fullname + ".", generic, e2.Method.Name);
 					}
 					else if (e2.Method.IsStatic && e2.Struct != null)
 					{

@@ -455,6 +455,11 @@ namespace LanguageTranslator.Translator
 			{
 				var e_ = e as Definition.MemberAccessExpression;
 				Edit(func, ref e_.Expression);
+
+				for(int i = 0; i < e_.Types.Length; i++)
+				{
+					Edit(func, ref e_.Types[i]);
+				}
 			}
 			else if (e is Definition.GenericNameExpression)
 			{

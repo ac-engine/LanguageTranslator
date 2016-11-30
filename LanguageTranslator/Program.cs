@@ -808,10 +808,15 @@ namespace LanguageTranslator
 				Func<object, Tuple<bool, object>> func = (object o) =>
 				{
 					var gt = o as Definition.GenericType;
+					var ma = o as Definition.MemberAccessExpression;
 
-					if (gt != null)
+					ICollection<Definition.TypeSpecifier> types = null;
+					if(types == null) types = gt?.InnerType;
+					if (types == null) types = ma?.Types;
+
+					if (types != null)
 					{
-						foreach (var t in gt.InnerType)
+						foreach (var t in types)
 						{
 							var t_ = t as Definition.SimpleType;
 							if (t_ != null)
@@ -833,6 +838,12 @@ namespace LanguageTranslator
 								{
 									t_.Namespace = "java.lang";
 									t_.TypeName = "Long";
+								}
+
+								if (t_.TypeName == "Single")
+								{
+									t_.Namespace = "java.lang";
+									t_.TypeName = "Float";
 								}
 							}
 						}
