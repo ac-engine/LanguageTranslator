@@ -200,18 +200,15 @@ namespace LanguageTranslator
 				if (def != null)
 				{
 					def.UserCode = @"
-	public Color(int r, int g, int b, int a) {
-		R = (short)r;
-		G = (short)g;
-		B = (short)b;
-		A = (short)a;
-	}
-	public Color(int r, int g, int b) {
+
+	public Color(int r, int g, int b)
+	{
 		R = (short)r;
 		G = (short)g;
 		B = (short)b;
 		A = 255;
 	}
+
 ";
 				}
 			}
