@@ -202,7 +202,12 @@ namespace LanguageTranslator.Parser
                 enumDef.Members.Add(def);
             }
 
-            definitions.Enums.Add(enumDef);
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(enumSyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			enumDef.Summary = SummaryComment.Parse(xml);
+
+			definitions.Enums.Add(enumDef);
         }
 
         private EnumMemberDef ParseEnumMember(EnumMemberDeclarationSyntax syntax, SemanticModel semanticModel)
@@ -213,7 +218,12 @@ namespace LanguageTranslator.Parser
             dst.Name = syntax.Identifier.ValueText;
             dst.Internal = syntax;
 
-            return dst;
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(syntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			dst.Summary = SummaryComment.Parse(xml);
+
+			return dst;
         }
 
 
