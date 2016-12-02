@@ -365,7 +365,12 @@ namespace LanguageTranslator.Parser
                 classDef.IsAbstract = true;
             }
 
-            ParseTypeDeclaration(classDef, classSyntax, semanticModel);
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(classSyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			classDef.Summary = SummaryComment.Parse(xml);
+
+			ParseTypeDeclaration(classDef, classSyntax, semanticModel);
 
             definitions.Classes.Add(classDef);
         }
@@ -393,7 +398,12 @@ namespace LanguageTranslator.Parser
                 return;
             }
 
-            ParseTypeDeclaration(structDef, structSyntax, semanticModel);
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(structSyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			structDef.Summary = SummaryComment.Parse(xml);
+
+			ParseTypeDeclaration(structDef, structSyntax, semanticModel);
 
             definitions.Structs.Add(structDef);
         }
@@ -411,7 +421,12 @@ namespace LanguageTranslator.Parser
                 return;
             }
 
-            ParseTypeDeclaration(interfaceDef, interfaceSyntax, semanticModel);
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(interfaceSyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			interfaceDef.Summary = SummaryComment.Parse(xml);
+
+			ParseTypeDeclaration(interfaceDef, interfaceSyntax, semanticModel);
 
             definitions.Interfaces.Add(interfaceDef);
         }
@@ -458,7 +473,12 @@ namespace LanguageTranslator.Parser
             fieldDef.AccessLevel = ParseAccessLevel(fieldSyntax.Modifiers) ?? AccessLevel.Private;
             fieldDef.IsStatic = fieldSyntax.Modifiers.Any(x => x.ValueText == "static");
 
-            return fieldDef;
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(fieldSyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			fieldDef.Summary = SummaryComment.Parse(xml);
+
+			return fieldDef;
         }
 
         private PropertyDef ParseProperty(PropertyDeclarationSyntax propertySyntax, SemanticModel semanticModel)
@@ -487,7 +507,12 @@ namespace LanguageTranslator.Parser
                 }
             }
 
-            return propertyDef;
+			// Summary
+			var declaredSymbol = semanticModel.GetDeclaredSymbol(propertySyntax);
+			var xml = declaredSymbol?.GetDocumentationCommentXml();
+			propertyDef.Summary = SummaryComment.Parse(xml);
+
+			return propertyDef;
         }
 
         private MethodDef ParseMethod(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel)

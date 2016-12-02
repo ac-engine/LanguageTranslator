@@ -62,15 +62,6 @@ namespace LanguageTranslator
 				return;
 			}
 
-			// コードコメントxmlの解析
-			var xmlPath = string.Empty;
-
-			if (System.IO.File.Exists(xmlPath))
-			{
-				var codeCommentParser = new CodeCommentParser.Parser();
-				codeCommentParser.Parse(xmlPath, definitions);
-			}
-
 			// 色のみ強制変換
 			var color_ = definitions.Structs.FirstOrDefault(_ => _.Name == "Color");
 			if(color_ != null)

@@ -4,14 +4,15 @@ namespace LanguageTranslator.Definition
 {
     class FieldDef
     {
-        public AccessLevel AccessLevel = AccessLevel.Private;
+		public SummaryComment Summary = new SummaryComment();
+
+		public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
 
         public TypeSpecifier Type = null;
         public string Name = string.Empty;
         public Expression Initializer = null;
-        public string Brief = string.Empty;
-
+        
 		/// <summary>
 		/// fixed array専用(無理やり実装)
 		/// </summary>
@@ -30,15 +31,16 @@ namespace LanguageTranslator.Definition
 
     class PropertyDef
     {
-        public AccessLevel AccessLevel = AccessLevel.Private;
+		public SummaryComment Summary = new SummaryComment();
+
+		public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
 
         public TypeSpecifier Type = null;
         public string Name = string.Empty;
         public AccessorDef Getter = null;
         public AccessorDef Setter = null;
-        public string Brief = string.Empty;
-
+        
         /// <summary>
         /// パーサー内部処理用
         /// </summary>
@@ -64,13 +66,15 @@ namespace LanguageTranslator.Definition
     class MethodDef:
 		ITypeParameters
     {
-        public AccessLevel AccessLevel = AccessLevel.Private;
+		public SummaryComment Summary = new SummaryComment();
+
+		public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
 		public bool IsAbstract = false;
 
         public TypeSpecifier ReturnType = null;
         public string Name = string.Empty;
-        public string Brief = string.Empty;
+       
         public List<ParameterDef> Parameters = new List<ParameterDef>();
         public List<Statement> Body = new List<Statement>();
 
@@ -120,10 +124,11 @@ namespace LanguageTranslator.Definition
 
     class ConstructorDef
     {
-        public AccessLevel AccessLevel = AccessLevel.Private;
+		public SummaryComment Summary = new SummaryComment();
+
+		public AccessLevel AccessLevel = AccessLevel.Private;
         public bool IsStatic = false;
 
-        public string Brief = string.Empty;
         public List<ParameterDef> Parameters = new List<ParameterDef>();
         public ConstructorInitializer Initializer = null;
         public List<Statement> Body = new List<Statement>();

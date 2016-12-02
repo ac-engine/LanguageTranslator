@@ -11,14 +11,19 @@ namespace LanguageTranslator.Translator.Java
 	{
 		private const string PackageName = "asd";
 		
-		private void MakeBrief(string brief)
+		private void Summary(Definition.SummaryComment summary)
 		{
-			if (String.IsNullOrEmpty(brief))
+			if (string.IsNullOrEmpty(summary.Summary)) return;
+
+			WriteLine("/**");
+			WriteLine(" * {0}", summary.Summary);
+
+			foreach(var p in summary.ParamComments)
 			{
-				return;
+				WriteLine(" * @param {0} {1}", p.Name, p.Comment);
 			}
-			MakeIndent();
-			Res.AppendFormat("/* {0} */\r\n", brief);
+
+			WriteLine("*/");
 		}
 
 		private string GetGenericsTypeParameters(List<Definition.TypeParameterDef> typeParameters)
@@ -560,7 +565,7 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputField(Definition.FieldDef f)
 		{
-			MakeBrief(f.Brief);
+			//Summary(f.Brief);
 			MakeIndent();
 
 			if(f.Argument == null)
@@ -592,14 +597,14 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputFieldInInterface(Definition.FieldDef f)
 		{
-			MakeBrief(f.Brief);
+			//Summary(f.Brief);
 			MakeIndent();
 			Res.AppendFormat("{0} {1};", GetTypeSpecifier(f.Type), f.Name);
 		}
 
 		private void OutputConstructor(string name, Definition.ConstructorDef c)
 		{
-			MakeBrief(c.Brief);
+			//Summary(c.Brief);
 			
 			WriteLine("{0} {1}({2})", GetAccessLevel(c.AccessLevel), name, GetParamStr(c.Parameters));
 			WriteLine("{{");
@@ -631,7 +636,7 @@ namespace LanguageTranslator.Translator.Java
 				return "<" + string.Join(",", m.TypeParameters.Select(_ => _.Name).ToArray()) + ">";
 			};
 
-			MakeBrief(m.Brief);
+			Summary(m.Summary);
 
 			List<string> strs = new List<string>();
 			strs.Add(GetAccessLevel(m.AccessLevel));
@@ -663,7 +668,7 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputMethodInInterface(Definition.MethodDef m)
 		{
-			MakeBrief(m.Brief);
+			//Summary(m.);
 			WriteLine("{0} {1}({2});", GetTypeSpecifier(m.ReturnType), m.Name, GetParamStr(m.Parameters));
 		}
 
@@ -677,6 +682,8 @@ namespace LanguageTranslator.Translator.Java
 			{
 				if (p.Setter.Body != null)
 				{
+					Summary(p.Summary);
+
 					MakeIndent();
 					Res.AppendFormat("{2} {3}void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					IndentDepth++;
@@ -696,6 +703,8 @@ namespace LanguageTranslator.Translator.Java
 			{
 				if (p.Getter.Body != null)
 				{
+					Summary(p.Summary);
+
 					MakeIndent();
 					Res.AppendFormat("{2} {3}{0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					IndentDepth++;
@@ -713,7 +722,7 @@ namespace LanguageTranslator.Translator.Java
 
 			if (needVariable)
 			{
-				MakeBrief(p.Brief);
+				//Summary(p.Brief);
 				MakeIndent();
 				Res.AppendFormat("private {2} {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name, p.IsStatic ? "static " : "");
 			}
@@ -738,7 +747,7 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputClass(Definition.ClassDef cs)
 		{
-			MakeBrief(cs.Brief);
+			Summary(cs.Summary);
 			MakeIndent();
 
 			List<Definition.TypeSpecifier> bases = new List<Definition.TypeSpecifier>();
@@ -870,14 +879,14 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputEnum(Definition.EnumDef es)
 		{
-			MakeBrief(es.Brief);
+			Summary(es.Summary);
 			WriteLine("public enum {0} {{", es.Name);
 			IndentDepth++;
 
 			int count = 0;
 			foreach (var e in es.Members)
 			{
-				MakeBrief(e.Brief);
+				Summary(e.Summary);
 				MakeIndent();
 				Res.Append(e.Name);
 				if (e.Value != null)
@@ -946,7 +955,7 @@ namespace LanguageTranslator.Translator.Java
 
 		private void OutputStruct(Definition.StructDef ss)
 		{
-			MakeBrief(ss.Brief);
+			Summary(ss.Summary);
 			WriteLine("{1} class {0}", ss.Name, GetAccessLevel(ss.AccessLevel));
 			WriteLine("{{");
 
@@ -1087,7 +1096,7 @@ namespace LanguageTranslator.Translator.Java
 			};
 
 
-			MakeBrief(def.Brief);
+			Summary(def.Summary);
 			WriteLine(
 				"{0} interface {1}{2} {3} {4}",
 				GetAccessLevel(def.AccessLevel),

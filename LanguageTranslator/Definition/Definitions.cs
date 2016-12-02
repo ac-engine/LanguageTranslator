@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -385,10 +387,11 @@ namespace LanguageTranslator.Definition
 
     class EnumDef
     {
-        public string Namespace = string.Empty;
+		public SummaryComment Summary = new SummaryComment();
+		public string Namespace = string.Empty;
         public string Name = string.Empty;
-        public string Brief = string.Empty;
-        public List<EnumMemberDef> Members = new List<EnumMemberDef>();
+
+		public List<EnumMemberDef> Members = new List<EnumMemberDef>();
 
         public bool IsDefinedBySWIG = false;
 
@@ -400,9 +403,10 @@ namespace LanguageTranslator.Definition
 
     class EnumMemberDef
     {
-        public string Name = string.Empty;
-        public string Brief = string.Empty;
+		public SummaryComment Summary = new SummaryComment();
 
+		public string Name = string.Empty;
+        
         public Expression Value = null;
 
         public override string ToString()
@@ -438,6 +442,8 @@ namespace LanguageTranslator.Definition
 	abstract class TypeDef : 
 		ITypeParameters
     {
+		public SummaryComment Summary = new SummaryComment();
+
         public AccessLevel AccessLevel { get; set; }
         public string Namespace { get; set; }
         public string Name { get; set; }
@@ -473,12 +479,10 @@ namespace LanguageTranslator.Definition
     class ClassDef : TypeDef
     {
         public bool IsAbstract { get; set; }
-        public string Brief { get; set; }
 
         public ClassDef()
         {
             IsAbstract = false;
-            Brief = "";
         }
 
         public override string ToString()
@@ -495,8 +499,6 @@ namespace LanguageTranslator.Definition
     {
         // BaseTypeはダミー
 
-        public string Brief { get; set; }
-
         /// <summary>
         /// パーサー内部処理用
         /// </summary>
@@ -505,7 +507,6 @@ namespace LanguageTranslator.Definition
         public StructDef()
         {
             BaseTypes = null;
-            Brief = "";
         }
 
         public override string ToString()
@@ -536,4 +537,52 @@ namespace LanguageTranslator.Definition
             return string.Format("InterfaceDef {0}", Name);
         }
     }
+
+	class SummaryComment
+	{
+		public string Summary = string.Empty;
+
+		public ParamComment[] ParamComments = new ParamComment[0];
+
+		public static SummaryComment Parse(string str)
+		{
+			if (string.IsNullOrEmpty(str)) return new SummaryComment();
+
+			XDocument doc = XDocument.Parse(str);
+			var summary = doc.Descendants("summary").FirstOrDefault();
+			var paramList = doc.Descendants("param");
+
+			var sc = new SummaryComment();
+			sc.Summary = Edit(summary?.Value ?? string.Empty);
+
+			List<ParamComment> pcs = new List<ParamComment>();
+
+			foreach (var param in paramList)
+			{
+				var name = param.Attribute("name");
+				if (name == null) continue;
+
+				var pc = new ParamComment();
+				pc.Name = Edit(name.Value);
+				pc.Comment = Edit(param.Value);
+				pcs.Add(pc);
+
+			}
+
+			sc.ParamComments = pcs.ToArray();
+
+			return sc;
+		}
+
+		static string Edit(string str)
+		{
+			return str.Replace("/n", "").Trim();
+		}
+
+		public class ParamComment
+		{
+			public string Name = string.Empty;
+			public string Comment = string.Empty;
+		}
+	}
 }

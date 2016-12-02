@@ -94,7 +94,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeCommentParser\Parser.cs" />
     <Compile Include="Definition\Definitions.cs" />
     <Compile Include="Definition\Expressions.cs" />
     <Compile Include="Definition\MemberDef.cs" />

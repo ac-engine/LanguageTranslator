@@ -116,6 +116,10 @@ namespace LanguageTranslator.Parser
 
 				var statement = ParseStatement(method.Internal.Body, semanticModel) as BlockStatement;
 				method.Body = statement.Statements.ToList();
+
+				var declaredSymbol = semanticModel.GetDeclaredSymbol(method.Internal);
+				var xml = declaredSymbol?.GetDocumentationCommentXml();
+				method.Summary = SummaryComment.Parse(xml);
 			}
 
 			foreach(var cst in def.Constructors)
