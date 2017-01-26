@@ -11,7 +11,7 @@ namespace LanguageTranslator.Translator.Java
 	{
 		private const string PackageName = "asd";
 		
-		private void Summary(Definition.SummaryComment summary)
+		void Summary(Definition.SummaryComment summary)
 		{
 			if (string.IsNullOrEmpty(summary.Summary)) return;
 
@@ -26,7 +26,7 @@ namespace LanguageTranslator.Translator.Java
 			WriteLine("*/");
 		}
 
-		private string GetGenericsTypeParameters(List<Definition.TypeParameterDef> typeParameters)
+		string GetGenericsTypeParameters(List<Definition.TypeParameterDef> typeParameters)
 		{
 			if (typeParameters.Count == 0) return string.Empty;
 
@@ -45,7 +45,7 @@ namespace LanguageTranslator.Translator.Java
 			return "<" + string.Join(",", typeParameters.Select(_ => generic(_))) + ">";
 		}
 
-		private string GetAccessLevel(Definition.AccessLevel a)
+		string GetAccessLevel(Definition.AccessLevel a)
 		{
 			switch (a)
 			{
@@ -64,75 +64,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 		}
 
-		private string GetBinaryExpressionOperator(Definition.BinaryExpression.OperatorType o)
-		{
-			switch (o)
-			{
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Add:
-					return "+";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Subtract:
-					return "-";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Multiply:
-					return "*";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Divide:
-					return "/";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Modulo:
-					return "%";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalAnd:
-					return "&&";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LogicalOr:
-					return "||";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.GreaterThan:
-					return ">";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.GreaterThanOrEqual:
-					return ">=";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThan:
-					return "<";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.LessThanOrEqual:
-					return "<=";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Equals:
-					return "==";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.NotEquals:
-					return "!=";
-				case LanguageTranslator.Definition.BinaryExpression.OperatorType.Is:
-					return "instanceof";
-				default:
-					return "unknown";
-					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
-			}
-		}
-
-		private string GetPrefixUnaryExpressionOperator(Definition.PrefixUnaryExpression.OperatorType o)
-		{
-			switch (o)
-			{
-				case Definition.PrefixUnaryExpression.OperatorType.LogicalNot:
-					return "!";
-				case Definition.PrefixUnaryExpression.OperatorType.UnaryPlus:
-					return "+";
-				case Definition.PrefixUnaryExpression.OperatorType.UnaryMinus:
-					return "-";
-				case Definition.PrefixUnaryExpression.OperatorType.PreIncrement:
-					return "++";
-				default:
-					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
-			}
-		}
-		private string GetPostfixUnaryExpressionOperator(Definition.PostfixUnaryExpression.OperatorType o)
-		{
-			switch (o)
-			{
-				case Definition.PostfixUnaryExpression.OperatorType.PostIncrement:
-					return "++";
-				case Definition.PostfixUnaryExpression.OperatorType.PostDecrement:
-					return "--";
-				default:
-					throw new NotImplementedException("unknown operator " + Enum.GetName(o.GetType(), o));
-			}
-		}
-
-
-		private string GetTypeSpecifier(Definition.TypeSpecifier t)
+		string GetTypeSpecifier(Definition.TypeSpecifier t)
 		{
 			if (t is Definition.SimpleType)
 			{
@@ -165,7 +97,7 @@ namespace LanguageTranslator.Translator.Java
 			}
 		}
 
-		private string GetExpression(Definition.Expression e)
+		string GetExpression(Definition.Expression e)
 		{
 			if (e == null) { return ""; }
 			if (e is Definition.BinaryExpression)
@@ -340,13 +272,17 @@ namespace LanguageTranslator.Translator.Java
 			else if (e is Definition.ObjectCreationExpression)
 			{
 				var e2 = (Definition.ObjectCreationExpression)e;
-				return string.Format("new {0}({1})", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
+				var args = e2.Args.Select(_ => GetExpression(_));
+
+				return string.Format("new {0}({1})", GetTypeSpecifier(e2.Type), string.Join(",", args));
 
 			}
 			else if (e is Definition.ObjectArrayCreationExpression)
 			{
 				var e2 = (Definition.ObjectArrayCreationExpression)e;
-				return string.Format("new {0}[{1}]", GetTypeSpecifier(e2.Type), MakeExpressionList(e2.Args));
+				var args = e2.Args.Select(_ => GetExpression(_));
+
+				return string.Format("new {0}[{1}]", GetTypeSpecifier(e2.Type), string.Join(",", args));
 			}
 			else if (e is Definition.GenericNameExpression)
 			{
@@ -375,25 +311,6 @@ namespace LanguageTranslator.Translator.Java
 			{
 				throw new NotImplementedException("unknown expression " + e.GetType().ToString());
 			}
-		}
-
-		private string MakeExpressionList(Definition.Expression[] exps)
-		{
-			var isFirst = true;
-			var ret = "";
-			foreach (var a in exps)
-			{
-				if (isFirst)
-				{
-					isFirst = false;
-				}
-				else
-				{
-					ret += ", ";
-				}
-				ret += GetExpression(a);
-			}
-			return ret;
 		}
 
 		private void OutputStatements(ICollection<Definition.Statement> statements)
@@ -684,8 +601,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					Summary(p.Summary);
 
-					MakeIndent();
-					Res.AppendFormat("{2} {3}void set{0}({1} value) {{\r\n", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					WriteLine("{2} {3}void set{0}({1} value) {{", p.Name, GetTypeSpecifier(p.Type), GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					IndentDepth++;
 					OutputStatement(p.Setter.Body);
 					IndentDepth--;
@@ -705,8 +621,7 @@ namespace LanguageTranslator.Translator.Java
 				{
 					Summary(p.Summary);
 
-					MakeIndent();
-					Res.AppendFormat("{2} {3}{0} get{1}() {{\r\n", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
+					WriteLine("{2} {3}{0} get{1}() {{", GetTypeSpecifier(p.Type), p.Name, GetAccessLevel(p.AccessLevel), p.IsStatic ? "static " : "");
 					IndentDepth++;
 					OutputStatement(p.Getter.Body);
 					IndentDepth--;
@@ -722,9 +637,7 @@ namespace LanguageTranslator.Translator.Java
 
 			if (needVariable)
 			{
-				//Summary(p.Brief);
-				MakeIndent();
-				Res.AppendFormat("private {2} {0} {1};\r\n", GetTypeSpecifier(p.Type), p.Name, p.IsStatic ? "static " : "");
+				WriteLine("private {2} {0} {1};", GetTypeSpecifier(p.Type), p.Name, p.IsStatic ? "static " : "");
 			}
 
 		}
@@ -733,15 +646,13 @@ namespace LanguageTranslator.Translator.Java
 		{
 			if (p.Setter != null)
 			{
-				MakeIndent();
-				Res.AppendFormat("void set{0}({1} value);\r\n", p.Name, GetTypeSpecifier(p.Type));
+				WriteLine("void set{0}({1} value);", p.Name, GetTypeSpecifier(p.Type));
 			}
 
 
 			if (p.Getter != null)
 			{
-				MakeIndent();
-				Res.AppendFormat("{0} get{1}();\r\n", GetTypeSpecifier(p.Type), p.Name);
+				WriteLine("{0} get{1}();", GetTypeSpecifier(p.Type), p.Name);
 			}
 		}
 
@@ -846,15 +757,12 @@ namespace LanguageTranslator.Translator.Java
 			{
 				foreach (var d in cs.Destructors)
 				{
-					MakeIndent();
-					Res.AppendLine("@Override");
-					MakeIndent();
-					Res.AppendLine("protected void finalize() throws Throwable {");
+					WriteLine("@Override");
+					WriteLine("protected void finalize() throws Throwable {");
 					IndentDepth++;
 					if (cs.BaseTypes != null && cs.BaseTypes.Count > 0)
 					{
-						MakeIndent();
-						Res.AppendLine("try { super.finalize(); } finally {");
+						WriteLine("try { super.finalize(); } finally {");
 						IndentDepth++;
 					}
 					foreach (var s in d.Body)
@@ -980,10 +888,9 @@ namespace LanguageTranslator.Translator.Java
 
 			// デフォルトコンストラクタ
 			{
-				MakeIndent();
 				var name = ss.Name;
 				var constructor = "public " + name + "() {}";
-				Res.AppendLine(constructor);
+				WriteLine(constructor);
 			}
 
 			if (ss.Constructors != null)
@@ -998,15 +905,12 @@ namespace LanguageTranslator.Translator.Java
 			{
 				foreach (var d in ss.Destructors)
 				{
-					MakeIndent();
-					Res.AppendLine("@Override");
-					MakeIndent();
-					Res.AppendLine("protected void finalize() throws Throwable {");
+					WriteLine("@Override");
+					WriteLine("protected void finalize() throws Throwable {");
 					IndentDepth++;
 					if (ss.BaseTypes != null && ss.BaseTypes.Count > 0)
 					{
-						MakeIndent();
-						Res.AppendLine("try { super.finalize(); } finally {");
+						WriteLine("try { super.finalize(); } finally {");
 						IndentDepth++;
 					}
 					foreach (var s in d.Body)
