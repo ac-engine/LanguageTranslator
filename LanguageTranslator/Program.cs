@@ -848,7 +848,16 @@ namespace LanguageTranslator
 			editor.Convert();
 
 			// 変換後コードの出力
-			var translator = new Translator.Java.Translator();
+			Translator.Translator translator = null;
+
+			if(langType == "java")
+			{
+				translator = new Translator.Java.Translator();
+			}
+			else if (langType == "cpp")
+			{
+				translator = new Translator.Cpp.Translator();
+			}
 
 			System.IO.Directory.CreateDirectory(dstDir);
 			translator.Translate(dstDir, definitions);
