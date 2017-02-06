@@ -15,3 +15,9 @@ destination_dir - a directory wheare generated files are exported.
 languageType - (java, cpp)
 
 dlls - pathes of dlls linked with source codes of CSharp (option)
+
+## Test
+
+LanguageTranslator.exe Test/CSharp Test/Java java
+
+LanguageTranslator.exe Test/CSharp Test/Cpp cpp
