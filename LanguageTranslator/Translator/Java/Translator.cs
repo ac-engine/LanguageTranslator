@@ -758,11 +758,11 @@ namespace LanguageTranslator.Translator.Java
 				foreach (var d in cs.Destructors)
 				{
 					WriteLine("@Override");
-					WriteLine("protected void finalize() throws Throwable {");
+					WriteLine("protected void finalize() throws Throwable {{");
 					IndentDepth++;
 					if (cs.BaseTypes != null && cs.BaseTypes.Count > 0)
 					{
-						WriteLine("try { super.finalize(); } finally {");
+						WriteLine("try {{ super.finalize(); }} finally {{");
 						IndentDepth++;
 					}
 					foreach (var s in d.Body)

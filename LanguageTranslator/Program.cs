@@ -44,7 +44,7 @@ namespace LanguageTranslator
 
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.GC");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Helper");
-			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Dictionary");
+            parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Dictionary");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.SortedList");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
@@ -108,7 +108,12 @@ namespace LanguageTranslator
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Remove", "remove");
 			editor.AddMethodConverter("System.Collections.Generic", "Dictionary", "Clear", "clear");
 
-			editor.AddMethodConverter("System.Collections.Generic", "SortedList", "ContainsKey", "containsKey");
+            editor.AddMethodConverter("System.Collections.Generic", "HashSet", "Add", "add");
+            editor.AddMethodConverter("System.Collections.Generic", "HashSet", "Contains", "contains");
+            editor.AddMethodConverter("System.Collections.Generic", "HashSet", "Remove", "remove");
+            editor.AddMethodConverter("System.Collections.Generic", "HashSet", "Clear", "clear");
+
+            editor.AddMethodConverter("System.Collections.Generic", "SortedList", "ContainsKey", "containsKey");
 
 			editor.AddMethodConverter("System", "Console", "WriteLine", "println");
 
@@ -144,7 +149,8 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System.Collections.Generic", "Queue", "java.util", "LinkedList");
 
 			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
-			editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "TreeMap");
+            editor.AddTypeConverter("System.Collections.Generic", "HashSet", "java.util", "HashSet");
+            editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "TreeMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
 			editor.AddTypeConverter("System.Collections.Generic", "IEnumerable", "java.lang", "Iterable");
 
@@ -157,7 +163,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Console", "System", "out");
 
 			editor.AddIgnoredType("asd.Particular", "Dictionary");
-			editor.AddIgnoredType("asd.Particular", "SortedList");
+            editor.AddIgnoredType("asd.Particular", "SortedList");
 			editor.AddIgnoredType("asd.Particular", "WeakReference");
 			editor.AddIgnoredType("asd.Particular", "GC");
 			editor.AddIgnoredType("asd.Particular", "Helper");

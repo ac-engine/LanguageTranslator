@@ -223,9 +223,46 @@ namespace LanguageTranslator.Definition
 
 				c.IsDefinedDefault = true;
 				Classes.Add(c);
-			}
+            }
 
-			{
+            {
+                HashSet<int> v = new HashSet<int>();
+                ClassDef c = new ClassDef();
+                c.Namespace = "System.Collections.Generic";
+                c.Name = "HashSet";
+
+                {
+                    MethodDef m = new MethodDef();
+                    m.Name = "Add";
+                    m.Parameters.Add(new ParameterDef() { Name = "item" });
+                    c.Methods.Add(m);
+                }
+
+                {
+                    MethodDef m = new MethodDef();
+                    m.Name = "Contains";
+                    m.Parameters.Add(new ParameterDef() { Name = "item" });
+                    c.Methods.Add(m);
+                }
+
+                {
+                    MethodDef m = new MethodDef();
+                    m.Name = "Remove";
+                    m.Parameters.Add(new ParameterDef() { Name = "item" });
+                    c.Methods.Add(m);
+                }
+
+                {
+                    MethodDef m = new MethodDef();
+                    m.Name = "Clear";
+                    c.Methods.Add(m);
+                }
+
+                c.IsDefinedDefault = true;
+                Classes.Add(c);
+            }
+
+            {
 				SortedList<int, int> v = new SortedList<int, int>();
 				ClassDef c = new ClassDef();
 				c.Namespace = "System.Collections.Generic";
