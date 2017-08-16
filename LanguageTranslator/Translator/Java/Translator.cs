@@ -889,7 +889,7 @@ namespace LanguageTranslator.Translator.Java
 			// デフォルトコンストラクタ
 			{
 				var name = ss.Name;
-				var constructor = "public " + name + "() {}";
+				var constructor = "public " + name + "() {{}}";
 				WriteLine(constructor);
 			}
 
@@ -906,11 +906,11 @@ namespace LanguageTranslator.Translator.Java
 				foreach (var d in ss.Destructors)
 				{
 					WriteLine("@Override");
-					WriteLine("protected void finalize() throws Throwable {");
+					WriteLine("protected void finalize() throws Throwable {{");
 					IndentDepth++;
 					if (ss.BaseTypes != null && ss.BaseTypes.Count > 0)
 					{
-						WriteLine("try { super.finalize(); } finally {");
+						WriteLine("try {{ super.finalize(); }} finally {{");
 						IndentDepth++;
 					}
 					foreach (var s in d.Body)
