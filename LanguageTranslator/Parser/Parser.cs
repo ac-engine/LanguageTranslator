@@ -37,15 +37,17 @@ namespace LanguageTranslator.Parser
 
             var mscorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "mscorlib.dll"));
 			var systemlib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "System.dll"));
+            var systemCorelib = MetadataReference.CreateFromFile(System.IO.Path.Combine(assemblyPath, "System.Core.dll"));
 
-			var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
 
 			List<MetadataReference> references = new List<MetadataReference>();
 			references.Add(mscorelib);
 			references.Add(systemlib);
+            references.Add(systemCorelib);
 
-			// DLL読み込み
-			foreach(var dll in dlls)
+            // DLL読み込み
+            foreach (var dll in dlls)
 			{
 				if (System.IO.File.Exists(dll))
 				{

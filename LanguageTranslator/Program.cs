@@ -44,13 +44,14 @@ namespace LanguageTranslator
 
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.GC");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Helper");
-            parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Dictionary");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Dictionary");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.SortedList");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Lambda");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.Define");
 			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.WeakReference");
+			parser.TypesWhoseMemberNotParsed.Add("asd.Particular.ChildManagementMode");
 
-			Definition.Definitions definitions = null;
+            Definition.Definitions definitions = null;
 
 			try
 			{
