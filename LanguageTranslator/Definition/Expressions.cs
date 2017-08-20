@@ -90,10 +90,10 @@ namespace LanguageTranslator.Definition
 
 	class ObjectCreationExpression : Expression
 	{
-		/// <summary>
-		/// 型
-		/// </summary>
-		public TypeSpecifier Type;
+        /// <summary>
+        /// 型
+        /// </summary>
+        public TypeSpecifier Type;
 
 		public Expression[] Args;
 	}
