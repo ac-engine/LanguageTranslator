@@ -132,7 +132,8 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Void", "", "void");
 			editor.AddTypeConverter("System", "Boolean", "", "boolean");
 			editor.AddTypeConverter("System", "Int32", "", "int");
-			editor.AddTypeConverter("System", "Single", "", "float");
+            editor.AddTypeConverter("System", "Int64", "", "long");
+            editor.AddTypeConverter("System", "Single", "", "float");
 			editor.AddTypeConverter("System", "Double", "", "double");
 			editor.AddTypeConverter("System", "Int16", "", "short");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
@@ -141,15 +142,15 @@ namespace LanguageTranslator
 
 			editor.AddTypeConverter("System", "IntPtr", "", "long");
 
-			editor.AddTypeConverter("System", "String", "java.lang", "String");
+            editor.AddTypeConverter("System", "String", "java.lang", "String");
 
 			editor.AddTypeConverter("System", "IDisposable", "asd.Particular.Java", "IDisposable");
 
 			editor.AddTypeConverter("System.Collections.Generic", "List", "java.util", "ArrayList");
 			editor.AddTypeConverter("System.Collections.Generic", "LinkedList", "java.util", "LinkedList");
 			editor.AddTypeConverter("System.Collections.Generic", "Queue", "java.util", "LinkedList");
-
-			editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
+            
+            editor.AddTypeConverter("System.Collections.Generic", "Dictionary", "java.util", "HashMap");
             editor.AddTypeConverter("System.Collections.Generic", "HashSet", "java.util", "HashSet");
             editor.AddTypeConverter("System.Collections.Generic", "SortedList", "java.util", "TreeMap");
 			editor.AddTypeConverter("System.Collections.Generic", "KeyValuePair", "java.util", "Map.Entry");
@@ -835,7 +836,13 @@ namespace LanguageTranslator
 									t_.TypeName = "Long";
 								}
 
-								if (t_.TypeName == "Single")
+                                if (t_.TypeName == "Int64")
+                                {
+                                    t_.Namespace = "java.lang";
+                                    t_.TypeName = "Long";
+                                }
+
+                                if (t_.TypeName == "Single")
 								{
 									t_.Namespace = "java.lang";
 									t_.TypeName = "Float";
