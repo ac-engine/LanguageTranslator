@@ -137,6 +137,7 @@ namespace LanguageTranslator
 			editor.AddTypeConverter("System", "Double", "", "double");
 			editor.AddTypeConverter("System", "Int16", "", "short");
 			editor.AddTypeConverter("System", "Byte", "", "byte");
+			editor.AddTypeConverter("System", "SByte", "", "byte");
 
 			editor.AddTypeConverter("System", "Object", "java.lang", "Object");
 
